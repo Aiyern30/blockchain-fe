@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function Home() {
@@ -9,6 +10,7 @@ export default function Home() {
           largeScreen: "full",
         }}
       />
+      <ThemeToggle />
     </div>
   );
 }
