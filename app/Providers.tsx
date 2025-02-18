@@ -1,25 +1,28 @@
 "use client";
 
-import { PrivyProvider } from "@privy-io/react-auth";
+import "@rainbow-me/rainbowkit/styles.css";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+import { mainnet, polygon, optimism, arbitrum, base } from "wagmi/chains";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+const config = getDefaultConfig({
+  appName: "My RainbowKit App",
+  projectId: "YOUR_PROJECT_ID",
+  chains: [mainnet, polygon, optimism, arbitrum, base],
+  ssr: true,
+});
+
+const queryClient = new QueryClient();
+
+const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
-    <PrivyProvider
-      appId="cm7absquv014gowmey00g3y9y"
-      config={{
-        // Customize Privy's appearance in your app
-        appearance: {
-          theme: "light",
-          accentColor: "#676FFF",
-          logo: "https://your-logo-url",
-        },
-        // Create embedded wallets for users who don't have a wallet
-        embeddedWallets: {
-          createOnLogin: "users-without-wallets",
-        },
-      }}
-    >
-      {children}
-    </PrivyProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>{children}</RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
-}
+};
+
+export default Providers;
