@@ -43,6 +43,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 
 const RainbowKitTheme = ({ children }: { children: React.ReactNode }) => {
   const { theme } = useTheme();
+  console.log("theme", theme);
 
   return (
     <RainbowKitProvider
@@ -50,14 +51,14 @@ const RainbowKitTheme = ({ children }: { children: React.ReactNode }) => {
       theme={
         theme === "dark"
           ? darkTheme({
-              accentColor: "#7b3fe4",
+              accentColor: "#007bff",
               accentColorForeground: "white",
               borderRadius: "small",
               fontStack: "system",
               overlayBlur: "small",
             })
           : lightTheme({
-              accentColor: "#007bff",
+              accentColor: "#7b3fe4",
               accentColorForeground: "white",
               borderRadius: "small",
               fontStack: "system",
