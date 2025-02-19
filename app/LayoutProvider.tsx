@@ -28,7 +28,7 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 p-5">{children}</div>
     </div>
   );
 };
