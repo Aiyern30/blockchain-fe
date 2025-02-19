@@ -43,6 +43,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 
 const RainbowKitTheme = ({ children }: { children: React.ReactNode }) => {
   const { theme } = useTheme();
+  console.log("theme", theme);
 
   return (
     <RainbowKitProvider
