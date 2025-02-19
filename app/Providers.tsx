@@ -14,39 +14,27 @@ import {
   optimism,
   arbitrum,
   base,
-  Chain,
+  sepolia,
 } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { ThemeProvider } from "@/components/theme-provider";
-import { SessionProvider } from "next-auth/react";
-import { RainbowKitSiweNextAuthProvider } from "@rainbow-me/rainbowkit-siwe-next-auth";
 
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
   projectId: "4f69cd9e3add96465fdfd34b55057537",
-  chains: [mainnet, polygon, optimism, arbitrum, base],
+  chains: [mainnet, polygon, optimism, arbitrum, base, sepolia],
   ssr: true,
 });
 
 const queryClient = new QueryClient();
-
-const getSiweMessageOptions = () => ({
-  statement: "Sign in to my RainbowKit app",
-});
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          <SessionProvider>
-            <RainbowKitSiweNextAuthProvider
-              getSiweMessageOptions={getSiweMessageOptions}
-            >
-              <RainbowKitTheme>{children}</RainbowKitTheme>
-            </RainbowKitSiweNextAuthProvider>
-          </SessionProvider>
+          <RainbowKitTheme>{children}</RainbowKitTheme>
         </QueryClientProvider>
       </WagmiProvider>
     </ThemeProvider>
@@ -55,10 +43,10 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 
 const RainbowKitTheme = ({ children }: { children: React.ReactNode }) => {
   const { theme } = useTheme();
-  const initialChain: Chain = mainnet;
+
   return (
     <RainbowKitProvider
-      initialChain={initialChain}
+      showRecentTransactions={true}
       theme={
         theme === "dark"
           ? darkTheme({
