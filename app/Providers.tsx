@@ -19,7 +19,7 @@ import {
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { ThemeProvider } from "@/components/theme-provider";
-
+// chains network
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
   projectId: "4f69cd9e3add96465fdfd34b55057537",
