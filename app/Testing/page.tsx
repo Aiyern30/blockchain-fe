@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { VerifiedIcon, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Card,
@@ -11,6 +11,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui";
+import { useDeviceType } from "@/utils/useDeviceType";
 
 const categories = [
   "All",
@@ -68,23 +69,33 @@ const items = [
 ];
 
 export default function NFTCarousel() {
+  const { isMobile, isTablet } = useDeviceType();
   const [startIndex, setStartIndex] = useState(0);
-  const itemsPerPage = 4;
+  const [itemsPerPage, setItemsPerPage] = useState(4);
+
+  useEffect(() => {
+    if (isMobile) {
+      setItemsPerPage(1);
+    } else if (isTablet) {
+      setItemsPerPage(2);
+    } else {
+      setItemsPerPage(4);
+    }
+  }, [isMobile, isTablet]);
 
   const previousPage = () => {
     setStartIndex((prev) =>
-      prev === 0 ? items.length - itemsPerPage : prev - 1
+      prev === 0 ? items.length - itemsPerPage : prev - itemsPerPage
     );
   };
 
   const nextPage = () => {
     setStartIndex((prev) =>
-      prev + 1 + itemsPerPage > items.length ? 0 : prev + 1
+      prev + itemsPerPage >= items.length ? 0 : prev + itemsPerPage
     );
   };
 
   const currentItems = items.slice(startIndex, startIndex + itemsPerPage);
-
   return (
     <div className="w-full px-4 py-6 relative">
       <Tabs defaultValue="all" className="w-full mb-6">
@@ -113,7 +124,12 @@ export default function NFTCarousel() {
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
+        <div
+          className={`grid gap-4 w-full`}
+          style={{
+            gridTemplateColumns: `repeat(${itemsPerPage}, minmax(0, 1fr))`,
+          }}
+        >
           {currentItems.map((item, index) => (
             <Card
               key={index}
