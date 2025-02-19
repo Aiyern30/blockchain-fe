@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Bot } from "lucide-react";
 
@@ -30,7 +31,12 @@ export function RoboAnimation() {
               ease: "easeInOut",
             }}
           />
-          <Bot className="w-32 h-32 text-purple-500" />
+          <Bot
+            className={cn(
+              "w-32 h-32 transition-colors",
+              "text-purple-400 dark:text-[#007bff]"
+            )}
+          />
         </div>
       </motion.div>
     </div>
