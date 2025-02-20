@@ -29,6 +29,7 @@ import {
 } from "@/components/ui";
 import { useDeviceType } from "@/utils/useDeviceType";
 import { CarouselSkeleton } from "@/components/page/Testing/CarouselSkeleton";
+import { TableSkeleton } from "@/components/page/Testing/TableSkeleton";
 
 const categories = [
   "All",
@@ -331,6 +332,7 @@ export default function NFTCarousel() {
           </Select>
         </div>
       </div>
+      <TableSkeleton isMobile={isMobile} shouldSplit={shouldSplit} />
 
       <div className="flex items-center justify-center gap-5 mt-5">
         {isMobile || !shouldSplit ? (
