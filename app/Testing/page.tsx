@@ -29,6 +29,7 @@ import {
   TabsTrigger,
 } from "@/components/ui";
 import { useDeviceType } from "@/utils/useDeviceType";
+import DrawingCat from "./DrawingCat";
 
 const categories = [
   "All",
@@ -178,6 +179,7 @@ const collections = [
     volume: "63",
   },
 ];
+
 export default function NFTCarousel() {
   const { isMobile, isTablet } = useDeviceType();
   const [startIndex, setStartIndex] = useState(0);
@@ -475,6 +477,8 @@ export default function NFTCarousel() {
           </>
         )}
       </div>
+
+      <DrawingCat />
     </>
   );
 }
