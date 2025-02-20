@@ -60,7 +60,7 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -10 }}
             className="absolute top-full left-0 w-full 
             backdrop-blur-lg border-b border-white/10 
-            p-6 flex flex-col items-center space-y-4 md:hidden"
+            p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
           >
             <NavLink href="/A">A</NavLink>
             <NavLink href="/B">B</NavLink>
