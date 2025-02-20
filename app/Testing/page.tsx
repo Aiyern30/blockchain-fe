@@ -28,6 +28,8 @@ import {
   TabsTrigger,
 } from "@/components/ui";
 import { useDeviceType } from "@/utils/useDeviceType";
+import { CarouselSkeleton } from "@/components/page/Testing/CarouselSkeleton";
+import { TableSkeleton } from "@/components/page/Testing/TableSkeleton";
 import DrawingCat from "./DrawingCat";
 
 const categories = [
@@ -219,6 +221,7 @@ export default function NFTCarousel() {
   const currentItems = items.slice(startIndex, startIndex + itemsPerPage);
   return (
     <>
+      <CarouselSkeleton />
       <div className="w-full relative">
         <Tabs
           defaultValue={categories[0].toLowerCase()}
@@ -331,6 +334,7 @@ export default function NFTCarousel() {
           </Select>
         </div>
       </div>
+      <TableSkeleton isMobile={isMobile} shouldSplit={shouldSplit} />
 
       <div className="flex items-center justify-center gap-5 mt-5">
         {isMobile || !shouldSplit ? (
