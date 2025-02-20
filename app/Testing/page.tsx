@@ -28,6 +28,7 @@ import {
   TabsTrigger,
 } from "@/components/ui";
 import { useDeviceType } from "@/utils/useDeviceType";
+import { CarouselSkeleton } from "@/components/page/Testing/CarouselSkeleton";
 
 const categories = [
   "All",
@@ -217,6 +218,7 @@ export default function NFTCarousel() {
   const currentItems = items.slice(startIndex, startIndex + itemsPerPage);
   return (
     <>
+      <CarouselSkeleton />
       <div className="w-full relative">
         <Tabs
           defaultValue={categories[0].toLowerCase()}
