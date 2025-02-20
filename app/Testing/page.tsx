@@ -10,7 +10,6 @@ import {
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  Button,
   Card,
   CardContent,
   Select,
@@ -183,14 +182,13 @@ export default function NFTCarousel() {
   return (
     <>
       <div className="w-full relative">
-        <Tabs defaultValue="all" className="w-full mb-6">
-          <TabsList className="bg-transparent border-b border-white/10 w-full justify-start rounded-none h-auto py-2 gap-6">
+        <Tabs
+          defaultValue={categories[0].toLowerCase()}
+          className="w-full mb-5"
+        >
+          <TabsList className="w-full justify-start gap-4">
             {categories.map((category) => (
-              <TabsTrigger
-                key={category}
-                value={category.toLowerCase()}
-                className="text-white/60 data-[state=active]:text-white data-[state=active]:bg-transparent px-0"
-              >
+              <TabsTrigger key={category} value={category.toLowerCase()}>
                 {category}
               </TabsTrigger>
             ))}
@@ -254,41 +252,48 @@ export default function NFTCarousel() {
           </button>
         </div>
       </div>
-      <div className="mt-5 space-y-6">
+      <div
+        className={cn(
+          "mt-5 space-y-4 ",
+          isMobile ? "flex flex-col" : "flex justify-between items-center "
+        )}
+      >
         <div className="flex justify-between items-center">
           <Tabs defaultValue="trending">
-            <TabsList className="">
+            <TabsList className="flex gap-2">
               <TabsTrigger value="trending">Trending</TabsTrigger>
               <TabsTrigger value="top">Top</TabsTrigger>
             </TabsList>
           </Tabs>
+        </div>
 
-          <div className="flex items-center gap-2">
-            {timeFrames.map((time) => (
-              <Button
-                key={time}
-                variant="ghost"
-                className="text-sm hover:bg-zinc-800"
-              >
-                {time}
-              </Button>
-            ))}
-            <Select>
-              <SelectTrigger className="w-[130px]  border-zinc-800">
-                <SelectValue placeholder="All chains" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All chains</SelectItem>
-                <SelectItem value="ethereum">Ethereum</SelectItem>
-                <SelectItem value="polygon">Polygon</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" className="text-sm hover:bg-zinc-800">
-              View all
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Select>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="All chains" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All chains</SelectItem>
+              <SelectItem value="ethereum">Ethereum</SelectItem>
+              <SelectItem value="polygon">Polygon</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder={timeFrames[0]} />
+            </SelectTrigger>
+            <SelectContent>
+              {timeFrames.map((time) => (
+                <SelectItem key={time} value={time}>
+                  {time}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
       <div className="flex items-center justify-center gap-5 mt-5">
         <Table>
           <TableHeader>
