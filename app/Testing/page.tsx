@@ -140,7 +140,42 @@ const collections = [
     floorPrice: "0.05",
     volume: "63",
   },
-  // Add more collections as needed
+  {
+    rank: 3,
+    name: "Courtyard.io",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
+    verified: true,
+    floorPrice: "< 0.01",
+    volume: "400",
+  },
+  {
+    rank: 4,
+    name: "Gemesis",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
+    verified: true,
+    floorPrice: "0.05",
+    volume: "63",
+  },
+  {
+    rank: 5,
+    name: "Courtyard.io",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
+    verified: true,
+    floorPrice: "< 0.01",
+    volume: "400",
+  },
+  {
+    rank: 6,
+    name: "Gemesis",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
+    verified: true,
+    floorPrice: "0.05",
+    volume: "63",
+  },
 ];
 export default function NFTCarousel() {
   const { isMobile, isTablet } = useDeviceType();
@@ -297,11 +332,8 @@ export default function NFTCarousel() {
 
       <div className="flex items-center justify-center gap-5 mt-5">
         {isMobile || !shouldSplit ? (
-          // Mobile View OR if collections <= 5, show single scrollable table
           <div className="w-full overflow-x-auto">
             <Table className="min-w-[600px]">
-              {" "}
-              {/* Ensures horizontal scroll when needed */}
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px] text-center">Rank</TableHead>
@@ -345,7 +377,6 @@ export default function NFTCarousel() {
             </Table>
           </div>
         ) : (
-          // Desktop View with >5 items: Split into 2 tables
           <>
             <Table>
               <TableHeader>
@@ -356,7 +387,7 @@ export default function NFTCarousel() {
                   <TableHead>Volume</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="min-h-[320px]">
                 {collections.slice(0, 5).map((collection) => (
                   <TableRow
                     key={collection.rank}
@@ -399,7 +430,7 @@ export default function NFTCarousel() {
                   <TableHead>Volume</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="min-h-[320px]">
                 {collections.slice(5).map((collection) => (
                   <TableRow
                     key={collection.rank}
@@ -430,6 +461,14 @@ export default function NFTCarousel() {
                     <TableCell>{collection.volume} ETH</TableCell>
                   </TableRow>
                 ))}
+                {collections.slice(5).length < 5 &&
+                  Array.from({ length: 5 - collections.slice(5).length }).map(
+                    (_, i) => (
+                      <TableRow key={`empty-${i}`} className="h-16 border-0">
+                        <TableCell colSpan={4}></TableCell>
+                      </TableRow>
+                    )
+                  )}
               </TableBody>
             </Table>
           </>
