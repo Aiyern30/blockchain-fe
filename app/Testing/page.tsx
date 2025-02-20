@@ -66,6 +66,41 @@ const items = [
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
     verified: true,
   },
+  {
+    title: "1",
+    floor: "68.9 ETH",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+    verified: true,
+  },
+  {
+    title: "2",
+    floor: "68.9 ETH",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+    verified: true,
+  },
+  {
+    title: "3",
+    floor: "68.9 ETH",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+    verified: true,
+  },
+  {
+    title: "4",
+    floor: "68.9 ETH",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+    verified: true,
+  },
+  {
+    title: "5",
+    floor: "68.9 ETH",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+    verified: true,
+  },
 ];
 
 export default function NFTCarousel() {
@@ -84,9 +119,18 @@ export default function NFTCarousel() {
   }, [isMobile, isTablet]);
 
   const previousPage = () => {
-    setStartIndex((prev) =>
-      prev === 0 ? items.length - itemsPerPage : prev - itemsPerPage
-    );
+    // setStartIndex((prev) =>
+    //   prev === 0 ? items.length - itemsPerPage : prev - itemsPerPage
+    // );
+    setStartIndex((prev) => {
+      if (prev === 0) {
+        const remainder = items.length % itemsPerPage;
+        return remainder === 0
+          ? items.length - itemsPerPage
+          : items.length - remainder;
+      }
+      return prev - itemsPerPage;
+    });
   };
 
   const nextPage = () => {
