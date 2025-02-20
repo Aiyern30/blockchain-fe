@@ -1,4 +1,6 @@
+import { FloatingIcon } from "@/components/FloatingIcon";
 import Navbar from "@/components/Navbar";
+import { RoboAnimation } from "@/components/RoboAnimation";
 import { SparklesCore } from "@/components/Sparkles";
 import React from "react";
 
@@ -29,6 +31,13 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main Content */}
       <div className="relative z-10 p-5">{children}</div>
+      <div className="absolute bottom-0 right-0 w-96 h-96">
+        <RoboAnimation />
+      </div>
+
+      <div className="absolute inset-0 overflow-hidden">
+        <FloatingIcon count={6} />
+      </div>
     </div>
   );
 };
