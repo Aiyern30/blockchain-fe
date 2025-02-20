@@ -156,13 +156,15 @@ export default function DrawingCarousel() {
             <Card
               key={index}
               //   className="border shadow-sm rounded-md overflow-hidden bg-white"
-              className="relative bg-transparent border-none overflow-hidden group bg-white"
+              //   className="relative bg-transparent border-none overflow-hidden group bg-white"
+              className="flex flex-col w-full aspect-square bg-white border-none overflow-hidden"
             >
-              <div
+              {/* <div
                 // className="relative w-full bg-transparent border-none overflow-hidden group"
                 className="relative w-full object-cover absolute inset-0 z-0 transition-transform duration-300 group-hover:scale-110"
                 style={{ aspectRatio: "1 / 1" }}
-              >
+              > */}
+              <div className="relative w-full h-[60%]">
                 <Image
                   src={item.image || "/placeholder.svg"}
                   alt={item.title}
@@ -172,22 +174,43 @@ export default function DrawingCarousel() {
                 />
               </div>
 
-              <div className="relative w-full object-cover absolute inset-0 z-0 transition-transform duration-300 group-hover:scale-110" />
+              {/* <div className="relative w-full object-cover absolute inset-0 z-0 transition-transform duration-300 group-hover:scale-110" /> */}
 
               {/* <CardContent className="absolute bottom-0 left-0 w-full p-4 z-20"> */}
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-sm font-medium">{item.title}</h3>
+              <CardContent className="flex flex-col justify-between h-[40%] p-3">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    {item.title}
+                  </h3>
                   {item.verified && (
                     <VerifiedIcon className="w-4 h-4 text-blue-500" />
                   )}
                 </div>
-                <p className="text-xs text-gray-500">Floor: {item.floor}</p>
+                {/* <p className="text-xs text-gray-500">Floor: {item.floor}</p>
                 {item.volume && (
                   <p className="text-xs text-gray-500">
                     Total volume: {item.volume}
                   </p>
-                )}
+                )} */}
+                <div className="flex justify-between items-start">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">Floor</span>
+                    <span className="text-lg font-semibold text-gray-700">
+                      {item.floor}
+                    </span>
+                  </div>
+
+                  {item.volume && (
+                    <div className="flex flex-col text-right">
+                      <span className="text-xs text-gray-500">
+                        Total volume
+                      </span>
+                      <span className="text-lg font-semibold text-gray-700">
+                        {item.volume}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
