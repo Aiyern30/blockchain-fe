@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bot } from "lucide-react";
-import { cn } from "@/lib/utils";
-
+import Image from "next/image";
 export function FloatingIcon({ count = 5 }) {
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
   const [positions, setPositions] = useState<{ x: number; y: number }[]>([]);
@@ -52,7 +50,7 @@ export function FloatingIcon({ count = 5 }) {
               Math.random() * dimensions.height,
             ],
             rotate: [0, 180, 360],
-            opacity: [0.5, 1, 0.5], // Smooth fade effect
+            opacity: [0.5, 1, 0.5],
           }}
           transition={{
             duration: 15 + Math.random() * 10,
@@ -61,15 +59,16 @@ export function FloatingIcon({ count = 5 }) {
           }}
         >
           <div
-            className="relative w-16 h-16 bg-white/10 backdrop-blur-md 
+            className="relative w-8 h-8 bg-white/10 backdrop-blur-md 
             rounded-full border border-white/10 flex items-center justify-center 
             transform hover:scale-110 transition-transform shadow-lg shadow-purple-500/50 dark:shadow-blue-500/50"
           >
-            <Bot
-              className={cn(
-                "w-8 h-8 transition-colors",
-                "text-purple-400 dark:text-[#007bff]"
-              )}
+            <Image
+              src="/mars.png"
+              alt="Mars"
+              width={32}
+              height={32}
+              className="w-8 h-8 object-cover"
             />
           </div>
         </motion.div>
