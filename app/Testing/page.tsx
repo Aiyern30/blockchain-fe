@@ -141,12 +141,48 @@ const collections = [
     floorPrice: "0.05",
     volume: "63",
   },
-  // Add more collections as needed
+  {
+    rank: 3,
+    name: "Courtyard.io",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
+    verified: true,
+    floorPrice: "< 0.01",
+    volume: "400",
+  },
+  {
+    rank: 4,
+    name: "Gemesis",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
+    verified: true,
+    floorPrice: "0.05",
+    volume: "63",
+  },
+  {
+    rank: 5,
+    name: "Courtyard.io",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
+    verified: true,
+    floorPrice: "< 0.01",
+    volume: "400",
+  },
+  {
+    rank: 6,
+    name: "Gemesis",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
+    verified: true,
+    floorPrice: "0.05",
+    volume: "63",
+  },
 ];
 export default function NFTCarousel() {
   const { isMobile, isTablet } = useDeviceType();
   const [startIndex, setStartIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(4);
+  const shouldSplit = collections.length > 5;
 
   useEffect(() => {
     if (isMobile) {
@@ -183,14 +219,13 @@ export default function NFTCarousel() {
   return (
     <>
       <div className="w-full relative">
-        <Tabs defaultValue="all" className="w-full mb-6">
-          <TabsList className="bg-transparent border-b border-white/10 w-full justify-start rounded-none h-auto py-2 gap-6">
+        <Tabs
+          defaultValue={categories[0].toLowerCase()}
+          className="w-full mb-5"
+        >
+          <TabsList className="w-full justify-start gap-4">
             {categories.map((category) => (
-              <TabsTrigger
-                key={category}
-                value={category.toLowerCase()}
-                className="text-white/60 data-[state=active]:text-white data-[state=active]:bg-transparent px-0"
-              >
+              <TabsTrigger key={category} value={category.toLowerCase()}>
                 {category}
               </TabsTrigger>
             ))}
@@ -254,126 +289,191 @@ export default function NFTCarousel() {
           </button>
         </div>
       </div>
-      <div className="mt-5 space-y-6">
+      <div
+        className={cn(
+          "mt-5 space-y-4 ",
+          isMobile ? "flex flex-col" : "flex justify-between items-center "
+        )}
+      >
         <div className="flex justify-between items-center">
           <Tabs defaultValue="trending">
-            <TabsList className="bg-zinc-900">
+            <TabsList className="flex gap-2">
               <TabsTrigger value="trending">Trending</TabsTrigger>
               <TabsTrigger value="top">Top</TabsTrigger>
             </TabsList>
           </Tabs>
+        </div>
 
-          <div className="flex items-center gap-2">
-            {timeFrames.map((time) => (
-              <Button
-                key={time}
-                variant="ghost"
-                className="text-sm hover:bg-zinc-800"
-              >
-                {time}
-              </Button>
-            ))}
-            <Select>
-              <SelectTrigger className="w-[130px] bg-zinc-900 border-zinc-800">
-                <SelectValue placeholder="All chains" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All chains</SelectItem>
-                <SelectItem value="ethereum">Ethereum</SelectItem>
-                <SelectItem value="polygon">Polygon</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" className="text-sm hover:bg-zinc-800">
-              View all
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Select>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="All chains" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All chains</SelectItem>
+              <SelectItem value="ethereum">Ethereum</SelectItem>
+              <SelectItem value="polygon">Polygon</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder={timeFrames[0]} />
+            </SelectTrigger>
+            <SelectContent>
+              {timeFrames.map((time) => (
+                <SelectItem key={time} value={time}>
+                  {time}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
       <div className="flex items-center justify-center gap-5 mt-5">
-        <Table className="bg-black">
-          <TableHeader>
-            <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-[100px] text-center">Rank</TableHead>
-              <TableHead>Collection</TableHead>
-              <TableHead>Floor Price</TableHead>
-              <TableHead>Volume</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {collections.map((collection) => (
-              <TableRow
-                key={collection.rank}
-                className="hover:bg-zinc-900 cursor-pointer h-16"
-              >
-                <TableCell className="font-medium text-center">
-                  {collection.rank}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="relative w-8 h-8">
-                      <Image
-                        src={collection.image || "/placeholder.svg"}
-                        alt={collection.name}
-                        className="rounded-full"
-                        fill
-                      />
-                    </div>
-                    <span className="font-medium">{collection.name}</span>
-                    {collection.verified && (
-                      <span className="text-blue-500">
-                        <BadgeCheckIcon className="w-4 h-4" />
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{collection.floorPrice} ETH</TableCell>
-                <TableCell>{collection.volume} ETH</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Table className="bg-black">
-          <TableHeader>
-            <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-[100px] text-center">Rank</TableHead>
-              <TableHead>Collection</TableHead>
-              <TableHead>Floor Price</TableHead>
-              <TableHead>Volume</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {collections.map((collection) => (
-              <TableRow
-                key={collection.rank}
-                className="hover:bg-zinc-900 cursor-pointer h-16"
-              >
-                <TableCell className="font-medium text-center">
-                  {collection.rank}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="relative w-8 h-8">
-                      <Image
-                        src={collection.image || "/placeholder.svg"}
-                        alt={collection.name}
-                        className="rounded-full"
-                        fill
-                      />
-                    </div>
-                    <span className="font-medium">{collection.name}</span>
-                    {collection.verified && (
-                      <span className="text-blue-500">
-                        <BadgeCheckIcon className="w-4 h-4" />
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{collection.floorPrice} ETH</TableCell>
-                <TableCell>{collection.volume} ETH</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {isMobile || !shouldSplit ? (
+          <div className="w-full overflow-x-auto">
+            <Table className="min-w-[600px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px] text-center">Rank</TableHead>
+                  <TableHead>Collection</TableHead>
+                  <TableHead>Floor Price</TableHead>
+                  <TableHead>Volume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {collections.map((collection) => (
+                  <TableRow
+                    key={collection.rank}
+                    className="cursor-pointer h-16"
+                  >
+                    <TableCell className="font-medium text-center">
+                      {collection.rank}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <Image
+                            src={collection.image || "/placeholder.svg"}
+                            alt={collection.name}
+                            className="rounded-full"
+                            fill
+                          />
+                        </div>
+                        <span className="font-medium">{collection.name}</span>
+                        {collection.verified && (
+                          <span className="text-blue-500">
+                            <BadgeCheckIcon className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{collection.floorPrice} ETH</TableCell>
+                    <TableCell>{collection.volume} ETH</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px] text-center">Rank</TableHead>
+                  <TableHead>Collection</TableHead>
+                  <TableHead>Floor Price</TableHead>
+                  <TableHead>Volume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="min-h-[320px]">
+                {collections.slice(0, 5).map((collection) => (
+                  <TableRow
+                    key={collection.rank}
+                    className="cursor-pointer h-16"
+                  >
+                    <TableCell className="font-medium text-center">
+                      {collection.rank}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <Image
+                            src={collection.image || "/placeholder.svg"}
+                            alt={collection.name}
+                            className="rounded-full"
+                            fill
+                          />
+                        </div>
+                        <span className="font-medium">{collection.name}</span>
+                        {collection.verified && (
+                          <span className="text-blue-500">
+                            <BadgeCheckIcon className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{collection.floorPrice} ETH</TableCell>
+                    <TableCell>{collection.volume} ETH</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px] text-center">Rank</TableHead>
+                  <TableHead>Collection</TableHead>
+                  <TableHead>Floor Price</TableHead>
+                  <TableHead>Volume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="min-h-[320px]">
+                {collections.slice(5).map((collection) => (
+                  <TableRow
+                    key={collection.rank}
+                    className="cursor-pointer h-16"
+                  >
+                    <TableCell className="font-medium text-center">
+                      {collection.rank}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <Image
+                            src={collection.image || "/placeholder.svg"}
+                            alt={collection.name}
+                            className="rounded-full"
+                            fill
+                          />
+                        </div>
+                        <span className="font-medium">{collection.name}</span>
+                        {collection.verified && (
+                          <span className="text-blue-500">
+                            <BadgeCheckIcon className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{collection.floorPrice} ETH</TableCell>
+                    <TableCell>{collection.volume} ETH</TableCell>
+                  </TableRow>
+                ))}
+                {collections.slice(5).length < 5 &&
+                  Array.from({ length: 5 - collections.slice(5).length }).map(
+                    (_, i) => (
+                      <TableRow key={`empty-${i}`} className="h-16 border-0">
+                        <TableCell colSpan={4}></TableCell>
+                      </TableRow>
+                    )
+                  )}
+              </TableBody>
+            </Table>
+          </>
+        )}
       </div>
     </>
   );
