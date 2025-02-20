@@ -146,6 +146,7 @@ export default function NFTCarousel() {
   const { isMobile, isTablet } = useDeviceType();
   const [startIndex, setStartIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(4);
+  const shouldSplit = collections.length > 5;
 
   useEffect(() => {
     if (isMobile) {
@@ -295,84 +296,144 @@ export default function NFTCarousel() {
       </div>
 
       <div className="flex items-center justify-center gap-5 mt-5">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px] text-center">Rank</TableHead>
-              <TableHead>Collection</TableHead>
-              <TableHead>Floor Price</TableHead>
-              <TableHead>Volume</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {collections.map((collection) => (
-              <TableRow key={collection.rank} className=" cursor-pointer h-16">
-                <TableCell className="font-medium text-center">
-                  {collection.rank}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="relative w-8 h-8">
-                      <Image
-                        src={collection.image || "/placeholder.svg"}
-                        alt={collection.name}
-                        className="rounded-full"
-                        fill
-                      />
-                    </div>
-                    <span className="font-medium">{collection.name}</span>
-                    {collection.verified && (
-                      <span className="text-blue-500">
-                        <BadgeCheckIcon className="w-4 h-4" />
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{collection.floorPrice} ETH</TableCell>
-                <TableCell>{collection.volume} ETH</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px] text-center">Rank</TableHead>
-              <TableHead>Collection</TableHead>
-              <TableHead>Floor Price</TableHead>
-              <TableHead>Volume</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {collections.map((collection) => (
-              <TableRow key={collection.rank} className=" cursor-pointer h-16">
-                <TableCell className="font-medium text-center">
-                  {collection.rank}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="relative w-8 h-8">
-                      <Image
-                        src={collection.image || "/placeholder.svg"}
-                        alt={collection.name}
-                        className="rounded-full"
-                        fill
-                      />
-                    </div>
-                    <span className="font-medium">{collection.name}</span>
-                    {collection.verified && (
-                      <span className="text-blue-500">
-                        <BadgeCheckIcon className="w-4 h-4" />
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{collection.floorPrice} ETH</TableCell>
-                <TableCell>{collection.volume} ETH</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {isMobile || !shouldSplit ? (
+          // Mobile View OR if collections <= 5, show single scrollable table
+          <div className="w-full overflow-x-auto">
+            <Table className="min-w-[600px]">
+              {" "}
+              {/* Ensures horizontal scroll when needed */}
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px] text-center">Rank</TableHead>
+                  <TableHead>Collection</TableHead>
+                  <TableHead>Floor Price</TableHead>
+                  <TableHead>Volume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {collections.map((collection) => (
+                  <TableRow
+                    key={collection.rank}
+                    className="cursor-pointer h-16"
+                  >
+                    <TableCell className="font-medium text-center">
+                      {collection.rank}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <Image
+                            src={collection.image || "/placeholder.svg"}
+                            alt={collection.name}
+                            className="rounded-full"
+                            fill
+                          />
+                        </div>
+                        <span className="font-medium">{collection.name}</span>
+                        {collection.verified && (
+                          <span className="text-blue-500">
+                            <BadgeCheckIcon className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{collection.floorPrice} ETH</TableCell>
+                    <TableCell>{collection.volume} ETH</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          // Desktop View with >5 items: Split into 2 tables
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px] text-center">Rank</TableHead>
+                  <TableHead>Collection</TableHead>
+                  <TableHead>Floor Price</TableHead>
+                  <TableHead>Volume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {collections.slice(0, 5).map((collection) => (
+                  <TableRow
+                    key={collection.rank}
+                    className="cursor-pointer h-16"
+                  >
+                    <TableCell className="font-medium text-center">
+                      {collection.rank}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <Image
+                            src={collection.image || "/placeholder.svg"}
+                            alt={collection.name}
+                            className="rounded-full"
+                            fill
+                          />
+                        </div>
+                        <span className="font-medium">{collection.name}</span>
+                        {collection.verified && (
+                          <span className="text-blue-500">
+                            <BadgeCheckIcon className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{collection.floorPrice} ETH</TableCell>
+                    <TableCell>{collection.volume} ETH</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px] text-center">Rank</TableHead>
+                  <TableHead>Collection</TableHead>
+                  <TableHead>Floor Price</TableHead>
+                  <TableHead>Volume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {collections.slice(5).map((collection) => (
+                  <TableRow
+                    key={collection.rank}
+                    className="cursor-pointer h-16"
+                  >
+                    <TableCell className="font-medium text-center">
+                      {collection.rank}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <Image
+                            src={collection.image || "/placeholder.svg"}
+                            alt={collection.name}
+                            className="rounded-full"
+                            fill
+                          />
+                        </div>
+                        <span className="font-medium">{collection.name}</span>
+                        {collection.verified && (
+                          <span className="text-blue-500">
+                            <BadgeCheckIcon className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{collection.floorPrice} ETH</TableCell>
+                    <TableCell>{collection.volume} ETH</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
       </div>
     </>
   );
