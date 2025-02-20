@@ -10,7 +10,6 @@ import {
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  Button,
   Card,
   CardContent,
   Select,
@@ -240,7 +239,7 @@ export default function NFTCarousel() {
             className={cn(
               "h-full w-12",
               "flex items-center justify-center",
-              "text-white z-10 transition-opacity duration-300"
+              "text-white  transition-opacity duration-300"
             )}
           >
             <ChevronLeft className="w-6 h-6" />
@@ -261,12 +260,12 @@ export default function NFTCarousel() {
                   src={item.image || "/placeholder.svg"}
                   alt={item.title}
                   fill
-                  className="object-cover absolute inset-0 z-0 transition-transform duration-300 group-hover:scale-110"
+                  className="object-cover absolute inset-0 transition-transform duration-300 group-hover:scale-110"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent " />
 
-                <CardContent className="absolute bottom-0 left-0 w-full p-4 z-20">
+                <CardContent className="absolute bottom-0 left-0 w-full p-4 ">
                   <div className="flex items-center gap-2">
                     <h3 className="text-white font-medium">{item.title}</h3>
                     {item.verified && (
@@ -284,7 +283,7 @@ export default function NFTCarousel() {
             className={cn(
               "h-full w-12",
               "flex items-center justify-center",
-              "text-white z-10 transition-opacity duration-300"
+              "text-white  transition-opacity duration-300"
             )}
           >
             <ChevronRight className="w-6 h-6" />

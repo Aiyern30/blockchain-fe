@@ -16,7 +16,7 @@ export default function Navbar() {
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="flex items-center justify-between px-6 py-4 backdrop-blur-sm border-b border-white/10 relative"
+      className="flex items-center justify-between px-6 py-4 backdrop-blur-sm border-b border-white/10 relative z-50"
     >
       <Link href="/" className="flex items-center space-x-2">
         <Bot
@@ -59,6 +59,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="absolute top-full left-0 w-full 
+            bg-blue-900/95 dark:bg-black/95  
             backdrop-blur-lg border-b border-white/10 
             p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
           >

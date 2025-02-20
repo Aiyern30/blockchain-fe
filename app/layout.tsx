@@ -1,33 +1,30 @@
 import type { Metadata } from "next";
-// import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/Toaster";
 import Providers from "./Providers";
 import LayoutProvider from "./LayoutProvider";
 
-// const geistSans = localFont({
-//   src: "./fonts/GeistVF.woff",
-//   variable: "--font-geist-sans",
-//   weight: "100 900",
-// });
-// const geistMono = localFont({
-//   src: "./fonts/GeistMonoVF.woff",
-//   variable: "--font-geist-mono",
-//   weight: "100 900",
-// });
-
 export const metadata: Metadata = {
   title: "BlockChain",
   description: "Created by us",
+  icons: [
+    {
+      rel: "icon",
+      type: "image/png",
+      url: "/favicon.png",
+    },
+  ],
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" type="image/png" href="/favicon.png" />
+      </head>
+
       <body>
         <Providers>
           <LayoutProvider>
