@@ -63,7 +63,7 @@ export function FloatingIcon({ count = 5 }) {
           <div
             className="relative w-16 h-16 bg-white/10 backdrop-blur-md 
             rounded-full border border-white/10 flex items-center justify-center 
-            transform hover:scale-110 transition-transform shadow-lg shadow-purple-500/50"
+            transform hover:scale-110 transition-transform shadow-lg shadow-purple-500/50 dark:shadow-blue-500/50"
           >
             <Bot
               className={cn(
