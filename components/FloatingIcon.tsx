@@ -39,10 +39,7 @@ export function FloatingIcon({ count = 5 }) {
         <motion.div
           key={i}
           className="absolute"
-          initial={{
-            x: pos.x,
-            y: pos.y,
-          }}
+          initial={{ x: pos.x, y: pos.y, opacity: 0.8 }}
           animate={{
             x: [
               pos.x,
@@ -55,14 +52,19 @@ export function FloatingIcon({ count = 5 }) {
               Math.random() * dimensions.height,
             ],
             rotate: [0, 180, 360],
+            opacity: [0.5, 1, 0.5], // Smooth fade effect
           }}
           transition={{
-            duration: 20 + Math.random() * 10,
+            duration: 15 + Math.random() * 10,
             repeat: Number.POSITIVE_INFINITY,
             ease: "linear",
           }}
         >
-          <div className="relative w-16 h-20 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 flex items-center justify-center transform hover:scale-110 transition-transform">
+          <div
+            className="relative w-16 h-16 bg-white/10 backdrop-blur-md 
+            rounded-full border border-white/10 flex items-center justify-center 
+            transform hover:scale-110 transition-transform shadow-lg shadow-purple-500/50 dark:shadow-blue-500/50"
+          >
             <Bot
               className={cn(
                 "w-8 h-8 transition-colors",
