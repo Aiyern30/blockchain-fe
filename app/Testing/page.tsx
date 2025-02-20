@@ -257,7 +257,7 @@ export default function NFTCarousel() {
       <div className="mt-5 space-y-6">
         <div className="flex justify-between items-center">
           <Tabs defaultValue="trending">
-            <TabsList className="bg-zinc-900">
+            <TabsList className="">
               <TabsTrigger value="trending">Trending</TabsTrigger>
               <TabsTrigger value="top">Top</TabsTrigger>
             </TabsList>
@@ -274,7 +274,7 @@ export default function NFTCarousel() {
               </Button>
             ))}
             <Select>
-              <SelectTrigger className="w-[130px] bg-zinc-900 border-zinc-800">
+              <SelectTrigger className="w-[130px]  border-zinc-800">
                 <SelectValue placeholder="All chains" />
               </SelectTrigger>
               <SelectContent>
@@ -290,9 +290,9 @@ export default function NFTCarousel() {
         </div>
       </div>
       <div className="flex items-center justify-center gap-5 mt-5">
-        <Table className="bg-black">
+        <Table>
           <TableHeader>
-            <TableRow className="hover:bg-zinc-900">
+            <TableRow>
               <TableHead className="w-[100px] text-center">Rank</TableHead>
               <TableHead>Collection</TableHead>
               <TableHead>Floor Price</TableHead>
@@ -301,10 +301,7 @@ export default function NFTCarousel() {
           </TableHeader>
           <TableBody>
             {collections.map((collection) => (
-              <TableRow
-                key={collection.rank}
-                className="hover:bg-zinc-900 cursor-pointer h-16"
-              >
+              <TableRow key={collection.rank} className=" cursor-pointer h-16">
                 <TableCell className="font-medium text-center">
                   {collection.rank}
                 </TableCell>
@@ -332,9 +329,9 @@ export default function NFTCarousel() {
             ))}
           </TableBody>
         </Table>
-        <Table className="bg-black">
+        <Table>
           <TableHeader>
-            <TableRow className="hover:bg-zinc-900">
+            <TableRow>
               <TableHead className="w-[100px] text-center">Rank</TableHead>
               <TableHead>Collection</TableHead>
               <TableHead>Floor Price</TableHead>
@@ -343,10 +340,7 @@ export default function NFTCarousel() {
           </TableHeader>
           <TableBody>
             {collections.map((collection) => (
-              <TableRow
-                key={collection.rank}
-                className="hover:bg-zinc-900 cursor-pointer h-16"
-              >
+              <TableRow key={collection.rank} className=" cursor-pointer h-16">
                 <TableCell className="font-medium text-center">
                   {collection.rank}
                 </TableCell>
