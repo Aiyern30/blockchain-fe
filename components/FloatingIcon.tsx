@@ -7,12 +7,20 @@ import { cn } from "@/lib/utils";
 
 export function FloatingIcon({ count = 5 }) {
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
+  const [positions, setPositions] = useState<{ x: number; y: number }[]>([]);
 
   useEffect(() => {
     setDimensions({
       width: window.innerWidth,
       height: window.innerHeight,
     });
+
+    setPositions(
+      Array.from({ length: count }).map(() => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+      }))
+    );
 
     const handleResize = () => {
       setDimensions({
@@ -23,26 +31,26 @@ export function FloatingIcon({ count = 5 }) {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [count]);
 
   return (
     <div className="relative w-full h-full">
-      {Array.from({ length: count }).map((_, i) => (
+      {positions.map((pos, i) => (
         <motion.div
           key={i}
           className="absolute"
           initial={{
-            x: Math.random() * dimensions.width,
-            y: Math.random() * dimensions.height,
+            x: pos.x,
+            y: pos.y,
           }}
           animate={{
             x: [
-              Math.random() * dimensions.width,
+              pos.x,
               Math.random() * dimensions.width,
               Math.random() * dimensions.width,
             ],
             y: [
-              Math.random() * dimensions.height,
+              pos.y,
               Math.random() * dimensions.height,
               Math.random() * dimensions.height,
             ],
