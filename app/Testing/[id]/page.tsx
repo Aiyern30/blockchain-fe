@@ -50,18 +50,18 @@ export default function CollectionPage() {
       </div>
       <div className="relative mx-auto px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <div className="relative -mt-24 sm:-mt-16 sm:flex sm:items-end sm:space-x-5">
-          <div className="relative">
+          <div className="relative w-24 h-24 sm:w-32 sm:h-32">
             <Image
               src={
                 collection.profileUrl ||
                 "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png"
               }
               alt={collection.name}
-              width={144}
-              height={144}
-              className="rounded-xl border-4 border-background bg-background object-cover sm:h-32 sm:w-32"
+              fill
+              className="rounded-xl border-4 border-background bg-background object-cover"
             />
           </div>
+
           <div className="mt-6 sm:flex sm:min-w-0 sm:flex-1 sm:items-center sm:justify-end sm:space-x-6 sm:pb-1">
             <div className="mt-6 min-w-0 flex-1 sm:hidden md:block">
               <h1 className="truncate text-2xl font-bold text-foreground">
@@ -108,7 +108,6 @@ export default function CollectionPage() {
             <div className="flex space-x-2">
               <Button
                 onClick={() => setGridView("list")}
-
                 className={`rounded-md border px-4 py-2 ${
                   gridView === "list"
                     ? "bg-orange-300 hover:bg-orange-800"
@@ -120,7 +119,6 @@ export default function CollectionPage() {
               </Button>
               <Button
                 onClick={() => setGridView("small")}
-
                 className={`rounded-md border px-4 py-2 ${
                   gridView === "small"
                     ? "bg-orange-300 hover:bg-orange-800"
@@ -132,7 +130,6 @@ export default function CollectionPage() {
               </Button>
               <Button
                 onClick={() => setGridView("medium")}
-
                 className={`rounded-md border px-4 py-2 ${
                   gridView === "medium"
                     ? "bg-orange-300 hover:bg-orange-800"
@@ -144,7 +141,6 @@ export default function CollectionPage() {
               </Button>
               <Button
                 onClick={() => setGridView("large")}
-
                 className={`rounded-md border px-4 py-2 ${
                   gridView === "large"
                     ? "bg-orange-300 hover:bg-orange-800"
