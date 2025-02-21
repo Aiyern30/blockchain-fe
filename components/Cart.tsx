@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-
 import {
   Button,
   Sheet,
@@ -13,7 +12,7 @@ import {
   Input,
 } from "@/components/ui";
 import { BsCart4 } from "react-icons/bs";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Trash } from "lucide-react";
 
 interface CartItem {
   id: string;
@@ -28,25 +27,35 @@ export function Cart() {
     {
       id: "1",
       name: "Human Paladin IV #10",
-      image: "/placeholder.svg?height=60&width=60",
+      image: "/placeholder.svg",
       price: 0.043,
       creatorEarnings: 75,
     },
     {
       id: "2",
-      name: "Human Paladin IV #10",
-      image: "/placeholder.svg?height=60&width=60",
-      price: 0.043,
-      creatorEarnings: 75,
+      name: "Elf Warrior III #8",
+      image: "/placeholder.svg",
+      price: 0.059,
+      creatorEarnings: 50,
+    },
+    {
+      id: "3",
+      name: "Dwarf Mage II #6",
+      image: "/placeholder.svg",
+      price: 0.031,
+      creatorEarnings: 60,
     },
   ]);
   const [isOpen, setIsOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
+  const [hoverIndex, setHoverIndex] = useState<string | null>(null);
 
   const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
   const usdPrice = totalPrice * 2760;
 
   const clearCart = () => setItems([]);
+  const removeItem = (id: string) =>
+    setItems(items.filter((item) => item.id !== id));
 
   return (
     <Sheet>
@@ -55,70 +64,82 @@ export function Cart() {
           <BsCart4 className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[380px] sm:w-[400px]">
-        <SheetHeader className="border-bpb-4">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-white text-xl font-normal">
-              Your cart
-            </SheetTitle>
+      <SheetContent className="w-[380px] sm:w-[400px] flex flex-col p-0">
+        <div className="px-6 py-4 border-b">
+          <SheetHeader>
+            <SheetTitle className="text-xl font-normal">Your cart</SheetTitle>
+          </SheetHeader>
+        </div>
+
+        <div className="flex-1 overflow-auto">
+          <div className="px-6 py-4 border-b flex items-center justify-between">
+            <span>
+              {items.length} item{items.length !== 1 && "s"}
+            </span>
+            <Button variant="ghost" onClick={clearCart}>
+              Clear all
+            </Button>
           </div>
-        </SheetHeader>
 
-        <div className="flex items-center justify-between py-4 border-b">
-          <span>
-            {items.length} item{items.length !== 1 && "s"}
-          </span>
-          <Button variant="ghost" onClick={clearCart}>
-            Clear all
-          </Button>
-        </div>
+          <div className="px-6 py-4 space-y-4">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#7b3fe4] dark:hover:bg-blue-900 text-white transition"
+                onMouseEnter={() => setHoverIndex(item.id)}
+                onMouseLeave={() => setHoverIndex(null)}
+              >
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={item.image || "/placeholder.svg"}
+                    alt={item.name}
+                    width={60}
+                    height={60}
+                    className="rounded-lg"
+                  />
+                  <div>
+                    <h3 className="font-medium">{item.name}</h3>
+                    <p className="text-sm text-gray-400">
+                      Creator earnings: {item.creatorEarnings}%
+                    </p>
+                  </div>
+                </div>
 
-        <div className="py-4 space-y-4">
-          {items.map((item) => (
-            <div key={item.id} className="flex gap-3">
-              <Image
-                src={item.image || "/placeholder.svg"}
-                alt={item.name}
-                width={60}
-                height={60}
-                className="rounded-lg"
-              />
-              <div className="flex-1">
+                {/* Price or Delete button on hover */}
                 <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{item.name}</h3>
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="w-4 h-4 text-blue-500 fill-current"
-                  >
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                  </svg>
+                  {hoverIndex === item.id ? (
+                    <button
+                      className="bg-red-500 text-white p-1 rounded-lg hover:bg-red-600"
+                      onClick={() => removeItem(item.id)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <p className="font-medium">{item.price} ETH</p>
+                  )}
                 </div>
-                <p className="text-sm text-gray-400">
-                  Creator earnings: {item.creatorEarnings}%
-                </p>
-                <p className="mt-1 font-medium">{item.price} ETH</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <div className="mt-auto">
-          <div className="border-t border-gray-800 py-4">
-            <div className="flex justify-between mb-1">
-              <span className="text-lg">Total price</span>
-              <div className="text-right">
-                <div className="text-lg">{totalPrice} ETH</div>
-                <div className="text-sm text-gray-400">
-                  ${usdPrice.toFixed(2)}
-                </div>
+        <div className="border-t px-6 py-4">
+          <div className="flex justify-between mb-4">
+            <span className="text-lg">Total price</span>
+            <div className="text-right">
+              <div className="text-lg">{totalPrice.toFixed(3)} ETH</div>
+              <div className="text-sm text-gray-400">
+                ${usdPrice.toFixed(2)}
               </div>
             </div>
+          </div>
 
-            <div className="mt-4">
+          <div className="space-y-4">
+            <div>
               <Button
                 variant="outline"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full"
+                className="w-full justify-between"
               >
                 <span className="text-gray-400">
                   {walletAddress || "Send to a different wallet"}
@@ -135,12 +156,12 @@ export function Cart() {
                   placeholder="Enter wallet address"
                   value={walletAddress}
                   onChange={(e) => setWalletAddress(e.target.value)}
-                  className="bg-transparent border-gray-800 text-white placeholder:text-gray-500 mt-5"
+                  className="bg-transparent mt-2"
                 />
               )}
             </div>
 
-            <Button className="w-full mt-4 ">Complete purchase</Button>
+            <Button className="w-full">Complete purchase</Button>
           </div>
         </div>
       </SheetContent>
