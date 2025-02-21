@@ -10,6 +10,10 @@ import {
   SheetTitle,
   SheetTrigger,
   Input,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui";
 import { BsCart4 } from "react-icons/bs";
 import { ChevronDown, Trash } from "lucide-react";
@@ -27,21 +31,24 @@ export function Cart() {
     {
       id: "1",
       name: "Human Paladin IV #10",
-      image: "/placeholder.svg",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
       price: 0.043,
       creatorEarnings: 75,
     },
     {
       id: "2",
       name: "Elf Warrior III #8",
-      image: "/placeholder.svg",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
       price: 0.059,
       creatorEarnings: 50,
     },
     {
       id: "3",
-      name: "Dwarf Mage II #6",
-      image: "/placeholder.svg",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
       price: 0.031,
       creatorEarnings: 60,
     },
@@ -85,20 +92,32 @@ export function Cart() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#7b3fe4] dark:hover:bg-blue-900 text-white transition"
+                className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#7b3fe4] dark:hover:bg-blue-900 hover:text-white transition"
                 onMouseEnter={() => setHoverIndex(item.id)}
                 onMouseLeave={() => setHoverIndex(null)}
               >
                 <div className="flex items-center gap-3">
-                  <Image
-                    src={item.image || "/placeholder.svg"}
-                    alt={item.name}
-                    width={60}
-                    height={60}
-                    className="rounded-lg"
-                  />
-                  <div>
-                    <h3 className="font-medium">{item.name}</h3>
+                  <div className="w-16 h-16 relative">
+                    <Image
+                      src={item.image || "/placeholder.svg"}
+                      alt={item.name}
+                      fill
+                      className="rounded-lg object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <h3 className="font-medium truncate max-w-[150px]">
+                            {item.name}
+                          </h3>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{item.name}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <p className="text-sm text-gray-400">
                       Creator earnings: {item.creatorEarnings}%
                     </p>
