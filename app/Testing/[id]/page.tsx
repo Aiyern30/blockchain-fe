@@ -58,10 +58,8 @@ export default function CollectionPage() {
           </div>
         </div>
 
-        {/* Collection Stats */}
         <CollectionStats collection={collection} />
 
-        {/* Tabs Section */}
         <Tabs defaultValue="items" className="mt-8">
           <div className="flex items-center justify-between">
             <TabsList className="bg-gray-400">
@@ -69,17 +67,14 @@ export default function CollectionPage() {
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
 
-            {/* Move ViewSelector here */}
             <ViewSelector view={gridView} onChange={setGridView} />
           </div>
 
           <div className="mt-4 grid grid-cols-12 gap-6">
-            {/* Filters */}
             <div className="col-span-12 lg:col-span-3">
               <FilterSection />
             </div>
 
-            {/* Content */}
             <div className="col-span-12 lg:col-span-9">
               <TabsContent value="items" className="mt-0">
                 <Suspense fallback={<div>Loading...</div>}>
