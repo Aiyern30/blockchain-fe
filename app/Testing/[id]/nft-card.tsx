@@ -16,9 +16,10 @@ interface NFT {
 
 interface NFTCardProps {
   nft: NFT;
+  imageSize: number;
 }
 
-export function NFTCard({ nft }: NFTCardProps) {
+export function NFTCard({ nft, imageSize }: NFTCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -32,7 +33,8 @@ export function NFTCard({ nft }: NFTCardProps) {
         <Image
           alt={nft.name}
           src={nft.image}
-          fill
+          width={imageSize}
+          height={imageSize}
           className="aspect-square w-full object-cover"
         />
       </CardContent>

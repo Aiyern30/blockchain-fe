@@ -79,25 +79,25 @@ export function NFTGrid({ view }: NFTGridProps) {
     );
   }
 
-  let gridClasses = "";
+  let imageSize = 300;
   switch (view) {
     case "small":
-      gridClasses = "grid grid-cols-4 gap-4";
+      imageSize = 200;
       break;
     case "medium":
-      gridClasses = "grid grid-cols-5 gap-4";
+      imageSize = 300;
       break;
     case "large":
-      gridClasses = "grid grid-cols-6 gap-4";
+      imageSize = 400;
       break;
     default:
-      gridClasses = "grid grid-cols-3 gap-4";
+      imageSize = 400;
   }
 
   return (
-    <div className={gridClasses}>
+    <div className="flex flex-wrap gap-4">
       {nfts.map((nft) => (
-        <NFTCard key={nft.id} nft={nft} />
+        <NFTCard key={nft.id} nft={nft} imageSize={imageSize} />
       ))}
     </div>
   );
