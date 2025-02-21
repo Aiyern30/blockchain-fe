@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
+import { Cart } from "./Cart";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function Navbar() {
           accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
           chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
         />
+        <Cart />
         <ThemeToggle />
       </div>
 
