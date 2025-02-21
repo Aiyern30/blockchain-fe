@@ -16,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui";
 import { BsCart4 } from "react-icons/bs";
-import { ChevronDown, Trash, ShoppingCart } from "lucide-react";
+import { ChevronDown, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface CartItem {
@@ -29,57 +29,57 @@ interface CartItem {
 
 export function Cart() {
   const router = useRouter();
-  const [items, setItems] = useState<CartItem[]>([
-    {
-      id: "1",
-      name: "Human Paladin IV #10",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.043,
-      creatorEarnings: 75,
-    },
-    {
-      id: "2",
-      name: "Elf Warrior III #8",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.059,
-      creatorEarnings: 50,
-    },
-    {
-      id: "3",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.031,
-      creatorEarnings: 60,
-    },
-    {
-      id: "4",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.031,
-      creatorEarnings: 60,
-    },
-    {
-      id: "5",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.031,
-      creatorEarnings: 60,
-    },
-    {
-      id: "6",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.031,
-      creatorEarnings: 60,
-    },
-  ]);
-  // const [items, setItems] = useState<CartItem[]>([]);
+  // const [items, setItems] = useState<CartItem[]>([
+  //   {
+  //     id: "1",
+  //     name: "Human Paladin IV #10",
+  //     image:
+  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+  //     price: 0.043,
+  //     creatorEarnings: 75,
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Elf Warrior III #8",
+  //     image:
+  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+  //     price: 0.059,
+  //     creatorEarnings: 50,
+  //   },
+  //   {
+  //     id: "3",
+  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+  //     image:
+  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+  //     price: 0.031,
+  //     creatorEarnings: 60,
+  //   },
+  //   {
+  //     id: "4",
+  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+  //     image:
+  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+  //     price: 0.031,
+  //     creatorEarnings: 60,
+  //   },
+  //   {
+  //     id: "5",
+  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+  //     image:
+  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+  //     price: 0.031,
+  //     creatorEarnings: 60,
+  //   },
+  //   {
+  //     id: "6",
+  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+  //     image:
+  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+  //     price: 0.031,
+  //     creatorEarnings: 60,
+  //   },
+  // ]);
+  const [items, setItems] = useState<CartItem[]>([]);
   const cardLimits = 5;
   const [isOpen, setIsOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
@@ -103,7 +103,7 @@ export function Cart() {
       <SheetContent className="w-[380px] sm:w-[400px] flex flex-col p-0">
         <div className="px-6 py-4 border-b">
           <SheetHeader>
-            <SheetTitle className="text-xl font-normal">Your cart</SheetTitle>
+            <SheetTitle>Your cart</SheetTitle>
           </SheetHeader>
         </div>
 
@@ -186,8 +186,16 @@ export function Cart() {
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center px-6 py-8">
-              <ShoppingCart className="w-16 h-16 text-gray-400 mb-4" />
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="relative w-[300px] h-[200px] mx-auto">
+                <Image
+                  src="Cart.svg"
+                  alt="Empty Cart"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
               <h3 className="text-lg font-semibold mb-2">
                 Your cart is empty!
               </h3>
