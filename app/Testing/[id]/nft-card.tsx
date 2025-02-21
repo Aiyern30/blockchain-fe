@@ -1,0 +1,66 @@
+"use client"; // Make sure this file is a Client Component if you are using Next.js 13
+
+import React, { useState } from "react";
+import { Card, CardContent, CardFooter } from "@/components/ui";
+import { ShoppingCart } from "lucide-react";
+
+interface NFT {
+  id: number;
+  name: string;
+  price: string;
+  image: string;
+  lastSale: string;
+}
+
+interface NFTCardProps {
+  nft: NFT;
+}
+
+export function NFTCard({ nft }: NFTCardProps) {
+  // Local state to track hover
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Card
+      // When the mouse enters/leaves, update the state
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative overflow-hidden"
+      style={{ cursor: "pointer" }}
+    >
+      <CardContent className="p-0">
+        <img
+          src={nft.image}
+          alt={nft.name}
+          className="aspect-square w-full object-cover"
+        />
+      </CardContent>
+      <CardFooter className="p-4">
+        <div>
+          <h3 className="font-medium">{nft.name}</h3>
+          <p className="text-sm text-foreground">{nft.price} ETH</p>
+          <p className="text-sm text-muted-foreground">
+            Last Sale: {nft.lastSale} ETH
+          </p>
+        </div>
+      </CardFooter>
+
+      {isHovered && (
+        <div
+          className="
+            absolute bottom-0 w-full 
+            flex justify-end
+            rounded bg-white/80 shadow
+          "
+        >
+          <button className="flex w-3/4 items-center justify-center space-x-2 border-r border-r-white bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            <span>Buy now</span>
+          </button>
+          <button className="flex w-1/4 items-center justify-center space-x-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            <ShoppingCart className="h-4" />
+          </button>
+        </div>
+      )}
+    </Card>
+  );
+}
