@@ -1,5 +1,5 @@
-"use client"; // Make sure this file is a Client Component if you are using Next.js 13
-
+"use client";
+import Image from "next/image";
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui";
 import { ShoppingCart } from "lucide-react";
@@ -17,21 +17,20 @@ interface NFTCardProps {
 }
 
 export function NFTCard({ nft }: NFTCardProps) {
-  // Local state to track hover
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <Card
-      // When the mouse enters/leaves, update the state
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="relative overflow-hidden"
       style={{ cursor: "pointer" }}
     >
       <CardContent className="p-0">
-        <img
-          src={nft.image}
+        <Image
           alt={nft.name}
+          src={nft.image}
+          fill
           className="aspect-square w-full object-cover"
         />
       </CardContent>
