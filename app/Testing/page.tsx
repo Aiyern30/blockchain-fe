@@ -14,7 +14,7 @@ import {
 import { useDeviceType } from "@/utils/useDeviceType";
 import { CarouselSkeleton } from "@/components/page/Testing/CarouselSkeleton";
 import { TableSkeleton } from "@/components/page/Testing/TableSkeleton";
-import DrawingCat from "./DrawingCat";
+import DrawingCarousel from "./DrawingCarousel";
 import HeroCarousel from "@/components/page/Testing/HeroCarousel";
 import CryptoTable from "@/components/page/Testing/CryptoTable";
 
@@ -220,7 +220,7 @@ export default function NFTCarousel() {
 
       <CryptoTable collections={collections} shouldSplit={shouldSplit} />
 
-      <DrawingCat />
+      <DrawingCarousel />
     </>
   );
 }
