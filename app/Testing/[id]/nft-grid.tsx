@@ -82,16 +82,16 @@ export function NFTGrid({ view }: NFTGridProps) {
   let imageSize = 300;
   switch (view) {
     case "small":
-      imageSize = 200;
+      imageSize = 150;
       break;
     case "medium":
-      imageSize = 300;
+      imageSize = 200;
       break;
     case "large":
-      imageSize = 400;
+      imageSize = 300;
       break;
     default:
-      imageSize = 400;
+      imageSize = 300;
   }
 
   return (
