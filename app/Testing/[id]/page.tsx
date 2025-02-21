@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Share2, Globe, MoreHorizontal } from "lucide-react";
-
+import Image from "next/image";
 import { Button } from "@/components/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { NFTGrid } from "./nft-grid";
@@ -8,7 +8,6 @@ import { CollectionStats } from "./collection-stats";
 import { ActivityTable } from "./activity-table";
 import { FilterSection } from "./filter-section";
 
-// This would normally come from your API/Database
 const collection = {
   name: "Bored Ape Yacht Club",
   description:
@@ -27,30 +26,31 @@ const collection = {
 export default function CollectionPage() {
   return (
     <main className="min-h-screen bg-background">
-      {/* Banner Image */}
       <div className="relative h-[300px] w-full">
-        <img
+        <Image
           src={
             collection.bannerUrl ||
             "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png"
           }
-          alt=""
-          className="h-full w-full object-cover"
-          role="presentation"
+          alt="Collection Banner"
+          fill
+          style={{ objectFit: "cover" }}
+          priority
         />
       </div>
-
-      {/* Profile Section */}
-      <div className="relative mx-auto px-4 pb-4 sm:px-6 pb-6 lg:px-8 pb-8">
+      ;{/* Profile Section */}
+      <div className="relative mx-auto px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <div className="relative -mt-24 sm:-mt-16 sm:flex sm:items-end sm:space-x-5">
           <div className="relative">
-            <img
+            <Image
               src={
                 collection.profileUrl ||
                 "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png"
               }
               alt={collection.name}
-              className="h-36 w-36 rounded-xl border-4 border-background bg-background object-cover sm:h-32 sm:w-32"
+              width={144}
+              height={144}
+              className="rounded-xl border-4 border-background bg-background object-cover sm:h-32 sm:w-32"
             />
           </div>
           <div className="mt-6 sm:flex sm:min-w-0 sm:flex-1 sm:items-center sm:justify-end sm:space-x-6 sm:pb-1">
