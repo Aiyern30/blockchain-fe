@@ -10,6 +10,8 @@ interface NFT {
   price: string;
   image: string;
   lastSale: string;
+  owner: string;
+  timeListed: string;
 }
 
 interface NFTCardProps {

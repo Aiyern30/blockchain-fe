@@ -109,28 +109,48 @@ export default function CollectionPage() {
             <div className="flex space-x-2">
               <Button
                 onClick={() => setGridView("list")}
-                className="rounded-md border px-4 py-2"
+
+                className={`rounded-md border px-4 py-2 ${
+                  gridView === "list"
+                    ? "bg-orange-300 hover:bg-orange-800"
+                    : "hover:bg-blue-800"
+                }`}
                 size="icon"
               >
                 <FaListUl className="h-4 w-4" />
               </Button>
               <Button
                 onClick={() => setGridView("small")}
-                className="rounded-md border px-4 py-2"
+
+                className={`rounded-md border px-4 py-2 ${
+                  gridView === "small"
+                    ? "bg-orange-300 hover:bg-orange-800"
+                    : "hover:bg-blue-800"
+                }`}
                 size="icon"
               >
                 <IoGridOutline className="h-4 w-4" />
               </Button>
               <Button
                 onClick={() => setGridView("medium")}
-                className="rounded-md border px-4 py-2"
+
+                className={`rounded-md border px-4 py-2 ${
+                  gridView === "medium"
+                    ? "bg-orange-300 hover:bg-orange-800"
+                    : "hover:bg-blue-800"
+                }`}
                 size="icon"
               >
                 <IoMdGrid className="h-4 w-4" />
               </Button>
               <Button
                 onClick={() => setGridView("large")}
-                className="rounded-md border px-4 py-2"
+
+                className={`rounded-md border px-4 py-2 ${
+                  gridView === "large"
+                    ? "bg-orange-300 hover:bg-orange-800"
+                    : "hover:bg-blue-800"
+                }`}
                 size="icon"
               >
                 <BsGrid1X2 className="h-4 w-4" />
