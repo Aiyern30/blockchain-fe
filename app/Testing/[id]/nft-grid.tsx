@@ -3,8 +3,7 @@
 
 import React from "react";
 import { NFTCard } from "./nft-card";
-
-type GridView = "list" | "small" | "medium" | "large";
+import { GridView } from "@/lib/view";
 
 interface NFTGridProps {
   view: GridView;

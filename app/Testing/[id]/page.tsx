@@ -13,6 +13,7 @@ import { FaListUl } from "react-icons/fa";
 import { IoGridOutline } from "react-icons/io5";
 import { IoMdGrid } from "react-icons/io";
 import { BsGrid1X2 } from "react-icons/bs";
+import { GridView } from "@/lib/view";
 
 const collection = {
   name: "Bored Ape Yacht Club",
@@ -30,9 +31,7 @@ const collection = {
 };
 
 export default function CollectionPage() {
-  const [gridView, setGridView] = useState<
-    "list" | "small" | "medium" | "large"
-  >("medium");
+  const [gridView, setGridView] = useState<GridView>("medium");
 
   return (
     <main className="min-h-screen bg-background">
