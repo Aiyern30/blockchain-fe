@@ -29,33 +29,58 @@ interface CartItem {
 
 export function Cart() {
   const router = useRouter();
-  // const [items, setItems] = useState<CartItem[]>([
-  //   {
-  //     id: "1",
-  //     name: "Human Paladin IV #10",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.043,
-  //     creatorEarnings: 75,
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Elf Warrior III #8",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.059,
-  //     creatorEarnings: 50,
-  //   },
-  //   {
-  //     id: "3",
-  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.031,
-  //     creatorEarnings: 60,
-  //   },
-  // ]);
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>([
+    {
+      id: "1",
+      name: "Human Paladin IV #10",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.043,
+      creatorEarnings: 75,
+    },
+    {
+      id: "2",
+      name: "Elf Warrior III #8",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.059,
+      creatorEarnings: 50,
+    },
+    {
+      id: "3",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.031,
+      creatorEarnings: 60,
+    },
+    {
+      id: "4",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.031,
+      creatorEarnings: 60,
+    },
+    {
+      id: "5",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.031,
+      creatorEarnings: 60,
+    },
+    {
+      id: "6",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.031,
+      creatorEarnings: 60,
+    },
+  ]);
+  // const [items, setItems] = useState<CartItem[]>([]);
+  const cardLimits = 5;
   const [isOpen, setIsOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
   const [hoverIndex, setHoverIndex] = useState<string | null>(null);
@@ -95,53 +120,66 @@ export function Cart() {
               </div>
 
               <div className="px-6 py-4 space-y-4">
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#7b3fe4] dark:hover:bg-blue-900 hover:text-white transition"
-                    onMouseEnter={() => setHoverIndex(item.id)}
-                    onMouseLeave={() => setHoverIndex(null)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-16 h-16 relative">
-                        <Image
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.name}
-                          fill
-                          className="rounded-lg object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <h3 className="font-medium truncate max-w-[150px]">
-                                {item.name}
-                              </h3>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{item.name}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <p className="text-sm text-gray-400">
-                          Creator earnings: {item.creatorEarnings}%
-                        </p>
-                      </div>
-                    </div>
+                {items.map((item, index) => (
+                  <div key={item.id}>
+                    {index === cardLimits && (
+                      <p className="text-red-500 text-sm font-medium text-center my-2">
+                        ⚠️ Maximum limit is {cardLimits} items. Items below will
+                        not be included in payment.
+                      </p>
+                    )}
 
-                    {/* Price or Delete button on hover */}
-                    <div className="flex items-center gap-2 mx-auto">
-                      {hoverIndex === item.id ? (
-                        <button
-                          className="bg-red-500 text-white p-1 rounded-lg hover:bg-red-600"
-                          onClick={() => removeItem(item.id)}
-                        >
-                          <Trash className="w-4 h-4" />
-                        </button>
-                      ) : (
-                        <p className="font-medium">{item.price} ETH</p>
-                      )}
+                    <div
+                      className={`flex items-center justify-between gap-3 p-2 rounded-lg transition relative 
+          ${
+            index >= 5
+              ? "border border-red-500"
+              : "hover:bg-[#7b3fe4] dark:hover:bg-blue-900 hover:text-white"
+          }
+        `}
+                      onMouseEnter={() => setHoverIndex(item.id)}
+                      onMouseLeave={() => setHoverIndex(null)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-16 h-16 relative">
+                          <Image
+                            src={item.image || "/placeholder.svg"}
+                            alt={item.name}
+                            fill
+                            className="rounded-lg object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <h3 className="font-medium truncate max-w-[150px]">
+                                  {item.name}
+                                </h3>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{item.name}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <p className="text-sm text-gray-400">
+                            Creator earnings: {item.creatorEarnings}%
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mx-auto">
+                        {hoverIndex === item.id ? (
+                          <Button
+                            variant={"default"}
+                            className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"
+                            onClick={() => removeItem(item.id)}
+                          >
+                            <Trash className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <p className="font-medium">{item.price} ETH</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
