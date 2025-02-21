@@ -14,6 +14,15 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui";
 import { BsCart4 } from "react-icons/bs";
 import { ChevronDown, Trash } from "lucide-react";
@@ -123,9 +132,27 @@ export function Cart() {
                 <span>
                   {items.length} item{items.length !== 1 && "s"}
                 </span>
-                <Button variant="default" onClick={clearCart}>
-                  Clear all
-                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="default">Clear all</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will remove all items
+                        from your cart.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={clearCart}>
+                        Confirm
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
 
               <div className="px-6 py-4 space-y-4">
