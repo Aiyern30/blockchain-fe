@@ -59,6 +59,7 @@ export function Cart() {
   const [isOpen, setIsOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
   const [hoverIndex, setHoverIndex] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
   const usdPrice = totalPrice * 2760;
@@ -68,7 +69,7 @@ export function Cart() {
     setItems(items.filter((item) => item.id !== id));
 
   return (
-    <Sheet>
+    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon">
           <BsCart4 className="h-5 w-5" />
@@ -155,7 +156,13 @@ export function Cart() {
               <p className="text-gray-500 mb-4">
                 Add some awesome items to your cart!
               </p>
-              <Button variant="default" onClick={() => router.push("/")}>
+              <Button
+                variant="default"
+                onClick={() => {
+                  setSheetOpen(false);
+                  router.push("/");
+                }}
+              >
                 Start Shopping
               </Button>
             </div>
