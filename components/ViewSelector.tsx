@@ -31,13 +31,13 @@ export function ViewSelector({ view, onChange }: ViewSelectorProps) {
   };
 
   return (
-    <div className="flex space-x-2">
+    <div className="flex space-x-2 ">
       <Button
         onClick={() => handleViewChange("list")}
         className={`rounded-md border px-4 py-2 ${
           selectedView === "list"
-            ? "bg-orange-300 hover:bg-orange-800"
-            : "hover:bg-blue-800"
+            ? "bg-[#7b3fe4] text-white hover:hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+            : "hover:bg-purple-800 dark:hover:hover:bg-blue-800 hover:text-white"
         }`}
         size="icon"
       >
@@ -47,8 +47,8 @@ export function ViewSelector({ view, onChange }: ViewSelectorProps) {
         onClick={() => handleViewChange("small")}
         className={`rounded-md border px-4 py-2 ${
           selectedView === "small"
-            ? "bg-orange-300 hover:bg-orange-800"
-            : "hover:bg-blue-800"
+            ? "bg-[#7b3fe4] text-white hover:hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+            : "hover:bg-purple-800 dark:hover:hover:bg-blue-800 hover:text-white"
         }`}
         size="icon"
       >
@@ -58,8 +58,8 @@ export function ViewSelector({ view, onChange }: ViewSelectorProps) {
         onClick={() => handleViewChange("medium")}
         className={`rounded-md border px-4 py-2 ${
           selectedView === "medium"
-            ? "bg-orange-300 hover:bg-orange-800"
-            : "hover:bg-blue-800"
+            ? "bg-[#7b3fe4] text-white hover:hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+            : "hover:bg-purple-800 dark:hover:hover:bg-blue-800 hover:text-white"
         }`}
         size="icon"
       >
@@ -69,8 +69,8 @@ export function ViewSelector({ view, onChange }: ViewSelectorProps) {
         onClick={() => handleViewChange("large")}
         className={`rounded-md border px-4 py-2 ${
           selectedView === "large"
-            ? "bg-orange-300 hover:bg-orange-800"
-            : "hover:bg-blue-800"
+            ? "bg-[#7b3fe4] text-white hover:hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+            : "hover:bg-purple-800 dark:hover:hover:bg-blue-800 hover:text-white"
         }`}
         size="icon"
       >

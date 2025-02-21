@@ -1,15 +1,22 @@
 "use client";
-// Also a Client Component because it doesn't do SSR and uses dynamic data or state
 
 import React from "react";
 import { NFTCard } from "./nft-card";
 import { GridView } from "@/lib/view";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui";
+import Image from "next/image";
 
 interface NFTGridProps {
   view: GridView;
 }
 
-// Sample NFT data
 const nfts = Array.from({ length: 8 }, (_, i) => ({
   id: i,
   name: `OCH Genesis Ring #${i + 1}`,
@@ -24,58 +31,44 @@ const nfts = Array.from({ length: 8 }, (_, i) => ({
 export function NFTGrid({ view }: NFTGridProps) {
   if (view === "list") {
     return (
-      <table className="w-full table-auto text-sm">
-        <thead className="border-b text-left">
-          <tr>
-            <th className="pb-2">Item</th>
-            <th className="pb-2">Current Price</th>
-            <th className="pb-2">Best Offer</th>
-            <th className="pb-2">Last Sale</th>
-            <th className="pb-2">Owner</th>
-            <th className="pb-2">Time Listed</th>
-          </tr>
-        </thead>
-        <tbody>
-          {nfts.map((nft) => (
-            <tr key={nft.id} className="border-b last:border-0">
-              {/* ITEM */}
-              <td className="py-3">
-                <div className="flex items-center space-x-2">
-                  <img
-                    src={nft.image}
-                    alt={nft.name}
-                    className="h-10 w-10 rounded object-cover"
-                  />
-                  <span>{nft.name}</span>
-                </div>
-              </td>
-
-              {/* CURRENT PRICE */}
-              <td className="py-3">
-                {/* Add an icon or lightning bolt if you want */}
-                <div className="flex items-center space-x-1">
-                  <span>{nft.price} ETH</span>
-                </div>
-              </td>
-
-              {/* BEST OFFER */}
-              <td className="py-3">
-                1.33 WETH
-                {/* Example static data or fetch from your API */}
-              </td>
-
-              {/* LAST SALE */}
-              <td className="py-3">{nft.lastSale} WETH</td>
-
-              {/* OWNER */}
-              <td className="py-3">{nft.owner}</td>
-
-              {/* TIME LISTED */}
-              <td className="py-3">{nft.timeListed}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="w-full overflow-x-auto">
+        <Table className="min-w-[600px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Item</TableHead>
+              <TableHead>Current Price</TableHead>
+              <TableHead>Best Offer</TableHead>
+              <TableHead>Last Sale</TableHead>
+              <TableHead>Owner</TableHead>
+              <TableHead>Time Listed</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {nfts.map((nft) => (
+              <TableRow key={nft.id} className="cursor-pointer h-16">
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src={nft.image}
+                        alt={nft.name}
+                        className="rounded object-cover"
+                        fill
+                      />
+                    </div>
+                    <span>{nft.name}</span>
+                  </div>
+                </TableCell>
+                <TableCell>{nft.price} ETH</TableCell>
+                <TableCell>1.33 WETH</TableCell>
+                <TableCell>{nft.lastSale} WETH</TableCell>
+                <TableCell>{nft.owner}</TableCell>
+                <TableCell>{nft.timeListed}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     );
   }
 
@@ -90,8 +83,6 @@ export function NFTGrid({ view }: NFTGridProps) {
     case "large":
       imageSize = 300;
       break;
-    default:
-      imageSize = 300;
   }
 
   return (

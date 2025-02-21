@@ -64,7 +64,7 @@ export default function CollectionPage() {
         {/* Tabs Section */}
         <Tabs defaultValue="items" className="mt-8">
           <div className="flex items-center justify-between">
-            <TabsList>
+            <TabsList className="bg-gray-400">
               <TabsTrigger value="items">Items</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
