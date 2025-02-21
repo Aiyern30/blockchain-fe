@@ -1,4 +1,6 @@
-import { Suspense } from "react";
+"use client";
+
+import { useState, Suspense } from "react";
 import { Share2, Globe, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui";
@@ -7,6 +9,10 @@ import { NFTGrid } from "./nft-grid";
 import { CollectionStats } from "./collection-stats";
 import { ActivityTable } from "./activity-table";
 import { FilterSection } from "./filter-section";
+import { FaListUl } from "react-icons/fa";
+import { IoGridOutline } from "react-icons/io5";
+import { IoMdGrid } from "react-icons/io";
+import { BsGrid1X2 } from "react-icons/bs";
 
 const collection = {
   name: "Bored Ape Yacht Club",
@@ -24,6 +30,10 @@ const collection = {
 };
 
 export default function CollectionPage() {
+  const [gridView, setGridView] = useState<
+    "list" | "small" | "medium" | "large"
+  >("medium");
+
   return (
     <main className="min-h-screen bg-background">
       <div className="relative h-[300px] w-full">
@@ -96,6 +106,36 @@ export default function CollectionPage() {
               <TabsTrigger value="items">Items</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => setGridView("list")}
+                className="rounded-md border px-4 py-2"
+                size="icon"
+              >
+                <FaListUl className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => setGridView("small")}
+                className="rounded-md border px-4 py-2"
+                size="icon"
+              >
+                <IoGridOutline className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => setGridView("medium")}
+                className="rounded-md border px-4 py-2"
+                size="icon"
+              >
+                <IoMdGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => setGridView("large")}
+                className="rounded-md border px-4 py-2"
+                size="icon"
+              >
+                <BsGrid1X2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="mt-4 grid grid-cols-12 gap-6">
@@ -108,7 +148,7 @@ export default function CollectionPage() {
             <div className="col-span-12 lg:col-span-9">
               <TabsContent value="items" className="mt-0">
                 <Suspense fallback={<div>Loading...</div>}>
-                  <NFTGrid />
+                  <NFTGrid view={gridView} />
                 </Suspense>
               </TabsContent>
               <TabsContent value="activity" className="mt-0">
