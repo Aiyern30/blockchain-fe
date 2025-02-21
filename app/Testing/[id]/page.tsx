@@ -27,10 +27,11 @@ export default function CollectionPage() {
     volumeTraded: 850123,
   };
   useEffect(() => {
-    // Load grid view from localStorage on mount
-    const storedView = localStorage.getItem("nft-grid-view") as GridView;
-    if (storedView) {
-      setGridView(storedView);
+    if (typeof window !== "undefined") {
+      const storedView = localStorage.getItem("nft-grid-view") as GridView;
+      if (storedView) {
+        setGridView(storedView);
+      }
     }
   }, []);
 
