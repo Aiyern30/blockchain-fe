@@ -38,7 +38,6 @@ export default function CollectionPage() {
           priority
         />
       </div>
-      ;{/* Profile Section */}
       <div className="relative mx-auto px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <div className="relative -mt-24 sm:-mt-16 sm:flex sm:items-end sm:space-x-5">
           <div className="relative">
