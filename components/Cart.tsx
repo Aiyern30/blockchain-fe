@@ -87,6 +87,14 @@ export function Cart() {
       price: 0.031,
       creatorEarnings: 60,
     },
+    {
+      id: "7",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.028,
+      creatorEarnings: 20,
+    },
   ]);
 
   // const [items, setItems] = useState<CartItem[]>([]);
@@ -96,7 +104,10 @@ export function Cart() {
   const [hoverIndex, setHoverIndex] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
+  const totalPrice = items
+    .slice(0, cardLimits)
+    .reduce((sum, item) => sum + item.price, 0);
+  // const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
   const usdPrice = totalPrice * 2760;
 
   const clearCart = () => setItems([]);
