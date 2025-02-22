@@ -6,7 +6,6 @@ import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Button } from "@/components/ui";
 
-// Web3Auth Configuration
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
   chainId: "0xaa36a7", // Ethereum Sepolia Testnet
@@ -22,6 +21,7 @@ const clientId =
 
 export default function Web3AuthButton() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const web3authRef = useRef<Web3Auth | null>(null);
 
   useEffect(() => {
@@ -37,13 +37,13 @@ export default function Web3AuthButton() {
 
         try {
           await web3authRef.current.initModal();
-
-          // Check if a valid session exists
           const provider = web3authRef.current.provider;
+
           if (provider) {
             const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
             if (isLoggedIn) {
               setLoggedIn(true);
+              await fetchWalletAddress();
             }
           }
         } catch (error) {
@@ -55,12 +55,29 @@ export default function Web3AuthButton() {
     initWeb3Auth();
   }, []);
 
+  const fetchWalletAddress = async () => {
+    if (!web3authRef.current || !web3authRef.current.provider) return;
+
+    try {
+      const accounts = (await web3authRef.current.provider?.request({
+        method: "eth_accounts",
+      })) as string[];
+
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching wallet address:", error);
+    }
+  };
+
   const login = async () => {
     try {
       if (web3authRef.current) {
         await web3authRef.current.connect();
         setLoggedIn(true);
         localStorage.setItem("isLoggedIn", "true");
+        await fetchWalletAddress();
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -72,6 +89,7 @@ export default function Web3AuthButton() {
       if (web3authRef.current) {
         await web3authRef.current.logout();
         setLoggedIn(false);
+        setWalletAddress(null);
         localStorage.removeItem("isLoggedIn");
       }
     } catch (error) {
@@ -80,11 +98,21 @@ export default function Web3AuthButton() {
   };
 
   return (
-    <Button
-      onClick={loggedIn ? logout : login}
-      className="bg-blue-600 text-white"
-    >
-      {loggedIn ? "Logout Web3Auth" : "Login with Web3Auth"}
-    </Button>
+    <>
+      {loggedIn && walletAddress ? (
+        <div className="flex items-center space-x-2">
+          <span className="text-sm font-medium text-gray-700">
+            {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+          </span>
+          <Button onClick={logout} className="bg-red-600 text-white">
+            Logout
+          </Button>
+        </div>
+      ) : (
+        <Button onClick={login} className="bg-blue-600 text-white">
+          Login with Web3Auth
+        </Button>
+      )}
+    </>
   );
 }
