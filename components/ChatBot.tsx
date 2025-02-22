@@ -56,7 +56,7 @@ export function ChatBot() {
       {isOpen && (
         <div
           className={`bg-background border rounded-lg shadow-xl flex flex-col
-            ${isEnlarged ? "fixed inset-4" : "w-80 h-96"}`}
+            ${isEnlarged ? "fixed inset-4" : "w-96 h-[500px] max-h-[80vh]"}`}
         >
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="font-semibold">Chat AI</h2>
@@ -73,22 +73,31 @@ export function ChatBot() {
               </Button>
             </div>
           </div>
+
           <ScrollArea className="flex-grow p-4">
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`mb-2 p-2 rounded-lg max-w-[80%] ${
-                  msg.isUser
-                    ? "bg-primary text-primary-foreground ml-auto"
-                    : msg.isError
-                    ? "bg-red-100 text-red-500 border border-red-400" // Error styling
-                    : "bg-muted"
-                }`}
+                className={`flex ${
+                  msg.isUser ? "justify-end" : "justify-start"
+                } mt-2`}
               >
-                {msg.text}
+                <div
+                  className={`inline-block px-4 py-2 rounded-xl text-sm whitespace-pre-wrap break-words max-w-[75%] shadow-md
+                  ${
+                    msg.isUser
+                      ? "bg-primary text-white"
+                      : msg.isError
+                      ? "bg-red-100 text-red-500 border border-red-400"
+                      : "bg-gray-200 text-gray-900"
+                  }`}
+                >
+                  {msg.text}
+                </div>
               </div>
             ))}
           </ScrollArea>
+
           <form onSubmit={handleSubmit} className="p-4 border-t">
             <div className="flex gap-2">
               <Input
