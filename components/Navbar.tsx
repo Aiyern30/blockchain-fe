@@ -1,14 +1,12 @@
-"use client";
-
-import { useState } from "react";
-import { Button } from "@/components/ui/";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { Button } from "@/components/ui";
+import Link from "next/link";
 import { Bot, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { cn } from "@/lib/utils";
 import { Cart } from "./Cart";
+import Web3AuthButton from "./Web3AuthButton";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,12 +18,7 @@ export default function Navbar() {
       className="flex items-center justify-between px-6 py-4 backdrop-blur-sm border-b border-white/10 relative z-50"
     >
       <Link href="/" className="flex items-center space-x-2">
-        <Bot
-          className={cn(
-            "w-8 h-8 transition-colors",
-            "text-purple-400 dark:text-[#007bff]"
-          )}
-        />
+        <Bot className="w-8 h-8 text-purple-400 dark:text-[#007bff]" />
         <span className="text-white font-medium text-xl">BlockChain</span>
       </Link>
 
@@ -37,10 +30,8 @@ export default function Navbar() {
       </div>
 
       <div className="hidden md:flex items-center space-x-4">
-        <ConnectButton
-          accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-          chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
-        />
+        <ConnectButton accountStatus="full" chainStatus="full" />
+        <Web3AuthButton />
         <Cart />
         <ThemeToggle />
       </div>
@@ -71,10 +62,8 @@ export default function Navbar() {
             <NavLink href="/D">D</NavLink>
 
             <div className="flex flex-col items-center space-y-2 w-full">
-              <ConnectButton
-                accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-                chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
-              />
+              <ConnectButton accountStatus="full" chainStatus="full" />
+              <Web3AuthButton /> {/* Web3Auth Button in Mobile Menu */}
               <ThemeToggle />
             </div>
           </motion.div>
