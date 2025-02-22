@@ -53,14 +53,14 @@ export function ChatBot() {
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="font-semibold">Chat AI</h2>
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" onClick={toggleEnlarge}>
+              <Button variant="default" size="icon" onClick={toggleEnlarge}>
                 {isEnlarged ? (
                   <Minimize2 className="h-4 w-4" />
                 ) : (
                   <Maximize2 className="h-4 w-4" />
                 )}
               </Button>
-              <Button variant="ghost" size="icon" onClick={toggleChat}>
+              <Button variant="default" size="icon" onClick={toggleChat}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
