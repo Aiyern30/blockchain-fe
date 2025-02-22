@@ -52,7 +52,7 @@ const chainConfig = {
 };
 
 const clientId =
-  "BKXvqyFuFatVMKjN353Wm0E8U1XZTu3qtxcf5E2hYAs3IPkuulenJKfNl8VULXbxaq5ZyDQ3pAljtFOUh4tnPC0";
+  "BCV54SjGRprhmtm3hDpAi2YjZfJpuhPkQMnuPswRwT-fOfjTXT0v0FTuCamawlFhu69qGMZCXgS7aCGFsTrHELg";
 
 export default function WalletConnectDropdown() {
   const [isOpen, setIsOpen] = useState(false);
