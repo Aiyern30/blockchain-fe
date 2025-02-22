@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
 import Image from "next/image";
 import {
@@ -12,18 +14,62 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+// import { upload } from "@vercel/blob/client";
 import {
-  Card,
-  CardContent,
-  Input,
   Tooltip,
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  TooltipContent,
+  Input,
+  Card,
+  CardContent,
 } from "@/components/ui";
+type Blockchain = "ethereum" | "base" | null;
 
 export default function CreateContract() {
   const [dragActive, setDragActive] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [selectedBlockchain, setSelectedBlockchain] =
+    useState<Blockchain>(null);
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragActive(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await handleImageUpload(file);
+    }
+  };
+
+  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await handleImageUpload(file);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload an image file");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const response = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+      });
+      setImageUrl(response.url);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -60,24 +106,48 @@ export default function CreateContract() {
 
               <div
                 className={cn(
-                  "border rounded-lg aspect-[350/200] flex flex-col items-center justify-center cursor-pointer",
+                  "border rounded-lg aspect-[350/200] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden",
                   "hover:bg-muted/50 transition-colors",
                   dragActive && "border-primary bg-muted/50"
                 )}
                 onDragEnter={() => setDragActive(true)}
                 onDragLeave={() => setDragActive(false)}
                 onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById("file-input")?.click()}
               >
-                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm font-medium">
-                  Drag and drop or click to upload
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  You may change this after deploying your contract.
-                </p>
-                <p className="text-xs text-muted-foreground mt-4">
-                  Recommended size: 350 x 350. File types: JPG, PNG, SVG, or GIF
-                </p>
+                <input
+                  id="file-input"
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileInput}
+                />
+
+                {imageUrl ? (
+                  <Image
+                    src={imageUrl || "/placeholder.svg"}
+                    alt="Uploaded logo"
+                    fill
+                    className="object-contain"
+                  />
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-sm font-medium">
+                      {uploading
+                        ? "Uploading..."
+                        : "Drag and drop or click to upload"}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      You may change this after deploying your contract.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-4">
+                      Recommended size: 350 x 350. File types: JPG, PNG, SVG, or
+                      GIF
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -90,8 +160,16 @@ export default function CreateContract() {
                       <TooltipTrigger>
                         <Info className="h-4 w-4 text-muted-foreground" />
                       </TooltipTrigger>
-                      <TooltipContent>
-                        <p>The name of your smart contract</p>
+                      <TooltipContent className="max-w-xs">
+                        <p>
+                          The contract name is the name of your NFT collection,
+                          which is visible on chain. This is usually your
+                          project or collection name.
+                        </p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Contract names cannot be changed after your contract
+                          is deployed.
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -125,15 +203,31 @@ export default function CreateContract() {
                     <TooltipTrigger>
                       <Info className="h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Select the blockchain for your contract</p>
+                    <TooltipContent className="max-w-xs">
+                      <p>
+                        A blockchain is a digitally distributed ledger that
+                        records transactions and information across a
+                        decentralized network. There are different types of
+                        blockchains, which you can choose to drop on.
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        You cannot change the blockchain once you deploy your
+                        contract.
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                <Card className="relative border-primary bg-muted/50">
+                <Card
+                  className={cn(
+                    "relative cursor-pointer transition-colors hover:border-primary",
+                    selectedBlockchain === "ethereum" &&
+                      "border-primary bg-muted/50"
+                  )}
+                  onClick={() => setSelectedBlockchain("ethereum")}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="rounded-full overflow-hidden">
@@ -158,7 +252,14 @@ export default function CreateContract() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card
+                  className={cn(
+                    "relative cursor-pointer transition-colors hover:border-primary",
+                    selectedBlockchain === "base" &&
+                      "border-primary bg-muted/50"
+                  )}
+                  onClick={() => setSelectedBlockchain("base")}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="rounded-full overflow-hidden bg-white">
@@ -180,7 +281,7 @@ export default function CreateContract() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="cursor-pointer hover:border-primary">
                   <CardContent className="p-4 h-full flex flex-col justify-center items-center text-muted-foreground">
                     <MoreHorizontal className="h-6 w-6 mb-2" />
                     <span className="font-medium">See more options</span>
