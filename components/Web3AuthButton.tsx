@@ -16,8 +16,7 @@ const chainConfig = {
   tickerName: "Ethereum",
 };
 
-const clientId =
-  "BKXvqyFuFatVMKjN353Wm0E8U1XZTu3qtxcf5E2hYAs3IPkuulenJKfNl8VULXbxaq5ZyDQ3pAljtFOUh4tnPC0";
+const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID!;
 
 export default function Web3AuthButton() {
   const [loggedIn, setLoggedIn] = useState(false);
