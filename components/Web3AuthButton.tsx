@@ -88,8 +88,10 @@ export default function Web3AuthButton() {
     try {
       if (web3authRef.current) {
         await web3authRef.current.logout();
+        await web3authRef.current.clearCache();
         setLoggedIn(false);
         setWalletAddress(null);
+        web3authRef.current = null;
         localStorage.removeItem("isLoggedIn");
       }
     } catch (error) {
