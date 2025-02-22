@@ -86,7 +86,7 @@ export function ChatBot() {
                   className={`inline-block px-4 py-2 rounded-xl text-sm whitespace-pre-wrap break-words max-w-[75%] shadow-md
                   ${
                     msg.isUser
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-white dark:text-black"
                       : msg.isError
                       ? "bg-red-100 text-red-500 border border-red-400"
                       : "bg-gray-200 text-gray-900"
