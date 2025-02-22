@@ -16,24 +16,28 @@ export default function Navbar() {
       animate={{ y: 0 }}
       className="flex items-center justify-between px-6 py-4 backdrop-blur-sm border-b border-white/10 relative z-50"
     >
+      {/* Left Logo */}
       <Link href="/" className="flex items-center space-x-2">
         <Bot className="w-8 h-8 text-purple-400 dark:text-[#007bff]" />
         <span className="text-white font-medium text-xl">BlockChain</span>
       </Link>
 
-      <div className="hidden md:flex items-center space-x-8">
-        <NavLink href="/A">A</NavLink>
+      {/* Centered Navigation Links */}
+      <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
+        <NavLink href="/Create">Create</NavLink>
         <NavLink href="/B">B</NavLink>
         <NavLink href="/C">C</NavLink>
         <NavLink href="/D">D</NavLink>
       </div>
 
-      <div className="hidden md:flex items-center space-x-4">
+      {/* Right Section */}
+      <div className="hidden md:flex items-center space-x-4 ml-auto">
         <WalletConnectDropdown />
         <Cart />
         <ThemeToggle />
       </div>
 
+      {/* Mobile Menu Button */}
       <Button
         variant="ghost"
         size="icon"
@@ -43,6 +47,7 @@ export default function Navbar() {
         {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </Button>
 
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -50,11 +55,11 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="absolute top-full left-0 w-full 
-            bg-blue-900/95 dark:bg-black/95  
-            backdrop-blur-lg border-b border-white/10 
-            p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
+        bg-blue-900/95 dark:bg-black/95  
+        backdrop-blur-lg border-b border-white/10 
+        p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
           >
-            <NavLink href="/A">A</NavLink>
+            <NavLink href="/Create">Create</NavLink>
             <NavLink href="/B">B</NavLink>
             <NavLink href="/C">C</NavLink>
             <NavLink href="/D">D</NavLink>
