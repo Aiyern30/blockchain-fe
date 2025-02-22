@@ -1,14 +1,11 @@
-"use client";
-
-import { useState } from "react";
-import { Button } from "@/components/ui/";
+import { Button } from "@/components/ui";
+import Link from "next/link";
 import { Bot, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { cn } from "@/lib/utils";
 import { Cart } from "./Cart";
+import WalletConnectDropdown from "./WalletConnectDropdown";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,27 +17,19 @@ export default function Navbar() {
       className="flex items-center justify-between px-6 py-4 backdrop-blur-sm border-b border-white/10 relative z-50"
     >
       <Link href="/" className="flex items-center space-x-2">
-        <Bot
-          className={cn(
-            "w-8 h-8 transition-colors",
-            "text-purple-400 dark:text-[#007bff]"
-          )}
-        />
+        <Bot className="w-8 h-8 text-purple-400 dark:text-[#007bff]" />
         <span className="text-white font-medium text-xl">BlockChain</span>
       </Link>
 
-      <div className="hidden md:flex items-center space-x-8">
-        <NavLink href="/A">A</NavLink>
+      <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
+        <NavLink href="/Create">Create</NavLink>
         <NavLink href="/B">B</NavLink>
         <NavLink href="/C">C</NavLink>
         <NavLink href="/D">D</NavLink>
       </div>
 
-      <div className="hidden md:flex items-center space-x-4">
-        <ConnectButton
-          accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-          chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
-        />
+      <div className="hidden md:flex items-center space-x-4 ml-auto">
+        <WalletConnectDropdown />
         <Cart />
         <ThemeToggle />
       </div>
@@ -54,6 +43,7 @@ export default function Navbar() {
         {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </Button>
 
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -61,20 +51,18 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="absolute top-full left-0 w-full 
-            bg-blue-900/95 dark:bg-black/95  
-            backdrop-blur-lg border-b border-white/10 
-            p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
+        bg-blue-900/95 dark:bg-black/95  
+        backdrop-blur-lg border-b border-white/10 
+        p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
           >
-            <NavLink href="/A">A</NavLink>
+            <NavLink href="/Create">Create</NavLink>
             <NavLink href="/B">B</NavLink>
             <NavLink href="/C">C</NavLink>
             <NavLink href="/D">D</NavLink>
 
             <div className="flex flex-col items-center space-y-2 w-full">
-              <ConnectButton
-                accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-                chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
-              />
+              <WalletConnectDropdown />
+              <Cart />
               <ThemeToggle />
             </div>
           </motion.div>

@@ -14,6 +14,15 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui";
 import { BsCart4 } from "react-icons/bs";
 import { ChevronDown, Trash } from "lucide-react";
@@ -29,57 +38,58 @@ interface CartItem {
 
 export function Cart() {
   const router = useRouter();
-  // const [items, setItems] = useState<CartItem[]>([
-  //   {
-  //     id: "1",
-  //     name: "Human Paladin IV #10",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.043,
-  //     creatorEarnings: 75,
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Elf Warrior III #8",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.059,
-  //     creatorEarnings: 50,
-  //   },
-  //   {
-  //     id: "3",
-  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.031,
-  //     creatorEarnings: 60,
-  //   },
-  //   {
-  //     id: "4",
-  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.031,
-  //     creatorEarnings: 60,
-  //   },
-  //   {
-  //     id: "5",
-  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.031,
-  //     creatorEarnings: 60,
-  //   },
-  //   {
-  //     id: "6",
-  //     name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-  //     image:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  //     price: 0.031,
-  //     creatorEarnings: 60,
-  //   },
-  // ]);
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>([
+    {
+      id: "1",
+      name: "Human Paladin IV #10",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.043,
+      creatorEarnings: 75,
+    },
+    {
+      id: "2",
+      name: "Elf Warrior III #8",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.059,
+      creatorEarnings: 50,
+    },
+    {
+      id: "3",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.031,
+      creatorEarnings: 60,
+    },
+    {
+      id: "4",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.031,
+      creatorEarnings: 60,
+    },
+    {
+      id: "5",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.031,
+      creatorEarnings: 60,
+    },
+    {
+      id: "6",
+      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
+      image:
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
+      price: 0.031,
+      creatorEarnings: 60,
+    },
+  ]);
+
+  // const [items, setItems] = useState<CartItem[]>([]);
   const cardLimits = 5;
   const [isOpen, setIsOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
@@ -96,10 +106,18 @@ export function Cart() {
   return (
     <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon">
-          <BsCart4 className="h-5 w-5" />
-        </Button>
+        <div className="relative">
+          <Button variant="outline" size="icon">
+            <BsCart4 className="h-5 w-5" />
+          </Button>
+          {items.length > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+              {items.length}
+            </span>
+          )}
+        </div>
       </SheetTrigger>
+
       <SheetContent className="w-[380px] sm:w-[400px] flex flex-col p-0">
         <div className="px-6 py-4 border-b">
           <SheetHeader>
@@ -114,9 +132,27 @@ export function Cart() {
                 <span>
                   {items.length} item{items.length !== 1 && "s"}
                 </span>
-                <Button variant="default" onClick={clearCart}>
-                  Clear all
-                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="default">Clear all</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will remove all items
+                        from your cart.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={clearCart}>
+                        Confirm
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
 
               <div className="px-6 py-4 space-y-4">

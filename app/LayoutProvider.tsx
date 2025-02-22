@@ -1,5 +1,6 @@
 "use client";
 
+import { ChatBot } from "@/components/ChatBot";
 import { FloatingIcon } from "@/components/FloatingIcon";
 import Navbar from "@/components/Navbar";
 import { RoboAnimation } from "@/components/RoboAnimation";
@@ -15,7 +16,6 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       bg-blue-900 
       dark:bg-black/[0.96] dark:bg-grid-white/[0.02] bg-grid-black/[0.05]"
     >
-      {/* Background Sparkles */}
       <div className="h-full w-full absolute inset-0 z-0">
         <SparklesCore
           id="tsparticlesfullpage"
@@ -30,7 +30,6 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
       <Navbar />
 
-      {/* Main Content */}
       <div className="relative z-10 p-5">{children}</div>
       {!isMobile && (
         <div className="absolute bottom-0 right-0 w-96 h-96">
@@ -40,6 +39,7 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       <div className="absolute inset-0 overflow-hidden">
         <FloatingIcon count={4} />
       </div>
+      <ChatBot />
     </div>
   );
 };
