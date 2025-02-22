@@ -4,6 +4,7 @@ import type React from "react";
 import { useState } from "react";
 import { MessageSquare, Maximize2, Minimize2, X } from "lucide-react";
 import { Button, Input, ScrollArea } from "./ui";
+import { chatWithAI } from "@/utils/chat";
 
 interface Message {
   text: string;
@@ -23,36 +24,11 @@ export function ChatBot() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage = { text: input, isUser: true };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, { text: input, isUser: true }]);
     setInput("");
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
-      });
-
-      const data = await res.json();
-      if (data.response) {
-        setMessages((prev) => [
-          ...prev,
-          { text: data.response, isUser: false },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          { text: "AI response error", isUser: false },
-        ]);
-      }
-    } catch (error) {
-      console.error("Chat error:", error);
-      setMessages((prev) => [
-        ...prev,
-        { text: "Error fetching AI response", isUser: false },
-      ]);
-    }
+    const aiResponse = await chatWithAI(input);
+    setMessages((prev) => [...prev, { text: aiResponse, isUser: false }]);
   };
 
   return (

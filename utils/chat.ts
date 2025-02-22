@@ -1,29 +1,20 @@
-import { NextResponse } from "next/server";
-import OpenAI from "openai";
-
-export async function POST(req: Request) {
-  const { message } = await req.json();
-
-  if (!message) {
-    return NextResponse.json({ error: "Message is required" }, { status: 400 });
+export async function chatWithAI(message: string): Promise<string> {
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+  
+      const data = await res.json();
+      if (data.response) {
+        return data.response;
+      } else {
+        return "AI response error";
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      return "Error fetching AI response";
+    }
   }
-
-  const openai = new OpenAI({
-    apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-  });
-
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "You are an AI chatbot for an NFT marketplace." },
-        { role: "user", content: message },
-      ],
-    });
-
-    return NextResponse.json({ response: response.choices[0].message.content });
-  } catch (error) {
-    console.error("OpenAI API error:", error);
-    return NextResponse.json({ error: "Failed to fetch response" }, { status: 500 });
-  }
-}
+  
