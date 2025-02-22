@@ -77,22 +77,23 @@ export default function MotionButton({
       )}
 
       <motion.div
-        className="absolute inset-0 bg-white opacity-20 dark:opacity-10"
+        className="absolute -inset-1 bg-white opacity-20 dark:opacity-10"
         initial={{ scale: 0, opacity: 0.5 }}
-        animate={{ scale: isHovered ? 1 : 0, opacity: isHovered ? 0.2 : 0.5 }}
+        animate={{ scale: isHovered ? 1.5 : 0, opacity: isHovered ? 0.2 : 0.5 }}
         transition={{ duration: 0.3 }}
       />
+
       {ripple.visible && (
         <motion.div
           className="absolute bg-white dark:bg-gray-400 rounded-full"
           style={{
-            width: 100,
-            height: 100,
-            x: ripple.x - 50,
-            y: ripple.y - 50,
+            width: 150,
+            height: 150,
+            x: ripple.x - 75,
+            y: ripple.y - 75,
           }}
           initial={{ scale: 0, opacity: 0.5 }}
-          animate={{ scale: 4, opacity: 0 }}
+          animate={{ scale: 5, opacity: 0 }}
           transition={{ duration: 0.5 }}
         />
       )}
