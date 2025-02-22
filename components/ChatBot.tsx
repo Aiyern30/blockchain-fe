@@ -19,17 +19,39 @@ export function ChatBot() {
   const toggleChat = () => setIsOpen(!isOpen);
   const toggleEnlarge = () => setIsEnlarged(!isEnlarged);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim()) {
-      setMessages([...messages, { text: input, isUser: true }]);
-      // Here you would typically send the message to your AI backend
-      // and then add the AI's response to the messages
+    if (!input.trim()) return;
+
+    const userMessage = { text: input, isUser: true };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      });
+
+      const data = await res.json();
+      if (data.response) {
+        setMessages((prev) => [
+          ...prev,
+          { text: data.response, isUser: false },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { text: "AI response error", isUser: false },
+        ]);
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
       setMessages((prev) => [
         ...prev,
-        { text: "AI response placeholder", isUser: false },
+        { text: "Error fetching AI response", isUser: false },
       ]);
-      setInput("");
     }
   };
 
