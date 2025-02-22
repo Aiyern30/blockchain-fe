@@ -8,6 +8,7 @@ import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Button } from "@/components/ui";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import MotionButton from "@/app/MotionButton";
 
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
@@ -114,12 +115,26 @@ export default function WalletConnectDropdown() {
           ) : (
             // Show dropdown when no wallet is connected
             <div>
-              <Button
+              <MotionButton
                 onClick={() => setIsOpen(!isOpen)}
-                className="bg-blue-600 text-white flex items-center px-4 py-2 rounded"
-              >
-                Connect Wallet <ChevronDown className="ml-2 w-4 h-4" />
-              </Button>
+                title="Connect Wallet"
+                icon={
+                  <motion.div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="origin-center"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </motion.div>
+                }
+                iconPosition="right"
+              />
+
               {isOpen && (
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}

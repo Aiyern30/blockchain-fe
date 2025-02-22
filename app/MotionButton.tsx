@@ -7,9 +7,15 @@ interface Props {
   title: string;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   icon?: ReactNode;
+  iconPosition?: "left" | "right";
 }
 
-export default function MotionButton({ title, onClick, icon }: Props) {
+export default function MotionButton({
+  title,
+  onClick,
+  icon,
+  iconPosition = "left",
+}: Props) {
   const [isHovered, setIsHovered] = useState(false);
   const [ripple, setRipple] = useState({ x: 0, y: 0, visible: false });
 
@@ -55,7 +61,8 @@ export default function MotionButton({ title, onClick, icon }: Props) {
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
     >
-      {icon && (
+      {/* Render icon on the left if specified */}
+      {icon && iconPosition === "left" && (
         <motion.span
           className="relative z-10"
           animate={isHovered ? "spin" : ""}
@@ -64,7 +71,14 @@ export default function MotionButton({ title, onClick, icon }: Props) {
           {icon}
         </motion.span>
       )}
+
       <motion.span className="relative z-10">{title}</motion.span>
+
+      {/* Render icon on the right if specified */}
+      {icon && iconPosition === "right" && (
+        <motion.span className="relative z-10">{icon}</motion.span>
+      )}
+
       <motion.div
         className="absolute inset-0 bg-white opacity-20"
         initial={{ scale: 0, opacity: 0.5 }}
