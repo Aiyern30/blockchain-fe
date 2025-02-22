@@ -16,13 +16,11 @@ export default function Navbar() {
       animate={{ y: 0 }}
       className="flex items-center justify-between px-6 py-4 backdrop-blur-sm border-b border-white/10 relative z-50"
     >
-      {/* Left Logo */}
       <Link href="/" className="flex items-center space-x-2">
         <Bot className="w-8 h-8 text-purple-400 dark:text-[#007bff]" />
         <span className="text-white font-medium text-xl">BlockChain</span>
       </Link>
 
-      {/* Centered Navigation Links */}
       <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
         <NavLink href="/Create">Create</NavLink>
         <NavLink href="/B">B</NavLink>
@@ -30,14 +28,12 @@ export default function Navbar() {
         <NavLink href="/D">D</NavLink>
       </div>
 
-      {/* Right Section */}
       <div className="hidden md:flex items-center space-x-4 ml-auto">
         <WalletConnectDropdown />
         <Cart />
         <ThemeToggle />
       </div>
 
-      {/* Mobile Menu Button */}
       <Button
         variant="ghost"
         size="icon"
