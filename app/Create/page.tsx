@@ -29,7 +29,7 @@ type Blockchain = "ethereum" | "base" | null;
 export default function CreateContract() {
   const [dragActive, setDragActive] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploading] = useState(false);
   const [selectedBlockchain, setSelectedBlockchain] =
     useState<Blockchain>(null);
 
@@ -56,19 +56,8 @@ export default function CreateContract() {
       return;
     }
 
-    try {
-      setUploading(true);
-      const response = await upload(file.name, file, {
-        access: "public",
-        handleUploadUrl: "/api/upload",
-      });
-      setImageUrl(response.url);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      alert("Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-    }
+    const imageUrl = URL.createObjectURL(file);
+    setImageUrl(imageUrl);
   };
 
   return (
