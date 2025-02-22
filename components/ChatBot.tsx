@@ -9,6 +9,7 @@ import { chatWithAI } from "@/utils/chat";
 interface Message {
   text: string;
   isUser: boolean;
+  isError?: boolean;
 }
 
 export function ChatBot() {
@@ -28,7 +29,16 @@ export function ChatBot() {
     setInput("");
 
     const aiResponse = await chatWithAI(input);
-    setMessages((prev) => [...prev, { text: aiResponse, isUser: false }]);
+
+    const isError =
+      aiResponse.toLowerCase().includes("error") ||
+      aiResponse.toLowerCase().includes("failed") ||
+      aiResponse.toLowerCase().includes("limit");
+
+    setMessages((prev) => [
+      ...prev,
+      { text: aiResponse, isUser: false, isError },
+    ]);
   };
 
   return (
@@ -67,11 +77,13 @@ export function ChatBot() {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`mb-2 p-2 rounded-lg ${
+                className={`mb-2 p-2 rounded-lg max-w-[80%] ${
                   msg.isUser
                     ? "bg-primary text-primary-foreground ml-auto"
+                    : msg.isError
+                    ? "bg-red-100 text-red-500 border border-red-400" // Error styling
                     : "bg-muted"
-                } max-w-[80%]`}
+                }`}
               >
                 {msg.text}
               </div>
