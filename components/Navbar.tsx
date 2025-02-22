@@ -1,4 +1,3 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "@/components/ui";
 import Link from "next/link";
 import { Bot, Menu, X } from "lucide-react";
@@ -6,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Cart } from "./Cart";
-import Web3AuthButton from "./Web3AuthButton";
+import WalletConnectDropdown from "./WalletConnectDropdown";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,8 +29,7 @@ export default function Navbar() {
       </div>
 
       <div className="hidden md:flex items-center space-x-4">
-        <ConnectButton accountStatus="full" chainStatus="full" />
-        <Web3AuthButton />
+        <WalletConnectDropdown />
         <Cart />
         <ThemeToggle />
       </div>
@@ -62,8 +60,8 @@ export default function Navbar() {
             <NavLink href="/D">D</NavLink>
 
             <div className="flex flex-col items-center space-y-2 w-full">
-              <ConnectButton accountStatus="full" chainStatus="full" />
-              <Web3AuthButton /> {/* Web3Auth Button in Mobile Menu */}
+              <WalletConnectDropdown />
+              <Cart />
               <ThemeToggle />
             </div>
           </motion.div>
