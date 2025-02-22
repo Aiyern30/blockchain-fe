@@ -51,17 +51,15 @@ export default function MotionButton({
 
   return (
     <motion.button
-      className="relative overflow-hidden px-6 py-3 rounded-full text-white font-semibold text-lg shadow-lg flex items-center space-x-2"
-      style={{
-        background: "linear-gradient(45deg, #4F46E5, #7C3AED)",
-      }}
+      className="relative overflow-hidden px-6 py-3 rounded-full text-white font-semibold text-lg shadow-lg flex items-center space-x-2
+        bg-gradient-to-r from-[#7b3fe4] to-[#4F46E5] 
+        dark:bg-gradient-to-r dark:from-[#007bff] dark:to-[#0056b3]"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
     >
-      {/* Render icon on the left if specified */}
       {icon && iconPosition === "left" && (
         <motion.span
           className="relative z-10"
@@ -74,20 +72,19 @@ export default function MotionButton({
 
       <motion.span className="relative z-10">{title}</motion.span>
 
-      {/* Render icon on the right if specified */}
       {icon && iconPosition === "right" && (
         <motion.span className="relative z-10">{icon}</motion.span>
       )}
 
       <motion.div
-        className="absolute inset-0 bg-white opacity-20"
+        className="absolute inset-0 bg-white opacity-20 dark:opacity-10"
         initial={{ scale: 0, opacity: 0.5 }}
         animate={{ scale: isHovered ? 1 : 0, opacity: isHovered ? 0.2 : 0.5 }}
         transition={{ duration: 0.3 }}
       />
       {ripple.visible && (
         <motion.div
-          className="absolute bg-white rounded-full"
+          className="absolute bg-white dark:bg-gray-400 rounded-full"
           style={{
             width: 100,
             height: 100,
