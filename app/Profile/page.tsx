@@ -97,11 +97,14 @@ export default function ProfilePage() {
                   className="cursor-pointer flex items-center gap-2"
                   onClick={handleCopy}
                 >
-                  {isConnected ? address : "Not Connected"}
-                  {isConnected && (
+                  {isConnected && address
+                    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+                    : "Not Connected"}
+                  {isConnected && address && (
                     <Copy className="w-4 h-4 text-muted-foreground" />
                   )}
                 </code>
+
                 <span>·</span>
                 <span>{joinedDate ? `Joined ${joinedDate}` : ""}</span>
               </div>
