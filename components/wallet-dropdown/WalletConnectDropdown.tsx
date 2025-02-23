@@ -95,7 +95,9 @@ export default function WalletConnectDropdown() {
       })) as string[];
 
       if (accounts.length > 0) {
-        setWalletAddress(accounts[0]);
+        const address = accounts[0];
+        setWalletAddress(address);
+        localStorage.setItem("walletAddress", address);
         localStorage.setItem("isLoggedIn", "true");
       }
     } catch (error) {
