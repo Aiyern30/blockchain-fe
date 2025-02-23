@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Share2, MoreHorizontal } from "lucide-react";
+import { useAccount } from "wagmi";
+import { Search, Share2, MoreHorizontal, Copy } from "lucide-react";
 import {
   Button,
   DropdownMenu,
@@ -12,12 +13,36 @@ import {
 } from "@/components/ui/";
 import { GridView } from "@/lib/view";
 import { ViewSelector } from "@/components/ViewSelector";
-import { useAccount } from "wagmi";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("collected");
   const [gridView, setGridView] = useState<GridView>("medium");
   const { address, isConnected } = useAccount();
+  const { toast } = useToast();
+
+  const handleCopy = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      toast({
+        variant: "success",
+        title: "Copied!",
+        description: "Wallet address copied successfully.",
+      });
+    }
+  };
+
+  const handleShare = () => {
+    if (address) {
+      const profileUrl = `${window.location.origin}/Profile/${address}`;
+      navigator.clipboard.writeText(profileUrl);
+      toast({
+        variant: "success",
+        title: "Profile Link Copied!",
+        description: "Share your profile link with others.",
+      });
+    }
+  };
 
   const tabs = [
     { id: "collected", label: "Collected" },
@@ -38,14 +63,22 @@ export default function ProfilePage() {
             <div>
               <h1 className="text-2xl font-bold">Unnamed</h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <code>{isConnected ? address : "Not Connected"}</code>
+                <code
+                  className="cursor-pointer flex items-center gap-2"
+                  onClick={handleCopy}
+                >
+                  {isConnected ? address : "Not Connected"}
+                  {isConnected && (
+                    <Copy className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </code>
                 <span>·</span>
                 <span>Joined February 2025</span>
               </div>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={handleShare}>
               <Share2 className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="icon">
