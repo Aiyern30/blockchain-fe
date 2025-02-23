@@ -22,7 +22,6 @@ export default function ProfilePage() {
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
-  console.log("joinedDate", joinedDate);
 
   useEffect(() => {
     const fetchFirstTransactionDate = async () => {
