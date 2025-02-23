@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Cart } from "./Cart";
-import WalletConnectDropdown from "./WalletConnectDropdown";
+import WalletConnectDropdown from "./wallet-dropdown/WalletConnectDropdown";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
