@@ -9,7 +9,7 @@ export default function NotFound() {
         <h1 className="text-4xl font-medium text-white">Oops!</h1>
         <div className="relative w-[300px] h-[200px] mx-auto">
           <Image
-            src="404.svg"
+            src="/404.svg"
             alt="404 Construction Barrier"
             fill
             className="object-contain ml-12"
