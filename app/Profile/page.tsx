@@ -12,10 +12,12 @@ import {
 } from "@/components/ui/";
 import { GridView } from "@/lib/view";
 import { ViewSelector } from "@/components/ViewSelector";
+import { useAccount } from "wagmi";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("collected");
   const [gridView, setGridView] = useState<GridView>("medium");
+  const { address, isConnected } = useAccount();
 
   const tabs = [
     { id: "collected", label: "Collected" },
@@ -36,7 +38,7 @@ export default function ProfilePage() {
             <div>
               <h1 className="text-2xl font-bold">Unnamed</h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <code>0x2360...3D6A</code>
+                <code>{isConnected ? address : "Not Connected"}</code>
                 <span>·</span>
                 <span>Joined February 2025</span>
               </div>
