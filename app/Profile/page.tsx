@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { Search, Share2, MoreHorizontal, Copy } from "lucide-react";
 import {
@@ -20,6 +20,37 @@ export default function ProfilePage() {
   const [gridView, setGridView] = useState<GridView>("medium");
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
+  const [joinedDate, setJoinedDate] = useState<string | null>(null);
+  console.log("joinedDate", joinedDate);
+
+  useEffect(() => {
+    const fetchFirstTransactionDate = async () => {
+      if (!address) return;
+      const api = "1I4Y5Q9JJ81FQI3ZUV3P382HJMXYWPM3M8";
+      try {
+        const res = await fetch(
+          `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${api}`
+        );
+        const data = await res.json();
+        if (data.result.length > 0) {
+          const firstTx = data.result[0];
+          const timestamp = parseInt(firstTx.timeStamp) * 1000;
+          const date = new Date(timestamp).toLocaleString("en-US", {
+            month: "long",
+            year: "numeric",
+          });
+          setJoinedDate(date);
+        } else {
+          setJoinedDate(null);
+        }
+      } catch (error) {
+        console.error("Error fetching transaction history:", error);
+        setJoinedDate(null);
+      }
+    };
+
+    fetchFirstTransactionDate();
+  }, [address]);
 
   const handleCopy = () => {
     if (address) {
@@ -55,7 +86,6 @@ export default function ProfilePage() {
 
   return (
     <div className="h-[calc(100vh-120px)] bg-background text-foreground">
-      {/* Profile Header */}
       <div className="px-4 py-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
@@ -73,7 +103,7 @@ export default function ProfilePage() {
                   )}
                 </code>
                 <span>·</span>
-                <span>Joined February 2025</span>
+                <span>{joinedDate ? `Joined ${joinedDate}` : ""}</span>
               </div>
             </div>
           </div>
@@ -87,7 +117,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
         <div className="mt-8 border-b">
           <nav className="flex gap-4">
             {tabs.map((tab) => (
@@ -107,7 +136,6 @@ export default function ProfilePage() {
           </nav>
         </div>
 
-        {/* Toolbar */}
         <div className="mt-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <DropdownMenu>
@@ -142,7 +170,6 @@ export default function ProfilePage() {
           <ViewSelector view={gridView} onChange={setGridView} />
         </div>
 
-        {/* Empty State */}
         <div className="mt-12 text-center">
           <p className="text-lg font-medium">No items found for this search</p>
           <Button variant="default" className="mt-4">
