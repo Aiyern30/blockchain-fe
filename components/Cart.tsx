@@ -236,7 +236,7 @@ export function Cart() {
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="relative w-[300px] h-[200px] mx-auto">
                 <Image
-                  src="Cart.svg"
+                  src="/Cart.svg"
                   alt="Empty Cart"
                   fill
                   className="object-contain"
