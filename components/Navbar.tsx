@@ -1,14 +1,16 @@
 import { Button } from "@/components/ui";
 import Link from "next/link";
-import { Bot, Menu, X } from "lucide-react";
+import { Bot, Menu, User, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Cart } from "./Cart";
 import WalletConnectDropdown from "./wallet-dropdown/WalletConnectDropdown";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <motion.nav
@@ -30,6 +32,13 @@ export default function Navbar() {
 
       <div className="hidden md:flex items-center space-x-4 ml-auto">
         <WalletConnectDropdown />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => router.push("/Profile")}
+        >
+          <User className="w-6 h-6" />
+        </Button>
         <Cart />
         <ThemeToggle />
       </div>
@@ -62,6 +71,13 @@ export default function Navbar() {
 
             <div className="flex flex-col items-center space-y-2 w-full">
               <WalletConnectDropdown />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => router.push("/Profile")}
+              >
+                <User className="w-6 h-6" />
+              </Button>
               <Cart />
               <ThemeToggle />
             </div>
