@@ -25,6 +25,7 @@ export default function ProfilePage() {
     if (address) {
       navigator.clipboard.writeText(address);
       toast({
+        variant: "success",
         title: "Copied!",
         description: "Wallet address copied successfully.",
       });
@@ -36,6 +37,7 @@ export default function ProfilePage() {
       const profileUrl = `${window.location.origin}/Profile/${address}`;
       navigator.clipboard.writeText(profileUrl);
       toast({
+        variant: "success",
         title: "Profile Link Copied!",
         description: "Share your profile link with others.",
       });
