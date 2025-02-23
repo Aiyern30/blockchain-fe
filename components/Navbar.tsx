@@ -22,8 +22,8 @@ export default function Navbar() {
       </Link>
 
       <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
+        <NavLink href="/Explore">Explore</NavLink>
         <NavLink href="/Create">Create</NavLink>
-        <NavLink href="/B">B</NavLink>
         <NavLink href="/C">C</NavLink>
         <NavLink href="/D">D</NavLink>
       </div>
@@ -55,8 +55,8 @@ export default function Navbar() {
         backdrop-blur-lg border-b border-white/10 
         p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
           >
+            <NavLink href="/Explore">Explore</NavLink>
             <NavLink href="/Create">Create</NavLink>
-            <NavLink href="/B">B</NavLink>
             <NavLink href="/C">C</NavLink>
             <NavLink href="/D">D</NavLink>
 
@@ -85,7 +85,7 @@ function NavLink({
       className="text-gray-300 hover:text-white transition-colors relative group"
     >
       {children}
-      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-500 transition-all group-hover:w-full" />
+      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-500 dark:bg-[#007bff] transition-all group-hover:w-full" />
     </Link>
   );
 }
