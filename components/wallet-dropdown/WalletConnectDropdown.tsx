@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import MotionButton from "@/app/MotionButton";
 import Image from "next/image";
+import { formatAddress } from "@/utils/function";
 
 const Web3AuthIcon = () => (
   <svg
@@ -130,13 +131,9 @@ export default function WalletConnectDropdown() {
             // If connected via RainbowKit, show its UI
             <ConnectButton />
           ) : isWeb3AuthConnected ? (
-            // If connected via Web3Auth, show wallet address + disconnect button
             <div className="bg-gray-800 text-white px-4 py-2 rounded flex items-center space-x-2">
-              <span>
-                {walletAddress
-                  ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-                  : ""}
-              </span>
+              <span>{formatAddress(walletAddress)}</span>
+
               <Button
                 onClick={logoutWeb3Auth}
                 className="bg-red-500 text-white px-2 py-1 rounded"

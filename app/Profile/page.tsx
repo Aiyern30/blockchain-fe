@@ -14,6 +14,7 @@ import {
 import { GridView } from "@/lib/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { useToast } from "@/hooks/use-toast";
+import { formatAddress } from "@/utils/function";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("collected");
@@ -97,9 +98,7 @@ export default function ProfilePage() {
                   className="cursor-pointer flex items-center gap-2"
                   onClick={handleCopy}
                 >
-                  {isConnected && address
-                    ? `${address.slice(0, 6)}...${address.slice(-4)}`
-                    : "Not Connected"}
+                  {formatAddress(address)}
                   {isConnected && address && (
                     <Copy className="w-4 h-4 text-muted-foreground" />
                   )}
