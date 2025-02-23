@@ -5,10 +5,13 @@ import type React from "react";
 import { Upload } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Textarea, Button, Input, Label } from "@/components/ui";
 
 export default function CreateNFT() {
   const [dragActive, setDragActive] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -18,6 +21,33 @@ export default function CreateNFT() {
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFile(file);
+    }
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFile(file);
+    }
+  };
+
+  const handleFile = (file: File) => {
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageUrl(reader.result as string);
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -34,21 +64,46 @@ export default function CreateNFT() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Upload Section */}
           <div
-            className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center min-h-[400px] ${
-              dragActive ? "border-blue-500" : "border-zinc-700"
-            }`}
+            className={`border rounded-lg aspect-[350/200] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden ${
+              dragActive ? "border-blue-500 bg-muted/50" : "border-zinc-700"
+            } hover:bg-muted/50 transition-colors`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrag}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+            onClick={() => document.getElementById("file-input")?.click()}
           >
-            <Upload className="w-8 h-8 mb-4 text-zinc-400" />
-            <p className="text-center mb-2">Drag and drop media</p>
-            <p className="text-blue-400 hover:text-blue-300 mb-4">
-              <Link href="#">Browse files</Link>
-            </p>
-            <p className="text-sm text-zinc-500">Max size: 50MB</p>
-            <p className="text-sm text-zinc-500">JPG, PNG, GIF, SVG, MP4</p>
+            <input
+              id="file-input"
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileInput}
+            />
+
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt="Uploaded NFT"
+                fill
+                className="object-contain"
+              />
+            ) : (
+              <>
+                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm font-medium">
+                  {uploading
+                    ? "Uploading..."
+                    : "Drag and drop or click to upload"}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  You may change this after deploying your contract.
+                </p>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Recommended size: 350 x 350. File types: JPG, PNG, SVG, or GIF
+                </p>
+              </>
+            )}
           </div>
 
           {/* Form Section */}
