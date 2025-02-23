@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import React, { useState } from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui";
+import { Button, Card, CardContent, CardFooter } from "@/components/ui";
 import { ShoppingCart } from "lucide-react";
 
 interface NFT {
@@ -56,12 +56,12 @@ export function NFTCard({ nft, imageSize }: NFTCardProps) {
             rounded bg-white/80 shadow
           "
         >
-          <button className="flex w-3/4 items-center justify-center space-x-2 border-r border-r-white bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <Button className="flex w-3/4 items-center justify-center space-x-2 border-r border-r-white bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
             <span>Buy now</span>
-          </button>
-          <button className="flex w-1/4 items-center justify-center space-x-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          </Button>
+          <Button className="flex w-1/4 items-center justify-center space-x-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
             <ShoppingCart className="h-4" />
-          </button>
+          </Button>
         </div>
       )}
     </Card>
