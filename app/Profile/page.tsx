@@ -128,13 +128,12 @@ export default function ProfilePage() {
   return (
     <div className="h-[calc(100vh-128px)] bg-background text-foreground">
       <div className="px-4 py-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start items-center justify-between w-full gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
             <div className="w-24 h-24 rounded-full bg-blue-600" />
-            <div>
+            <div className="text-center sm:text-left">
               <h1 className="text-2xl font-bold">Unnamed</h1>
-
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 text-sm text-muted-foreground">
                 <code
                   className="cursor-pointer flex items-center gap-2"
                   onClick={handleCopy}
@@ -144,13 +143,13 @@ export default function ProfilePage() {
                     <Copy className="w-4 h-4 text-muted-foreground" />
                   )}
                 </code>
-
                 <span>·</span>
                 <span>{joinedDate ? `Joined ${joinedDate}` : ""}</span>
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex gap-2 flex-row mx-auto sm:mx-0">
             <Button variant="outline" size="icon" onClick={handleShare}>
               <Share2 className="h-4 w-4" />
             </Button>
