@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { StatsChart } from "./stats-chart";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const activities = Array.from({ length: 5 }).map((_, i) => ({
@@ -230,11 +231,7 @@ export default function NFTDetails() {
                 </div>
               </TabsContent>
               <TabsContent value="price-history">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="aspect-[2/1] w-full rounded-lg border" />
-                  </CardContent>
-                </Card>
+                <StatsChart />
               </TabsContent>
             </Tabs>
 
