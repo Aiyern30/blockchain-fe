@@ -20,7 +20,7 @@ export default function Navbar() {
     >
       <Link href="/" className="flex items-center space-x-2">
         <Bot className="w-8 h-8 text-purple-400 dark:text-[#007bff]" />
-        <span className="text-white font-medium text-xl">BlockChain</span>
+        <span className="text-white font-medium text-xl">GamerTokenHub</span>
       </Link>
 
       <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
