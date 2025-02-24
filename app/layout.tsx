@@ -5,7 +5,7 @@ import Providers from "./Providers";
 import LayoutProvider from "./LayoutProvider";
 
 export const metadata: Metadata = {
-  title: "BlockChain",
+  title: "GamerTokenHub",
   description: "Created by us",
   icons: [
     {
