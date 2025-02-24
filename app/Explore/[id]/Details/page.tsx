@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+
 import {
   ShoppingCart,
   Heart,
@@ -22,6 +23,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { StatsChart } from "./stats-chart";
+import { MetricsCard } from "./MetricsCard";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const activities = Array.from({ length: 5 }).map((_, i) => ({
@@ -50,19 +52,51 @@ export default function NFTDetails() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Properties</h3>
               <div className="grid grid-cols-3 gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Card key={i} className="overflow-hidden">
-                    <CardContent className="p-3">
-                      <p className="text-xs text-muted-foreground">
-                        Background
-                      </p>
-                      <p className="font-medium">Blue</p>
-                      <p className="text-xs text-muted-foreground">
-                        12% have this trait
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
+                <MetricsCard
+                  title="Your Balance"
+                  value="$74,892"
+                  change={{
+                    value: "$1,340",
+                    percentage: "-2.1%",
+                    isPositive: false,
+                  }}
+                />
+                <MetricsCard
+                  title="Your Balance"
+                  value="$74,892"
+                  change={{
+                    value: "$1,340",
+                    percentage: "-2.1%",
+                    isPositive: false,
+                  }}
+                />
+                <MetricsCard
+                  title="Your Balance"
+                  value="$74,892"
+                  change={{
+                    value: "$1,340",
+                    percentage: "-2.1%",
+                    isPositive: false,
+                  }}
+                />
+                <MetricsCard
+                  title="Your Balance"
+                  value="$74,892"
+                  change={{
+                    value: "$1,340",
+                    percentage: "-2.1%",
+                    isPositive: false,
+                  }}
+                />
+                <MetricsCard
+                  title="Your Balance"
+                  value="$74,892"
+                  change={{
+                    value: "$1,340",
+                    percentage: "-2.1%",
+                    isPositive: false,
+                  }}
+                />
               </div>
             </div>
           </div>
