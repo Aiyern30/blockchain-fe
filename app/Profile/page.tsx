@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
   Input,
 } from "@/components/ui/";
-import { GridView } from "@/lib/view";
+import type { GridView } from "@/lib/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { useToast } from "@/hooks/use-toast";
 import { formatAddress } from "@/utils/function";
@@ -19,25 +19,43 @@ import { formatAddress } from "@/utils/function";
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("collected");
   const [gridView, setGridView] = useState<GridView>("medium");
-  const { address, isConnected } = useAccount();
+  const { address: rainbowKitAddress, isConnected } = useAccount();
   const { toast } = useToast();
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
+  const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedAddress = localStorage.getItem("walletAddress");
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+    if (isLoggedIn && storedAddress) {
+      setWeb3AuthAddress(storedAddress);
+    }
+  }, []);
+
+  const [walletAddress, setWalletAddress] = useState<string | undefined>();
+
+  useEffect(() => {
+    setWalletAddress(
+      isConnected ? rainbowKitAddress : web3AuthAddress ?? undefined
+    );
+  }, [isConnected, rainbowKitAddress, web3AuthAddress]);
 
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY;
 
     const fetchFirstTransactionDate = async () => {
-      if (!address || !apiKey) return;
+      if (!walletAddress || !apiKey) return;
 
       try {
         const res = await fetch(
-          `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`
+          `https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`
         );
         const data = await res.json();
 
         if (data.result.length > 0) {
           const firstTx = data.result[0];
-          const timestamp = parseInt(firstTx.timeStamp) * 1000;
+          const timestamp = Number.parseInt(firstTx.timeStamp) * 1000;
           const date = new Date(timestamp).toLocaleString("en-US", {
             month: "long",
             year: "numeric",
@@ -53,28 +71,48 @@ export default function ProfilePage() {
     };
 
     fetchFirstTransactionDate();
-  }, [address]);
+  }, [walletAddress]);
 
   const handleCopy = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
-      toast({
-        variant: "success",
-        title: "Copied!",
-        description: "Wallet address copied successfully.",
-      });
+    if (walletAddress) {
+      navigator.clipboard
+        .writeText(walletAddress)
+        .then(() => {
+          toast({
+            title: "Copied!",
+            description: "Wallet address copied to clipboard.",
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to copy wallet address.",
+          });
+        });
     }
   };
 
   const handleShare = () => {
-    if (address) {
-      const profileUrl = `${window.location.origin}/Profile/${address}`;
-      navigator.clipboard.writeText(profileUrl);
-      toast({
-        variant: "success",
-        title: "Profile Link Copied!",
-        description: "Share your profile link with others.",
-      });
+    if (walletAddress) {
+      const profileUrl = `${window.location.origin}/Profile/${walletAddress}`;
+      navigator.clipboard
+        .writeText(profileUrl)
+        .then(() => {
+          toast({
+            title: "Profile Link Copied!",
+            description: "Share your profile link with others.",
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to copy profile link.",
+          });
+        });
     }
   };
 
@@ -95,13 +133,14 @@ export default function ProfilePage() {
             <div className="w-24 h-24 rounded-full bg-blue-600" />
             <div>
               <h1 className="text-2xl font-bold">Unnamed</h1>
+
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <code
                   className="cursor-pointer flex items-center gap-2"
                   onClick={handleCopy}
                 >
-                  {formatAddress(address)}
-                  {isConnected && address && (
+                  {formatAddress(walletAddress)}
+                  {isConnected && walletAddress && (
                     <Copy className="w-4 h-4 text-muted-foreground" />
                   )}
                 </code>
