@@ -1,4 +1,14 @@
-import { Button, Card, CardContent } from "@/components/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import {
   ShoppingCart,
@@ -12,10 +22,18 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const activities = Array.from({ length: 5 }).map((_, i) => ({
+  event: "Sale",
+  price: "12.34 ETH",
+  from: "0x1234...5678",
+  date: "2 days ago",
+}));
+
 export default function NFTDetails() {
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8">
+      <main className="mx-auto px-4 py-8">
         <div className="grid gap-8 md:grid-cols-2">
           {/* NFT Image */}
           <div className="space-y-4">
@@ -174,31 +192,41 @@ export default function NFTDetails() {
                 </div>
               </TabsContent>
               <TabsContent value="activity">
-                <div className="space-y-4">
-                  <div className="rounded-lg border">
-                    <div className="grid grid-cols-4 gap-4 p-4 text-sm font-medium">
-                      <div>Event</div>
-                      <div>Price</div>
-                      <div>From</div>
-                      <div>Date</div>
-                    </div>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="grid grid-cols-4 gap-4 border-t p-4 text-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Activity className="h-4 w-4" />
-                          Sale
-                        </div>
-                        <div>12.34 ETH</div>
-                        <Link href="#" className="text-primary hover:underline">
-                          0x1234...5678
-                        </Link>
-                        <div className="text-muted-foreground">2 days ago</div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="w-full overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Event</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>From</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {activities.map((activity, index) => (
+                        <TableRow key={index} className="cursor-pointer h-16">
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Activity className="h-4 w-4" />
+                              {activity.event}
+                            </div>
+                          </TableCell>
+                          <TableCell>{activity.price}</TableCell>
+                          <TableCell>
+                            <Link
+                              href="#"
+                              className="text-primary hover:underline"
+                            >
+                              {activity.from}
+                            </Link>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {activity.date}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </TabsContent>
               <TabsContent value="price-history">

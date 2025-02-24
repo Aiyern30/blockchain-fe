@@ -11,9 +11,10 @@ import { GridView } from "@/lib/view";
 interface ViewSelectorProps {
   view: GridView;
   onChange: (view: GridView) => void;
+  className?: string;
 }
 
-export function ViewSelector({ view, onChange }: ViewSelectorProps) {
+export function ViewSelector({ view, onChange, className }: ViewSelectorProps) {
   const [selectedView, setSelectedView] = useState<GridView>(view);
 
   useEffect(() => {
@@ -31,13 +32,13 @@ export function ViewSelector({ view, onChange }: ViewSelectorProps) {
   };
 
   return (
-    <div className="flex space-x-2 ">
+    <div className={`flex space-x-2 ${className || ""}`}>
       <Button
         onClick={() => handleViewChange("list")}
         className={`rounded-md border px-4 py-2 ${
           selectedView === "list"
-            ? "bg-[#7b3fe4] text-white hover:hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
-            : "hover:bg-purple-800 dark:hover:hover:bg-blue-800 hover:text-white"
+            ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+            : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
         }`}
         size="icon"
       >
@@ -47,8 +48,8 @@ export function ViewSelector({ view, onChange }: ViewSelectorProps) {
         onClick={() => handleViewChange("small")}
         className={`rounded-md border px-4 py-2 ${
           selectedView === "small"
-            ? "bg-[#7b3fe4] text-white hover:hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
-            : "hover:bg-purple-800 dark:hover:hover:bg-blue-800 hover:text-white"
+            ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+            : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
         }`}
         size="icon"
       >
@@ -58,8 +59,8 @@ export function ViewSelector({ view, onChange }: ViewSelectorProps) {
         onClick={() => handleViewChange("medium")}
         className={`rounded-md border px-4 py-2 ${
           selectedView === "medium"
-            ? "bg-[#7b3fe4] text-white hover:hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
-            : "hover:bg-purple-800 dark:hover:hover:bg-blue-800 hover:text-white"
+            ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+            : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
         }`}
         size="icon"
       >
@@ -69,8 +70,8 @@ export function ViewSelector({ view, onChange }: ViewSelectorProps) {
         onClick={() => handleViewChange("large")}
         className={`rounded-md border px-4 py-2 ${
           selectedView === "large"
-            ? "bg-[#7b3fe4] text-white hover:hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
-            : "hover:bg-purple-800 dark:hover:hover:bg-blue-800 hover:text-white"
+            ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+            : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
         }`}
         size="icon"
       >
