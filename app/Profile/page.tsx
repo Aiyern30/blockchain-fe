@@ -19,19 +19,33 @@ import { formatAddress } from "@/utils/function";
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("collected");
   const [gridView, setGridView] = useState<GridView>("medium");
-  const { address, isConnected } = useAccount();
+  const { address: rainbowKitAddress, isConnected } = useAccount();
   const { toast } = useToast();
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
+  const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
+  useEffect(() => {
+    const storedAddress = localStorage.getItem("walletAddress");
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
+    if (isLoggedIn && storedAddress) {
+      setWeb3AuthAddress(storedAddress);
+    }
+  }, []);
+
+  const walletAddress = isConnected
+    ? rainbowKitAddress
+    : web3AuthAddress ?? undefined;
+
+  console.log("walletAddress", walletAddress);
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY;
 
     const fetchFirstTransactionDate = async () => {
-      if (!address || !apiKey) return;
+      if (!walletAddress || !apiKey) return;
 
       try {
         const res = await fetch(
-          `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`
+          `https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`
         );
         const data = await res.json();
 
@@ -53,11 +67,11 @@ export default function ProfilePage() {
     };
 
     fetchFirstTransactionDate();
-  }, [address]);
+  }, [walletAddress]);
 
   const handleCopy = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
+    if (walletAddress) {
+      navigator.clipboard.writeText(walletAddress);
       toast({
         variant: "success",
         title: "Copied!",
@@ -67,8 +81,8 @@ export default function ProfilePage() {
   };
 
   const handleShare = () => {
-    if (address) {
-      const profileUrl = `${window.location.origin}/Profile/${address}`;
+    if (walletAddress) {
+      const profileUrl = `${window.location.origin}/Profile/${walletAddress}`;
       navigator.clipboard.writeText(profileUrl);
       toast({
         variant: "success",
@@ -100,8 +114,8 @@ export default function ProfilePage() {
                   className="cursor-pointer flex items-center gap-2"
                   onClick={handleCopy}
                 >
-                  {formatAddress(address)}
-                  {isConnected && address && (
+                  {formatAddress(walletAddress)}
+                  {isConnected && walletAddress && (
                     <Copy className="w-4 h-4 text-muted-foreground" />
                   )}
                 </code>
