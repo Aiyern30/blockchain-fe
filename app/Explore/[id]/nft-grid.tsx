@@ -86,7 +86,12 @@ export function NFTGrid({ view }: NFTGridProps) {
   }
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div
+      className="grid gap-4"
+      style={{
+        gridTemplateColumns: `repeat(auto-fit, minmax(${imageSize}px, 1fr))`,
+      }}
+    >
       {nfts.map((nft) => (
         <NFTCard key={nft.id} nft={nft} imageSize={imageSize} />
       ))}
