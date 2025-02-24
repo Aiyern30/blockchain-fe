@@ -5,7 +5,12 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
 const fetchTransactions = async (address: string) => {
-  const API_KEY = "6F7V67EGNQZI1YZHU6RPN9XKTVCCKIHPPG";
+  const API_KEY = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY;
+  if (!API_KEY) {
+    console.error("Missing Etherscan API key");
+    return [];
+  }
+
   const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${API_KEY}`;
 
   try {
