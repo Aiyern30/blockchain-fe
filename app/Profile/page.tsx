@@ -32,11 +32,14 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const walletAddress = isConnected
-    ? rainbowKitAddress
-    : web3AuthAddress ?? undefined;
+  const [walletAddress, setWalletAddress] = useState<string | undefined>();
 
-  console.log("walletAddress", walletAddress);
+  useEffect(() => {
+    setWalletAddress(
+      isConnected ? rainbowKitAddress : web3AuthAddress ?? undefined
+    );
+  }, [isConnected, rainbowKitAddress, web3AuthAddress]);
+
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY;
 
@@ -71,12 +74,17 @@ export default function ProfilePage() {
 
   const handleCopy = () => {
     if (walletAddress) {
+      console.log("Copying wallet address:", walletAddress);
       navigator.clipboard.writeText(walletAddress);
+
+      console.log("Triggering toast notification...");
       toast({
         variant: "success",
         title: "Copied!",
         description: "Wallet address copied successfully.",
       });
+    } else {
+      console.log("No wallet address to copy!");
     }
   };
 
@@ -109,6 +117,7 @@ export default function ProfilePage() {
             <div className="w-24 h-24 rounded-full bg-blue-600" />
             <div>
               <h1 className="text-2xl font-bold">Unnamed</h1>
+
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <code
                   className="cursor-pointer flex items-center gap-2"
