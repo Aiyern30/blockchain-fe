@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
   Input,
 } from "@/components/ui/";
-import { GridView } from "@/lib/view";
+import type { GridView } from "@/lib/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { useToast } from "@/hooks/use-toast";
 import { formatAddress } from "@/utils/function";
@@ -23,6 +23,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
+
   useEffect(() => {
     const storedAddress = localStorage.getItem("walletAddress");
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
@@ -54,7 +55,7 @@ export default function ProfilePage() {
 
         if (data.result.length > 0) {
           const firstTx = data.result[0];
-          const timestamp = parseInt(firstTx.timeStamp) * 1000;
+          const timestamp = Number.parseInt(firstTx.timeStamp) * 1000;
           const date = new Date(timestamp).toLocaleString("en-US", {
             month: "long",
             year: "numeric",
@@ -74,29 +75,44 @@ export default function ProfilePage() {
 
   const handleCopy = () => {
     if (walletAddress) {
-      console.log("Copying wallet address:", walletAddress);
-      navigator.clipboard.writeText(walletAddress);
-
-      console.log("Triggering toast notification...");
-      toast({
-        variant: "success",
-        title: "Copied!",
-        description: "Wallet address copied successfully.",
-      });
-    } else {
-      console.log("No wallet address to copy!");
+      navigator.clipboard
+        .writeText(walletAddress)
+        .then(() => {
+          toast({
+            title: "Copied!",
+            description: "Wallet address copied to clipboard.",
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to copy wallet address.",
+          });
+        });
     }
   };
 
   const handleShare = () => {
     if (walletAddress) {
       const profileUrl = `${window.location.origin}/Profile/${walletAddress}`;
-      navigator.clipboard.writeText(profileUrl);
-      toast({
-        variant: "success",
-        title: "Profile Link Copied!",
-        description: "Share your profile link with others.",
-      });
+      navigator.clipboard
+        .writeText(profileUrl)
+        .then(() => {
+          toast({
+            title: "Profile Link Copied!",
+            description: "Share your profile link with others.",
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to copy profile link.",
+          });
+        });
     }
   };
 
