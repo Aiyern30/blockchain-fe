@@ -126,7 +126,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="h-[calc(100vh-120px)] bg-background text-foreground">
+    <div className="h-[calc(100vh-128px)] bg-background text-foreground">
       <div className="px-4 py-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
