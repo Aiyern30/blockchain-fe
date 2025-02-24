@@ -17,7 +17,16 @@ import { useToast } from "@/hooks/use-toast";
 import { formatAddress } from "@/utils/function";
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState("collected");
+  const tabs = [
+    { id: "transaction", label: "Transaction" },
+    { id: "collected", label: "Collected" },
+    { id: "offers", label: "Offers made" },
+    { id: "deals", label: "Deals" },
+    { id: "created", label: "Created" },
+    { id: "favorited", label: "Favorited" },
+    { id: "activity", label: "Activity" },
+  ];
+  const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [gridView, setGridView] = useState<GridView>("medium");
   const { address: rainbowKitAddress, isConnected } = useAccount();
   const { toast } = useToast();
@@ -115,15 +124,6 @@ export default function ProfilePage() {
         });
     }
   };
-
-  const tabs = [
-    { id: "collected", label: "Collected" },
-    { id: "offers", label: "Offers made" },
-    { id: "deals", label: "Deals" },
-    { id: "created", label: "Created" },
-    { id: "favorited", label: "Favorited" },
-    { id: "activity", label: "Activity" },
-  ];
 
   return (
     <div className="h-[calc(100vh-128px)] bg-background text-foreground">
@@ -227,12 +227,29 @@ export default function ProfilePage() {
           />
         </div>
 
-        <div className="mt-12 text-center">
-          <p className="text-lg font-medium">No items found for this search</p>
-          <Button variant="default" className="mt-4">
-            Back to all items
-          </Button>
-        </div>
+        {tabs.map((tab) => (
+          <div
+            key={tab.id}
+            className={activeTab === tab.id ? "block" : "hidden"}
+          >
+            <div className="mt-12 text-center">
+              <p className="text-lg font-medium">
+                No items found for {tab.label}
+              </p>
+              <Button
+                variant="default"
+                className="mt-4"
+                onClick={() => {
+                  // Reset filters and search
+                  // This is a placeholder for the actual reset logic
+                  console.log("Resetting filters and search for", tab.label);
+                }}
+              >
+                Back to all {tab.label}
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
