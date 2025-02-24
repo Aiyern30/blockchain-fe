@@ -8,7 +8,7 @@ import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Button } from "@/components/ui";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import MotionButton from "@/app/MotionButton";
+import MotionButton from "@/components/wallet-dropdown/MotionButton";
 import Image from "next/image";
 import { formatAddress } from "@/utils/function";
 
