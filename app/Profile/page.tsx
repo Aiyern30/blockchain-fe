@@ -160,18 +160,18 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="mt-8 border-b">
-          <nav className="flex gap-4">
+        <div className="mt-8 border-b overflow-x-auto">
+          <nav className="flex gap-4 whitespace-nowrap overflow-x-auto no-scrollbar scroll-snap-x">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-2 px-1 text-sm font-medium transition-colors hover:text-primary
-                  ${
-                    activeTab === tab.id
-                      ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground"
-                  }`}
+                className={`pb-2 px-1 text-sm font-medium transition-colors hover:text-primary 
+          ${
+            activeTab === tab.id
+              ? "border-b-2 border-primary text-primary"
+              : "text-muted-foreground"
+          }`}
               >
                 {tab.label}
               </button>
@@ -179,11 +179,15 @@ export default function ProfilePage() {
           </nav>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+        <div className="mt-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row w-full gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full md:w-auto"
+                >
                   Status
                 </Button>
               </DropdownMenuTrigger>
@@ -193,9 +197,14 @@ export default function ProfilePage() {
                 <DropdownMenuItem>Inactive</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full md:w-auto"
+                >
                   Chains
                 </Button>
               </DropdownMenuTrigger>
@@ -205,12 +214,18 @@ export default function ProfilePage() {
                 <DropdownMenuItem>Optimism</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <div className="relative">
+
+            <div className="relative w-full">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search by name" className="pl-8 w-[300px]" />
+              <Input placeholder="Search by name" className="pl-8 w-full" />
             </div>
           </div>
-          <ViewSelector view={gridView} onChange={setGridView} />
+
+          <ViewSelector
+            view={gridView}
+            onChange={setGridView}
+            className="w-full md:w-auto"
+          />
         </div>
 
         <div className="mt-12 text-center">
