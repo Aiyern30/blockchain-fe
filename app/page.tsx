@@ -75,7 +75,7 @@ export default function Home() {
         >
           <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
             Buy, sell, and collect exclusive NFTs in a decentralized
-            marketplace. Powered by blockchain for secure and transparent
+            marketplace. Powered by GamerTokenHub for secure and transparent
             transactions.
             <br />
             <strong>(Blockchain Group Assignment)</strong>
