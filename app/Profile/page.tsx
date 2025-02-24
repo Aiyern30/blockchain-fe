@@ -24,14 +24,17 @@ export default function ProfilePage() {
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
 
   useEffect(() => {
+    const apiKey = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY;
+
     const fetchFirstTransactionDate = async () => {
-      if (!address) return;
-      const api = "1I4Y5Q9JJ81FQI3ZUV3P382HJMXYWPM3M8";
+      if (!address || !apiKey) return;
+
       try {
         const res = await fetch(
-          `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${api}`
+          `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`
         );
         const data = await res.json();
+
         if (data.result.length > 0) {
           const firstTx = data.result[0];
           const timestamp = parseInt(firstTx.timeStamp) * 1000;
