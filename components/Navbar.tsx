@@ -65,7 +65,7 @@ export default function Navbar() {
             <NavLink href="/Explore">Explore</NavLink>
             <NavLink href="/Create">Create</NavLink>
 
-            <div className="flex flex-col items-center space-y-2 w-full">
+            <div className="flex flex-row justify-center space-x-2 w-full">
               <Button
                 variant="outline"
                 size="icon"
