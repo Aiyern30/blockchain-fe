@@ -1,0 +1,10 @@
+{
+    "name": "My First NFT",
+    "description": "This is my first NFT on Ethereum!",
+    "image": "ipfs://your-ipfs-image-hash",
+    "attributes": [
+      { "trait_type": "Background", "value": "Blue" },
+      { "trait_type": "Rarity", "value": "Rare" }
+    ]
+  }
+  
