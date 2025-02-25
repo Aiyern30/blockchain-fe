@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 
 // Your deployed contract details
-const CONTRACT_ADDRESS = "0x4B67D6fd5314e823D2CEe0E747aa02B364e50F2E"; // Change to your deployed address
-const CONTRACT_ABI = [
+const NFT_CONTRACT_ADDRESS = "0x4B67D6fd5314e823D2CEe0E747aa02B364e50F2E"; // Change to your deployed address
+const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
     inputs: [
@@ -319,8 +319,6 @@ const CONTRACT_ABI = [
 ];
 
 // Function to get contract instance
-export const getNFTContract = (
-  providerOrSigner: ethers.Provider | ethers.Signer
-) => {
-  return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, providerOrSigner);
-};
+export function getNFTContract(signer: ethers.Signer) {
+  return new ethers.Contract(NFT_CONTRACT_ADDRESS, nftABI, signer);
+}
