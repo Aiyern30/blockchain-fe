@@ -26,8 +26,6 @@ export default function Navbar() {
       <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
         <NavLink href="/Explore">Explore</NavLink>
         <NavLink href="/Create">Create</NavLink>
-        <NavLink href="/C">C</NavLink>
-        <NavLink href="/D">D</NavLink>
       </div>
 
       <div className="hidden md:flex items-center space-x-4 ml-auto">
@@ -66,11 +64,8 @@ export default function Navbar() {
           >
             <NavLink href="/Explore">Explore</NavLink>
             <NavLink href="/Create">Create</NavLink>
-            <NavLink href="/C">C</NavLink>
-            <NavLink href="/D">D</NavLink>
 
-            <div className="flex flex-col items-center space-y-2 w-full">
-              <WalletConnectDropdown />
+            <div className="flex flex-row justify-center space-x-2 w-full">
               <Button
                 variant="outline"
                 size="icon"

@@ -5,6 +5,7 @@ import { FloatingIcon } from "@/components/FloatingIcon";
 import Navbar from "@/components/Navbar";
 import { RoboAnimation } from "@/components/RoboAnimation";
 import { SparklesCore } from "@/components/Sparkles";
+import WalletConnectDropdown from "@/components/wallet-dropdown/WalletConnectDropdown";
 import { useDeviceType } from "@/utils/useDeviceType";
 import React from "react";
 
@@ -29,6 +30,11 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <Navbar />
+      {isMobile && (
+        <div className="flex justify-center py-5">
+          <WalletConnectDropdown />
+        </div>
+      )}
 
       <div className="relative z-10 p-5">{children}</div>
       {!isMobile && (
