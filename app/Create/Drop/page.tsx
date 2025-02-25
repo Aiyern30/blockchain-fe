@@ -30,6 +30,7 @@ import {
   FormField,
   FormItem,
   FormMessage,
+  Button,
 } from "@/components/ui";
 import { FormProvider, useForm } from "react-hook-form";
 type Blockchain = "ethereum" | "base" | null;
@@ -296,6 +297,9 @@ export default function DropNFT() {
                   </div>
                 </div>
               </div>
+              <Button variant={"default"} type="submit" className="btn-primary">
+                Deploy Contract
+              </Button>
             </form>
           </FormProvider>
         </div>
