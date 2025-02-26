@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Info, Upload, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-// import { upload } from "@vercel/blob/client";
 import {
   Tooltip,
   TooltipProvider,
@@ -25,10 +24,20 @@ import {
 import { FormProvider, useForm } from "react-hook-form";
 import Information from "./Information";
 import { useAccount } from "wagmi";
+import { useToast } from "@/hooks/use-toast";
+
 type Blockchain = "ethereum" | "base" | null;
+
+type FormValues = {
+  contractName: string;
+  tokenSymbol: string;
+};
+
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 
 export default function DropNFT() {
+  const { toast } = useToast();
+
   const [dragActive, setDragActive] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading] = useState(false);
@@ -93,11 +102,6 @@ export default function DropNFT() {
     }
   };
 
-  type FormValues = {
-    contractName: string;
-    tokenSymbol: string;
-  };
-
   const formMethods = useForm<FormValues>({
     defaultValues: {
       contractName: "",
@@ -109,12 +113,20 @@ export default function DropNFT() {
 
   const onSubmit = async (data: FormValues) => {
     if (!imageUrl) {
-      alert("Please upload an image first!");
+      toast({
+        title: "Error",
+        description: "Please upload an image first!",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!walletAddress) {
-      alert("Wallet address not found!");
+      toast({
+        title: "Error",
+        description: "Wallet address not found!",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -152,11 +164,21 @@ export default function DropNFT() {
       const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
 
       console.log("Metadata successfully uploaded:", metadataUrl);
-      alert("NFT Metadata uploaded successfully!");
+
+      toast({
+        title: "Success",
+        description: "NFT Metadata uploaded successfully!",
+      });
     } catch (error) {
       console.error("Error uploading metadata:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload NFT metadata.",
+        variant: "destructive",
+      });
     }
   };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1fr,320px]">
