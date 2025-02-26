@@ -23,7 +23,7 @@ import {
 
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
-  projectId: "4f69cd9e3add96465fdfd34b55057537",
+  projectId: process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || "",
   chains: [mainnet, polygon, optimism, arbitrum, base, sepolia, hardhat],
   ssr: true,
 });
