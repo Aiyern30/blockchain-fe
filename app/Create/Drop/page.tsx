@@ -26,6 +26,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import Information from "./Information";
 import { useAccount } from "wagmi";
 type Blockchain = "ethereum" | "base" | null;
+const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 
 export default function DropNFT() {
   const [dragActive, setDragActive] = useState(false);
@@ -33,6 +34,9 @@ export default function DropNFT() {
   const [uploading] = useState(false);
   const [selectedBlockchain, setSelectedBlockchain] =
     useState<Blockchain>(null);
+  const { address } = useAccount();
+
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -51,6 +55,12 @@ export default function DropNFT() {
     }
   };
 
+  useEffect(() => {
+    if (address) {
+      setWalletAddress(address);
+    }
+  }, [address]);
+
   const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       alert("Please upload an image file");
@@ -66,7 +76,7 @@ export default function DropNFT() {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI3ZGNjMDY5Ni01ZmQwLTRjNDUtOTRmMC0zZThkM2QwNzdmOTQiLCJlbWFpbCI6ImlhbmJpYW4yQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiI4MzhmM2RmZTIwYWU2MWIyZDhiMyIsInNjb3BlZEtleVNlY3JldCI6Ijk3OWQxZDc2YzMyYjkyZTkzZGI1NGQ3MTgzYWI0NTcwZDhhMDk3YWM4M2U0ODk0N2Q5MzA1NzVlZjE2Y2NhZjYiLCJleHAiOjE3NzIxMTE4NDV9.24hqhzg0gpnMHTkHF448Kc0fTX12ltNE7tegWZEaz1s`,
+            Authorization: `Bearer ${PINATA_JWT}`,
           },
           body: formData,
         }
@@ -76,8 +86,8 @@ export default function DropNFT() {
 
       const data = await response.json();
       const ipfsUrl = `https://ipfs.io/ipfs/${data.IpfsHash}`;
-
       setImageUrl(ipfsUrl);
+      console.log("Image uploaded:", ipfsUrl);
     } catch (error) {
       console.error("Image upload error:", error);
     }
@@ -87,21 +97,16 @@ export default function DropNFT() {
     contractName: string;
     tokenSymbol: string;
   };
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       contractName: "",
       tokenSymbol: "",
     },
   });
-  const { address } = useAccount(); // ✅ Use directly
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (address) {
-      setWalletAddress(address);
-    }
-  }, [address]);
   const { handleSubmit, control } = formMethods;
+
   const onSubmit = async (data: FormValues) => {
     if (!imageUrl) {
       alert("Please upload an image first!");
@@ -117,28 +122,25 @@ export default function DropNFT() {
       name: data.contractName,
       symbol: data.tokenSymbol,
       image: imageUrl,
-      blockchain: selectedBlockchain || "sepolia",
-      owner: walletAddress, // Include owner's wallet address
+      blockchain: "ethereum",
+      owner: walletAddress,
     };
 
     console.log("Submitting metadata:", metadata);
 
     try {
-      // Convert metadata to JSON format
       const metadataBlob = new Blob([JSON.stringify(metadata)], {
         type: "application/json",
       });
-
       const metadataFormData = new FormData();
       metadataFormData.append("file", metadataBlob, "metadata.json");
 
-      // Upload metadata to IPFS (Pinata)
       const metadataResponse = await fetch(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI3ZGNjMDY5Ni01ZmQwLTRjNDUtOTRmMC0zZThkM2QwNzdmOTQiLCJlbWFpbCI6ImlhbmJpYW4yQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiI4MzhmM2RmZTIwYWU2MWIyZDhiMyIsInNjb3BlZEtleVNlY3JldCI6Ijk3OWQxZDc2YzMyYjkyZTkzZGI1NGQ3MTgzYWI0NTcwZDhhMDk3YWM4M2U0ODk0N2Q5MzA1NzVlZjE2Y2NhZjYiLCJleHAiOjE3NzIxMTE4NDV9.24hqhzg0gpnMHTkHF448Kc0fTX12ltNE7tegWZEaz1s`,
+            Authorization: `Bearer ${PINATA_JWT}`,
           },
           body: metadataFormData,
         }
@@ -151,13 +153,10 @@ export default function DropNFT() {
 
       console.log("Metadata successfully uploaded:", metadataUrl);
       alert("NFT Metadata uploaded successfully!");
-
-      // Further actions (e.g., contract deployment) can be added here
     } catch (error) {
       console.error("Error uploading metadata:", error);
     }
   };
-
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1fr,320px]">
