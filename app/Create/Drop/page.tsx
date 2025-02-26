@@ -56,9 +56,32 @@ export default function DropNFT() {
       return;
     }
 
-    const imageUrl = URL.createObjectURL(file);
-    setImageUrl(imageUrl);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI3ZGNjMDY5Ni01ZmQwLTRjNDUtOTRmMC0zZThkM2QwNzdmOTQiLCJlbWFpbCI6ImlhbmJpYW4yQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiI4MzhmM2RmZTIwYWU2MWIyZDhiMyIsInNjb3BlZEtleVNlY3JldCI6Ijk3OWQxZDc2YzMyYjkyZTkzZGI1NGQ3MTgzYWI0NTcwZDhhMDk3YWM4M2U0ODk0N2Q5MzA1NzVlZjE2Y2NhZjYiLCJleHAiOjE3NzIxMTE4NDV9.24hqhzg0gpnMHTkHF448Kc0fTX12ltNE7tegWZEaz1s`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      const ipfsUrl = `https://ipfs.io/ipfs/${data.IpfsHash}`;
+
+      setImageUrl(ipfsUrl);
+    } catch (error) {
+      console.error("Image upload error:", error);
+    }
   };
+
   type FormValues = {
     contractName: string;
     tokenSymbol: string;
@@ -70,12 +93,13 @@ export default function DropNFT() {
     },
   });
 
-  const { handleSubmit, control } = formMethods; // Extract methods
+  const { handleSubmit, control } = formMethods;
 
   const onSubmit = (data: FormValues) => {
     console.log("Form Data:", {
       ...data,
-      blockchain: "sepolia", // Hardcoded blockchain
+      blockchain: selectedBlockchain || "sepolia",
+      imageUrl,
     });
   };
 
