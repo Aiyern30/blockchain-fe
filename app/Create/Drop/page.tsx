@@ -134,7 +134,7 @@ export default function DropNFT() {
       name: data.contractName,
       symbol: data.tokenSymbol,
       image: imageUrl,
-      blockchain: "ethereum",
+      blockchain: selectedBlockchain,
       owner: walletAddress,
     };
 
@@ -169,6 +169,11 @@ export default function DropNFT() {
         title: "Success",
         description: "NFT Metadata uploaded successfully!",
       });
+
+      // ✅ Clear the form and reset image state
+      formMethods.reset();
+      setImageUrl(null);
+      setSelectedBlockchain(null);
     } catch (error) {
       console.error("Error uploading metadata:", error);
       toast({
