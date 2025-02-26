@@ -2,11 +2,10 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Info, Upload, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-// import { upload } from "@vercel/blob/client";
 import {
   Tooltip,
   TooltipProvider,
@@ -24,14 +23,29 @@ import {
 } from "@/components/ui";
 import { FormProvider, useForm } from "react-hook-form";
 import Information from "./Information";
+import { useAccount } from "wagmi";
+import { useToast } from "@/hooks/use-toast";
+
 type Blockchain = "ethereum" | "base" | null;
 
+type FormValues = {
+  contractName: string;
+  tokenSymbol: string;
+};
+
+const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
+
 export default function DropNFT() {
+  const { toast } = useToast();
+
   const [dragActive, setDragActive] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading] = useState(false);
   const [selectedBlockchain, setSelectedBlockchain] =
     useState<Blockchain>(null);
+  const { address } = useAccount();
+
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -50,19 +64,44 @@ export default function DropNFT() {
     }
   };
 
+  useEffect(() => {
+    if (address) {
+      setWalletAddress(address);
+    }
+  }, [address]);
+
   const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       alert("Please upload an image file");
       return;
     }
 
-    const imageUrl = URL.createObjectURL(file);
-    setImageUrl(imageUrl);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${PINATA_JWT}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      const ipfsUrl = `https://ipfs.io/ipfs/${data.IpfsHash}`;
+      setImageUrl(ipfsUrl);
+      console.log("Image uploaded:", ipfsUrl);
+    } catch (error) {
+      console.error("Image upload error:", error);
+    }
   };
-  type FormValues = {
-    contractName: string;
-    tokenSymbol: string;
-  };
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       contractName: "",
@@ -70,13 +109,79 @@ export default function DropNFT() {
     },
   });
 
-  const { handleSubmit, control } = formMethods; // Extract methods
+  const { handleSubmit, control } = formMethods;
 
-  const onSubmit = (data: FormValues) => {
-    console.log("Form Data:", {
-      ...data,
-      blockchain: "sepolia", // Hardcoded blockchain
-    });
+  const onSubmit = async (data: FormValues) => {
+    if (!imageUrl) {
+      toast({
+        title: "Error",
+        description: "Please upload an image first!",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!walletAddress) {
+      toast({
+        title: "Error",
+        description: "Wallet address not found!",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const metadata = {
+      name: data.contractName,
+      symbol: data.tokenSymbol,
+      image: imageUrl,
+      blockchain: selectedBlockchain,
+      owner: walletAddress,
+    };
+
+    console.log("Submitting metadata:", metadata);
+
+    try {
+      const metadataBlob = new Blob([JSON.stringify(metadata)], {
+        type: "application/json",
+      });
+      const metadataFormData = new FormData();
+      metadataFormData.append("file", metadataBlob, "metadata.json");
+
+      const metadataResponse = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${PINATA_JWT}`,
+          },
+          body: metadataFormData,
+        }
+      );
+
+      if (!metadataResponse.ok) throw new Error("Metadata upload failed");
+
+      const metadataData = await metadataResponse.json();
+      const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
+
+      console.log("Metadata successfully uploaded:", metadataUrl);
+
+      toast({
+        title: "Success",
+        description: "NFT Metadata uploaded successfully!",
+      });
+
+      // ✅ Clear the form and reset image state
+      formMethods.reset();
+      setImageUrl(null);
+      setSelectedBlockchain(null);
+    } catch (error) {
+      console.error("Error uploading metadata:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload NFT metadata.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -141,6 +246,7 @@ export default function DropNFT() {
                         alt="Uploaded logo"
                         fill
                         className="object-contain"
+                        unoptimized
                       />
                     ) : (
                       <>
