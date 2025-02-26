@@ -165,6 +165,7 @@ export default function DropNFT() {
                         alt="Uploaded logo"
                         fill
                         className="object-contain"
+                        unoptimized
                       />
                     ) : (
                       <>
