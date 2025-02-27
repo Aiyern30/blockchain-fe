@@ -41,23 +41,15 @@ export default function NFTMintingUI({
   walletAddress,
 }: NFTMintingUIProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-900 p-4">
-      <div className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-xl">
+    <div className="flex h-[calc(100vh-120px)] items-center justify-center ">
+      <div className="w-full max-w-md rounded-xl p-6 shadow-xl bg-gray-900">
         <div className="mb-6 text-center">
           <h2 className="mb-2 text-2xl font-bold text-white">NFT Minting</h2>
           <p className="text-gray-400">{STATUS_STAGES[status].label}</p>
         </div>
 
-        {/* NFT Preview */}
         <div className="relative mb-6 overflow-hidden rounded-lg">
           <div className="aspect-square w-full bg-gray-700">
-            <img
-              src="/placeholder.svg?height=400&width=400"
-              alt="NFT Preview"
-              className="h-full w-full object-cover"
-            />
-
-            {/* Animation based on status */}
             {status !== "done" && status !== "idle" && (
               <motion.div
                 className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"

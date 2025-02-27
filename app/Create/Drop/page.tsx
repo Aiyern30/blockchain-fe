@@ -188,186 +188,188 @@ export default function DropNFT() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      {stagingStatus !== "idle" ? (
+    <>
+      {stagingStatus === "idle" ? (
         <NFTMintingUI
           status={stagingStatus}
           txHash={txHash}
           walletAddress={walletAddress}
         />
       ) : (
-        <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1fr,320px]">
-          <div className="space-y-8">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight">
-                Let&apos;s create a smart contract for your drop.
-              </h1>
-              <p className="text-muted-foreground">
-                You&apos;ll need to deploy an ERC-721 contract onto the
-                blockchain before you can create a drop.{" "}
-                <a href="#" className="text-primary hover:underline">
-                  What is a contract?
-                </a>
-              </p>
-            </div>
-            <FormProvider {...formMethods}>
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <FormLabel>Logo Image</FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-4 w-4 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Your collection&apos;s logo image
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
+        <div className="min-h-screen bg-background p-6">
+          <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1fr,320px]">
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Let&apos;s create a smart contract for your drop.
+                </h1>
+                <p className="text-muted-foreground">
+                  You&apos;ll need to deploy an ERC-721 contract onto the
+                  blockchain before you can create a drop.{" "}
+                  <a href="#" className="text-primary hover:underline">
+                    What is a contract?
+                  </a>
+                </p>
+              </div>
+              <FormProvider {...formMethods}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <FormLabel>Logo Image</FormLabel>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Your collection&apos;s logo image
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
 
-                    <div
-                      className={cn(
-                        "border rounded-lg aspect-[350/200] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden",
-                        "hover:bg-muted/50 transition-colors",
-                        dragActive && "border-primary bg-muted/50"
-                      )}
-                      onDragEnter={() => setDragActive(true)}
-                      onDragLeave={() => setDragActive(false)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={handleDrop}
-                      onClick={() =>
-                        document.getElementById("file-input")?.click()
-                      }
-                    >
-                      <input
-                        id="file-input"
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleFileInput}
-                      />
-
-                      {imageUrl ? (
-                        <Image
-                          src={imageUrl || "/placeholder.svg"}
-                          alt="Uploaded logo"
-                          fill
-                          className="object-contain"
-                          unoptimized
-                        />
-                      ) : (
-                        <>
-                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-sm font-medium">
-                            {uploading
-                              ? "Uploading..."
-                              : "Drag and drop or click to upload"}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            You may change this after deploying your contract.
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-4">
-                            Recommended size: 350 x 350. File types: JPG, PNG,
-                            SVG, or GIF
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <FormField
-                      control={control}
-                      name="contractName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contract Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="My Collection Name"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name="tokenSymbol"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Token Symbol</FormLabel>
-                          <FormControl>
-                            <Input placeholder="MCN" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <label className="font-medium">Blockchain</label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-4 w-4 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p>
-                              A blockchain is a digitally distributed ledger
-                              that records transactions and information across a
-                              decentralized network. There are different types
-                              of blockchains, which you can choose to drop on.
-                            </p>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                              You cannot change the blockchain once you deploy
-                              your contract.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <Card
+                      <div
                         className={cn(
-                          "relative cursor-pointer transition-colors hover:border-primary",
-                          selectedBlockchain === "ethereum" &&
-                            "border-primary bg-muted/50"
+                          "border rounded-lg aspect-[350/200] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden",
+                          "hover:bg-muted/50 transition-colors",
+                          dragActive && "border-primary bg-muted/50"
                         )}
-                        onClick={() => setSelectedBlockchain("ethereum")}
+                        onDragEnter={() => setDragActive(true)}
+                        onDragLeave={() => setDragActive(false)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={handleDrop}
+                        onClick={() =>
+                          document.getElementById("file-input")?.click()
+                        }
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className="rounded-full overflow-hidden">
-                              <Image
-                                src="https://opensea.io/static/images/logos/ethereum.svg"
-                                alt="Ethereum"
-                                width={32}
-                                height={32}
-                                className="bg-[#627EEA] p-1"
-                              />
-                            </div>
-                            <span className="font-medium">Ethereum</span>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-sm text-muted-foreground">
-                              Most popular
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              Estimated cost to deploy contract:
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                        <input
+                          id="file-input"
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleFileInput}
+                        />
 
-                      {/* <Card
+                        {imageUrl ? (
+                          <Image
+                            src={imageUrl || "/placeholder.svg"}
+                            alt="Uploaded logo"
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
+                        ) : (
+                          <>
+                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                            <p className="text-sm font-medium">
+                              {uploading
+                                ? "Uploading..."
+                                : "Drag and drop or click to upload"}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              You may change this after deploying your contract.
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-4">
+                              Recommended size: 350 x 350. File types: JPG, PNG,
+                              SVG, or GIF
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <FormField
+                        control={control}
+                        name="contractName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Contract Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="My Collection Name"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={control}
+                        name="tokenSymbol"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Token Symbol</FormLabel>
+                            <FormControl>
+                              <Input placeholder="MCN" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <label className="font-medium">Blockchain</label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>
+                                A blockchain is a digitally distributed ledger
+                                that records transactions and information across
+                                a decentralized network. There are different
+                                types of blockchains, which you can choose to
+                                drop on.
+                              </p>
+                              <p className="mt-2 text-sm text-muted-foreground">
+                                You cannot change the blockchain once you deploy
+                                your contract.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-3">
+                        <Card
+                          className={cn(
+                            "relative cursor-pointer transition-colors hover:border-primary",
+                            selectedBlockchain === "ethereum" &&
+                              "border-primary bg-muted/50"
+                          )}
+                          onClick={() => setSelectedBlockchain("ethereum")}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="rounded-full overflow-hidden">
+                                <Image
+                                  src="https://opensea.io/static/images/logos/ethereum.svg"
+                                  alt="Ethereum"
+                                  width={32}
+                                  height={32}
+                                  className="bg-[#627EEA] p-1"
+                                />
+                              </div>
+                              <span className="font-medium">Ethereum</span>
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-sm text-muted-foreground">
+                                Most popular
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Estimated cost to deploy contract:
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* <Card
                       className={cn(
                         "relative cursor-pointer transition-colors hover:border-primary",
                         selectedBlockchain === "base" &&
@@ -404,20 +406,21 @@ export default function DropNFT() {
                         <span className="font-medium">See more options</span>
                       </CardContent>
                     </Card> */}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <Button variant={"default"} type="submit" className="mt-2">
-                  Deploy Contract
-                </Button>
-              </form>
-            </FormProvider>
-          </div>
-          <div className="space-y-6">
-            <Information />
+                  <Button variant={"default"} type="submit" className="mt-2">
+                    Deploy Contract
+                  </Button>
+                </form>
+              </FormProvider>
+            </div>
+            <div className="space-y-6">
+              <Information />
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
