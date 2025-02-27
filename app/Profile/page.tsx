@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
   Input,
 } from "@/components/ui/";
-import type { GridView } from "@/lib/view";
+import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { useToast } from "@/hooks/use-toast";
 import { formatAddress } from "@/utils/function";

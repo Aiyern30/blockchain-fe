@@ -7,7 +7,7 @@ import { NFTGrid } from "./nft-grid";
 import { CollectionStats } from "./collection-stats";
 import { ActivityTable } from "./activity-table";
 import { FilterSection } from "./filter-section";
-import { GridView } from "@/lib/view";
+import { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 
 export default function CollectionPage() {

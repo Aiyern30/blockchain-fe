@@ -2,7 +2,7 @@
 
 import React from "react";
 import { NFTCard } from "./nft-card";
-import { GridView } from "@/lib/view";
+import { GridView } from "@/type/view";
 import {
   Table,
   TableBody,

@@ -6,7 +6,7 @@ import { TfiLayoutGrid4 } from "react-icons/tfi";
 import { BsGrid3X3 } from "react-icons/bs";
 import { SlGrid } from "react-icons/sl";
 import { Button } from "@/components/ui";
-import { GridView } from "@/lib/view";
+import { GridView } from "@/type/view";
 
 interface ViewSelectorProps {
   view: GridView;
