@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Info, Upload, MoreHorizontal } from "lucide-react";
+import { Info, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -334,7 +334,7 @@ export default function DropNFT() {
                         <div className="flex items-center gap-3 mb-4">
                           <div className="rounded-full overflow-hidden">
                             <Image
-                              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-nYlEWWzFKtOY9epUSVbiAOpm3PmO5w.png"
+                              src="https://opensea.io/static/images/logos/ethereum.svg"
                               alt="Ethereum"
                               width={32}
                               height={32}
@@ -354,7 +354,7 @@ export default function DropNFT() {
                       </CardContent>
                     </Card>
 
-                    <Card
+                    {/* <Card
                       className={cn(
                         "relative cursor-pointer transition-colors hover:border-primary",
                         selectedBlockchain === "base" &&
@@ -390,11 +390,11 @@ export default function DropNFT() {
                         <MoreHorizontal className="h-6 w-6 mb-2" />
                         <span className="font-medium">See more options</span>
                       </CardContent>
-                    </Card>
+                    </Card> */}
                   </div>
                 </div>
               </div>
-              <Button variant={"default"} type="submit" className="btn-primary">
+              <Button variant={"default"} type="submit" className="mt-2">
                 Deploy Contract
               </Button>
             </form>
