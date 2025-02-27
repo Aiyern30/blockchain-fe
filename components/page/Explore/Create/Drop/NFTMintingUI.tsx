@@ -10,6 +10,7 @@ import {
   LinkIcon,
   ExternalLink,
 } from "lucide-react";
+import { StagingStatus } from "@/type/stagingStatus";
 
 // Define minting statuses
 const STATUS_STAGES = {
@@ -20,14 +21,6 @@ const STATUS_STAGES = {
   done: { label: "Minting Complete", duration: 0 },
   error: { label: "Error Occurred", duration: 0 },
 };
-
-type StagingStatus =
-  | "idle"
-  | "checking"
-  | "uploading"
-  | "minting"
-  | "done"
-  | "error";
 
 interface NFTMintingUIProps {
   status: StagingStatus;

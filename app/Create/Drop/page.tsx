@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Info, Upload } from "lucide-react";
+import { Ban, Info, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -20,29 +20,24 @@ import {
   FormItem,
   FormMessage,
   Button,
+  Textarea,
 } from "@/components/ui";
 import { FormProvider, useForm } from "react-hook-form";
-import Information from "./Information";
+import Information from "../../../components/page/Explore/Create/Drop/Information";
 import { useAccount } from "wagmi";
 // import { useToast } from "@/hooks/use-toast";
 import { getNFTContract } from "@/lib/nftContract";
 import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
-import NFTMintingUI from "./NFTMintingUI";
+import NFTMintingUI from "../../../components/page/Explore/Create/Drop/NFTMintingUI";
+import { StagingStatus } from "@/type/stagingStatus";
 type Blockchain = "ethereum" | "base" | null;
 
 type FormValues = {
   contractName: string;
   tokenSymbol: string;
+  contractDescription: string;
 };
-
-type StagingStatus =
-  | "idle"
-  | "checking"
-  | "uploading"
-  | "minting"
-  | "done"
-  | "error";
 
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 
@@ -88,13 +83,15 @@ export default function DropNFT() {
   }, [address]);
 
   const formMethods = useForm<FormValues>({
+    mode: "onChange",
     defaultValues: {
       contractName: "",
       tokenSymbol: "",
+      contractDescription: "",
     },
   });
 
-  const { handleSubmit, control, reset } = formMethods;
+  const { handleSubmit, control, reset, formState } = formMethods;
 
   const onSubmit = async (data: FormValues) => {
     if (!selectedFile || !walletClient || !walletAddress) {
@@ -103,9 +100,8 @@ export default function DropNFT() {
     }
 
     try {
-      setStagingStatus("checking"); // Start checking
+      setStagingStatus("checking");
 
-      // ✅ Upload Image to IPFS
       setStagingStatus("uploading");
       console.log("Uploading image to IPFS...");
       const formData = new FormData();
@@ -288,6 +284,7 @@ export default function DropNFT() {
                       <FormField
                         control={control}
                         name="contractName"
+                        rules={{ required: "Contract name is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Contract Name</FormLabel>
@@ -304,11 +301,40 @@ export default function DropNFT() {
                       <FormField
                         control={control}
                         name="tokenSymbol"
+                        rules={{ required: "Token symbol is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Token Symbol</FormLabel>
                             <FormControl>
                               <Input placeholder="MCN" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1">
+                      <FormField
+                        control={control}
+                        name="contractDescription"
+                        rules={{
+                          required: "Contract description is required",
+                          maxLength: {
+                            value: 500,
+                            message:
+                              "Description must be 500 characters or less",
+                          },
+                        }}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Enter NFT description (Max 500 chars)"
+                                {...field}
+                                maxLength={500}
+                                className="resize-none h-32 overflow-hidden"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -414,7 +440,19 @@ export default function DropNFT() {
                       </div>
                     </div>
                   </div>
-                  <Button variant={"default"} type="submit" className="mt-2">
+
+                  <Button
+                    variant="default"
+                    type="submit"
+                    className={cn(
+                      "mt-2 flex items-center gap-2",
+                      !formState.isValid && "cursor-not-allowed opacity-50"
+                    )}
+                    disabled={!formState.isValid}
+                  >
+                    {!formState.isValid && (
+                      <Ban className="w-4 h-4 text-red-500" />
+                    )}
                     Deploy Contract
                   </Button>
                 </form>

@@ -12,11 +12,11 @@ import {
   TabsTrigger,
 } from "@/components/ui";
 import { useDeviceType } from "@/utils/useDeviceType";
-import { CarouselSkeleton } from "@/components/page/Testing/CarouselSkeleton";
-import { TableSkeleton } from "@/components/page/Testing/TableSkeleton";
+import { CarouselSkeleton } from "@/components/page/Explore/CarouselSkeleton";
+import { TableSkeleton } from "@/components/page/Explore/TableSkeleton";
 import DrawingCarousel from "./DrawingCarousel";
-import HeroCarousel from "@/components/page/Testing/HeroCarousel";
-import CryptoTable from "@/components/page/Testing/CryptoTable";
+import HeroCarousel from "@/components/page/Explore/HeroCarousel";
+import CryptoTable from "@/components/page/Explore/CryptoTable";
 
 const categories = [
   "All",
