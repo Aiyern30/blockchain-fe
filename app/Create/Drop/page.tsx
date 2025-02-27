@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Info, Upload } from "lucide-react";
+import { Ban, Info, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -88,13 +88,14 @@ export default function DropNFT() {
   }, [address]);
 
   const formMethods = useForm<FormValues>({
+    mode: "onChange",
     defaultValues: {
       contractName: "",
       tokenSymbol: "",
     },
   });
 
-  const { handleSubmit, control, reset } = formMethods;
+  const { handleSubmit, control, reset, formState } = formMethods;
 
   const onSubmit = async (data: FormValues) => {
     if (!selectedFile || !walletClient || !walletAddress) {
@@ -103,9 +104,8 @@ export default function DropNFT() {
     }
 
     try {
-      setStagingStatus("checking"); // Start checking
+      setStagingStatus("checking");
 
-      // ✅ Upload Image to IPFS
       setStagingStatus("uploading");
       console.log("Uploading image to IPFS...");
       const formData = new FormData();
@@ -288,6 +288,7 @@ export default function DropNFT() {
                       <FormField
                         control={control}
                         name="contractName"
+                        rules={{ required: "Contract name is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Contract Name</FormLabel>
@@ -304,6 +305,7 @@ export default function DropNFT() {
                       <FormField
                         control={control}
                         name="tokenSymbol"
+                        rules={{ required: "Token symbol is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Token Symbol</FormLabel>
@@ -414,7 +416,19 @@ export default function DropNFT() {
                       </div>
                     </div>
                   </div>
-                  <Button variant={"default"} type="submit" className="mt-2">
+
+                  <Button
+                    variant="default"
+                    type="submit"
+                    className={cn(
+                      "mt-2 flex items-center gap-2",
+                      !formState.isValid && "cursor-not-allowed opacity-50"
+                    )}
+                    disabled={!formState.isValid}
+                  >
+                    {!formState.isValid && (
+                      <Ban className="w-4 h-4 text-red-500" />
+                    )}
                     Deploy Contract
                   </Button>
                 </form>
