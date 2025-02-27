@@ -49,6 +49,7 @@ export default function DropNFT() {
   const { address } = useAccount();
 
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -56,14 +57,16 @@ export default function DropNFT() {
 
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      await handleImageUpload(file);
+      setSelectedFile(file);
+      setImageUrl(URL.createObjectURL(file));
     }
   };
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      await handleImageUpload(file);
+      setSelectedFile(file);
+      setImageUrl(URL.createObjectURL(file));
     }
   };
 
@@ -72,38 +75,6 @@ export default function DropNFT() {
       setWalletAddress(address);
     }
   }, [address]);
-
-  const handleImageUpload = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload an image file");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch(
-        "https://api.pinata.cloud/pinning/pinFileToIPFS",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${PINATA_JWT}`,
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) throw new Error("Upload failed");
-
-      const data = await response.json();
-      const ipfsUrl = `https://ipfs.io/ipfs/${data.IpfsHash}`;
-      setImageUrl(ipfsUrl);
-      console.log("Image uploaded:", ipfsUrl);
-    } catch (error) {
-      console.error("Image upload error:", error);
-    }
-  };
 
   const formMethods = useForm<FormValues>({
     defaultValues: {
@@ -115,8 +86,8 @@ export default function DropNFT() {
   const { handleSubmit, control } = formMethods;
 
   const onSubmit = async (data: FormValues) => {
-    if (!imageUrl) {
-      alert("Please upload an image first!");
+    if (!selectedFile) {
+      alert("Please select an image first!");
       return;
     }
 
@@ -130,16 +101,37 @@ export default function DropNFT() {
       return;
     }
 
-    const metadata = {
-      name: data.contractName,
-      symbol: data.tokenSymbol,
-      image: imageUrl,
-      blockchain: "ethereum",
-      owner: walletClient.account.address,
-    };
-
     try {
-      // Upload metadata to IPFS
+      // ✅ Upload Image to IPFS
+      console.log("Uploading image to IPFS...");
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const imageResponse = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${PINATA_JWT}` },
+          body: formData,
+        }
+      );
+
+      if (!imageResponse.ok) throw new Error("Image upload failed");
+
+      const imageData = await imageResponse.json();
+      const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
+      console.log("Image uploaded:", imageUrl);
+
+      // ✅ Create & Upload Metadata JSON
+      console.log("Uploading metadata to IPFS...");
+      const metadata = {
+        name: data.contractName,
+        symbol: data.tokenSymbol,
+        image: imageUrl,
+        blockchain: "ethereum",
+        owner: walletClient.account.address,
+      };
+
       const metadataFile = new File(
         [JSON.stringify(metadata)],
         "metadata.json",
@@ -153,9 +145,7 @@ export default function DropNFT() {
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${PINATA_JWT}`,
-          },
+          headers: { Authorization: `Bearer ${PINATA_JWT}` },
           body: metadataFormData,
         }
       );
@@ -164,20 +154,18 @@ export default function DropNFT() {
 
       const metadataData = await metadataResponse.json();
       const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
+      console.log("Metadata uploaded:", metadataUrl);
 
-      console.log("Metadata successfully uploaded:", metadataUrl);
-
-      const provider = new ethers.BrowserProvider(walletClient); // Convert walletClient to an ethers provider
+      // ✅ Mint NFT
+      console.log("Minting NFT...");
+      const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
-
       const nftContract = getNFTContract(signer);
 
-      console.log("Minting NFT...");
       const mintTx = await nftContract.mintNFT(
         walletClient.account.address,
         metadataUrl
       );
-
       console.log("Transaction Hash:", mintTx.hash);
       console.log(
         `View transaction on Etherscan: https://sepolia.etherscan.io/tx/${mintTx.hash}`
@@ -186,6 +174,9 @@ export default function DropNFT() {
       const receipt = await mintTx.wait();
       console.log("NFT Minted Successfully:", receipt);
       alert("NFT successfully minted!");
+
+      // ✅ Reset File Selection
+      setSelectedFile(null);
     } catch (error) {
       console.error("Error:", error);
       alert("Something went wrong!");
