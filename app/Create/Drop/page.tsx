@@ -36,6 +36,14 @@ type FormValues = {
   tokenSymbol: string;
 };
 
+type StagingStatus =
+  | "idle"
+  | "checking"
+  | "uploading"
+  | "minting"
+  | "done"
+  | "error";
+
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 
 export default function DropNFT() {
@@ -51,7 +59,8 @@ export default function DropNFT() {
 
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isMintingUIVisible, setMintingUIVisible] = useState(false);
+  const [stagingStatus, setStagingStatus] = useState<StagingStatus>("idle");
+  const [txHash, setTxHash] = useState<string | null>(null);
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -88,26 +97,16 @@ export default function DropNFT() {
   const { handleSubmit, control } = formMethods;
 
   const onSubmit = async (data: FormValues) => {
-    if (!selectedFile) {
-      alert("Please select an image first!");
-      return;
-    }
-
-    if (!walletClient) {
-      alert("Please connect your wallet!");
-      return;
-    }
-
-    if (!walletAddress) {
-      alert("Wallet address not found!");
+    if (!selectedFile || !walletClient || !walletAddress) {
+      alert("Please complete all fields and connect your wallet!");
       return;
     }
 
     try {
-      // Show minting UI
-      setMintingUIVisible(true);
+      setStagingStatus("checking"); // Start checking
 
       // ✅ Upload Image to IPFS
+      setStagingStatus("uploading");
       console.log("Uploading image to IPFS...");
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -122,13 +121,12 @@ export default function DropNFT() {
       );
 
       if (!imageResponse.ok) throw new Error("Image upload failed");
-
       const imageData = await imageResponse.json();
       const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
 
       console.log("Image uploaded:", imageUrl);
 
-      // ✅ Create & Upload Metadata JSON
+      // ✅ Upload Metadata
       console.log("Uploading metadata to IPFS...");
       const metadata = {
         name: data.contractName,
@@ -157,13 +155,13 @@ export default function DropNFT() {
       );
 
       if (!metadataResponse.ok) throw new Error("Metadata upload failed");
-
       const metadataData = await metadataResponse.json();
       const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
 
       console.log("Metadata uploaded:", metadataUrl);
 
       // ✅ Mint NFT
+      setStagingStatus("minting");
       console.log("Minting NFT...");
       const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
@@ -173,33 +171,30 @@ export default function DropNFT() {
         walletClient.account.address,
         metadataUrl
       );
-      console.log("Transaction Hash:", mintTx.hash);
-      console.log(
-        `View transaction on Etherscan: https://sepolia.etherscan.io/tx/${mintTx.hash}`
-      );
+      setTxHash(mintTx.hash);
 
-      const receipt = await mintTx.wait();
-      console.log("NFT Minted Successfully:", receipt);
+      await mintTx.wait();
+      console.log("NFT Minted Successfully!");
       alert("NFT successfully minted!");
-
-      // ✅ Hide Minting UI after success
-      setMintingUIVisible(false);
+      setStagingStatus("done");
 
       // ✅ Reset File Selection
       setSelectedFile(null);
     } catch (error) {
       console.error("Error:", error);
       alert("Something went wrong!");
-
-      // ✅ Hide Minting UI on error
-      setMintingUIVisible(false);
+      setStagingStatus("error");
     }
   };
 
   return (
     <div className="min-h-screen bg-background p-6">
-      {isMintingUIVisible ? (
-        <NFTMintingUI />
+      {stagingStatus !== "idle" ? (
+        <NFTMintingUI
+          status={stagingStatus}
+          txHash={txHash}
+          walletAddress={walletAddress}
+        />
       ) : (
         <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1fr,320px]">
           <div className="space-y-8">
