@@ -23,13 +23,13 @@ import {
   Textarea,
 } from "@/components/ui";
 import { FormProvider, useForm } from "react-hook-form";
-import Information from "./Information";
+import Information from "../../../components/page/Explore/Create/Drop/Information";
 import { useAccount } from "wagmi";
 // import { useToast } from "@/hooks/use-toast";
 import { getNFTContract } from "@/lib/nftContract";
 import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
-import NFTMintingUI from "./NFTMintingUI";
+import NFTMintingUI from "../../../components/page/Explore/Create/Drop/NFTMintingUI";
 import { StagingStatus } from "@/type/stagingStatus";
 type Blockchain = "ethereum" | "base" | null;
 
