@@ -30,6 +30,7 @@ import { getNFTContract } from "@/lib/nftContract";
 import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import NFTMintingUI from "./NFTMintingUI";
+import { StagingStatus } from "@/type/stagingStatus";
 type Blockchain = "ethereum" | "base" | null;
 
 type FormValues = {
@@ -37,14 +38,6 @@ type FormValues = {
   tokenSymbol: string;
   contractDescription: string;
 };
-
-type StagingStatus =
-  | "idle"
-  | "checking"
-  | "uploading"
-  | "minting"
-  | "done"
-  | "error";
 
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 
