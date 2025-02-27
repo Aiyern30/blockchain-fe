@@ -57,12 +57,18 @@ export default function DropNFT() {
   const [stagingStatus, setStagingStatus] = useState<StagingStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
 
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragActive(false);
 
     const file = e.dataTransfer.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert("File size exceeds 500MB. Please upload a smaller file.");
+        return;
+      }
       setSelectedFile(file);
       setImageUrl(URL.createObjectURL(file));
     }
@@ -71,6 +77,10 @@ export default function DropNFT() {
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert("File size exceeds 500MB. Please upload a smaller file.");
+        return;
+      }
       setSelectedFile(file);
       setImageUrl(URL.createObjectURL(file));
     }
