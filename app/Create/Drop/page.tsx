@@ -24,8 +24,10 @@ import {
 import { FormProvider, useForm } from "react-hook-form";
 import Information from "./Information";
 import { useAccount } from "wagmi";
-import { useToast } from "@/hooks/use-toast";
-
+// import { useToast } from "@/hooks/use-toast";
+import { getNFTContract } from "@/lib/nftContract";
+import { useWalletClient } from "wagmi";
+import { ethers } from "ethers";
 type Blockchain = "ethereum" | "base" | null;
 
 type FormValues = {
@@ -36,7 +38,8 @@ type FormValues = {
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 
 export default function DropNFT() {
-  const { toast } = useToast();
+  // const { toast } = useToast();
+  const { data: walletClient } = useWalletClient();
 
   const [dragActive, setDragActive] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -113,20 +116,17 @@ export default function DropNFT() {
 
   const onSubmit = async (data: FormValues) => {
     if (!imageUrl) {
-      toast({
-        title: "Error",
-        description: "Please upload an image first!",
-        variant: "destructive",
-      });
+      alert("Please upload an image first!");
+      return;
+    }
+
+    if (!walletClient) {
+      alert("Please connect your wallet!");
       return;
     }
 
     if (!walletAddress) {
-      toast({
-        title: "Error",
-        description: "Wallet address not found!",
-        variant: "destructive",
-      });
+      alert("Wallet address not found!");
       return;
     }
 
@@ -134,18 +134,20 @@ export default function DropNFT() {
       name: data.contractName,
       symbol: data.tokenSymbol,
       image: imageUrl,
-      blockchain: selectedBlockchain,
-      owner: walletAddress,
+      blockchain: "ethereum",
+      owner: walletClient.account.address,
     };
 
-    console.log("Submitting metadata:", metadata);
-
     try {
-      const metadataBlob = new Blob([JSON.stringify(metadata)], {
-        type: "application/json",
-      });
+      // Upload metadata to IPFS
+      const metadataFile = new File(
+        [JSON.stringify(metadata)],
+        "metadata.json",
+        { type: "application/json" }
+      );
+
       const metadataFormData = new FormData();
-      metadataFormData.append("file", metadataBlob, "metadata.json");
+      metadataFormData.append("file", metadataFile);
 
       const metadataResponse = await fetch(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
@@ -165,22 +167,28 @@ export default function DropNFT() {
 
       console.log("Metadata successfully uploaded:", metadataUrl);
 
-      toast({
-        title: "Success",
-        description: "NFT Metadata uploaded successfully!",
-      });
+      const provider = new ethers.BrowserProvider(walletClient); // Convert walletClient to an ethers provider
+      const signer = await provider.getSigner();
 
-      // ✅ Clear the form and reset image state
-      formMethods.reset();
-      setImageUrl(null);
-      setSelectedBlockchain(null);
+      const nftContract = getNFTContract(signer);
+
+      console.log("Minting NFT...");
+      const mintTx = await nftContract.mintNFT(
+        walletClient.account.address,
+        metadataUrl
+      );
+
+      console.log("Transaction Hash:", mintTx.hash);
+      console.log(
+        `View transaction on Etherscan: https://sepolia.etherscan.io/tx/${mintTx.hash}`
+      );
+
+      const receipt = await mintTx.wait();
+      console.log("NFT Minted Successfully:", receipt);
+      alert("NFT successfully minted!");
     } catch (error) {
-      console.error("Error uploading metadata:", error);
-      toast({
-        title: "Error",
-        description: "Failed to upload NFT metadata.",
-        variant: "destructive",
-      });
+      console.error("Error:", error);
+      alert("Something went wrong!");
     }
   };
 
