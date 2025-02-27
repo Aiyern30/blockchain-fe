@@ -8,7 +8,7 @@ const Information = () => {
       <Card>
         <CardHeader>
           <CardTitle>
-            After you deploy your contract you&apos;ll be able to:
+            Once your contract is deployed, you&apos;ll have the ability to:
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -18,9 +18,9 @@ const Information = () => {
                 <Sparkles className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="font-medium">Manage collection settings</p>
+                <p className="font-medium">Adjust collection preferences</p>
                 <p className="text-sm text-muted-foreground">
-                  Edit collection details, earnings, and links.
+                  Modify collection details, royalties, and external links.
                 </p>
               </div>
             </li>
@@ -29,9 +29,9 @@ const Information = () => {
                 <Sparkles className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="font-medium">Set up your drop</p>
+                <p className="font-medium">Configure your release</p>
                 <p className="text-sm text-muted-foreground">
-                  Set up your mint schedule and presale stages.
+                  Define minting phases, presale access, and schedules.
                 </p>
               </div>
             </li>
@@ -40,9 +40,9 @@ const Information = () => {
                 <Palette className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="font-medium">Prepare designs</p>
+                <p className="font-medium">Customize visuals</p>
                 <p className="text-sm text-muted-foreground">
-                  Customize your pages and upload all assets.
+                  Personalize your drop page and upload all media assets.
                 </p>
               </div>
             </li>
@@ -52,7 +52,7 @@ const Information = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Your community:</CardTitle>
+          <CardTitle>Your audience:</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-4">
@@ -61,9 +61,9 @@ const Information = () => {
                 <EyeOff className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="font-medium">Can&apos;t view</p>
+                <p className="font-medium">Won&apos;t see</p>
                 <p className="text-sm text-muted-foreground">
-                  Your drop page or items until you publish them.
+                  Your minting page or assets until you make them public.
                 </p>
               </div>
             </li>
@@ -72,9 +72,9 @@ const Information = () => {
                 <Eye className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="font-medium">Can view</p>
+                <p className="font-medium">Will see</p>
                 <p className="text-sm text-muted-foreground">
-                  That you&apos;ve deployed a contract onto the blockchain.
+                  That your smart contract has been successfully deployed.
                 </p>
               </div>
             </li>
