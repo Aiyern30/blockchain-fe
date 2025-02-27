@@ -189,7 +189,7 @@ export default function DropNFT() {
 
   return (
     <>
-      {stagingStatus === "idle" ? (
+      {stagingStatus !== "idle" ? (
         <NFTMintingUI
           status={stagingStatus}
           txHash={txHash}
