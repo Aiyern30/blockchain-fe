@@ -94,7 +94,7 @@ export default function DropNFT() {
     },
   });
 
-  const { handleSubmit, control } = formMethods;
+  const { handleSubmit, control, reset } = formMethods;
 
   const onSubmit = async (data: FormValues) => {
     if (!selectedFile || !walletClient || !walletAddress) {
@@ -194,6 +194,11 @@ export default function DropNFT() {
           status={stagingStatus}
           txHash={txHash}
           walletAddress={walletAddress}
+          onRetry={() => {
+            reset();
+            setStagingStatus("idle");
+            setImageUrl(null);
+          }}
         />
       ) : (
         <div className="min-h-screen bg-background p-6">
