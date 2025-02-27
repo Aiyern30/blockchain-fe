@@ -37,6 +37,7 @@ type FormValues = {
   contractName: string;
   tokenSymbol: string;
   contractDescription: string;
+  logoImage: File | string | null;
 };
 
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
@@ -45,51 +46,28 @@ export default function DropNFT() {
   // const { toast } = useToast();
   const { data: walletClient } = useWalletClient();
 
-  const [dragActive, setDragActive] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [uploading] = useState(false);
   const [selectedBlockchain, setSelectedBlockchain] =
     useState<Blockchain>(null);
   const { address } = useAccount();
 
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [stagingStatus, setStagingStatus] = useState<StagingStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragActive(false);
-
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        setErrorMessage(
-          "File size exceeds 10MB. Please upload a smaller file."
-        );
-        return;
-      }
-      setSelectedFile(file);
-      setImageUrl(URL.createObjectURL(file));
-      setErrorMessage("");
-    }
-  };
-
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
-        setErrorMessage(
-          "File size exceeds 10MB. Please upload a smaller file."
-        );
+        setValue("logoImage", null);
         return;
       }
-      setSelectedFile(file);
+
+      setValue("logoImage", file);
       setImageUrl(URL.createObjectURL(file));
-      setErrorMessage("");
     }
   };
 
@@ -105,10 +83,14 @@ export default function DropNFT() {
       contractName: "",
       tokenSymbol: "",
       contractDescription: "",
+      logoImage: null,
     },
   });
 
-  const { handleSubmit, control, reset, formState } = formMethods;
+  const { handleSubmit, control, setValue, watch, reset, formState } =
+    formMethods;
+  const { errors } = formState;
+  const selectedFile = watch("logoImage");
 
   const onSubmit = async (data: FormValues) => {
     if (!selectedFile || !walletClient || !walletAddress) {
@@ -192,7 +174,6 @@ export default function DropNFT() {
       setStagingStatus("done");
 
       // ✅ Reset File Selection
-      setSelectedFile(null);
     } catch (error) {
       console.error("Error:", error);
       alert("Something went wrong!");
@@ -232,83 +213,73 @@ export default function DropNFT() {
               <FormProvider {...formMethods}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <FormLabel
-                          className={cn(errorMessage && "text-red-500")}
-                        >
-                          Logo Image
-                        </FormLabel>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Info className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Your collection&apos;s logo image
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
+                    <FormField
+                      control={control}
+                      name="logoImage"
+                      rules={{
+                        required: "Logo image is required",
+                        validate: (file) =>
+                          file instanceof File && file.size <= MAX_FILE_SIZE
+                            ? true
+                            : "File size exceeds 10MB",
+                      }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel
+                            className={cn(errors.logoImage && "text-red-500")}
+                          >
+                            Logo Image
+                          </FormLabel>
 
-                      <div
-                        className={cn(
-                          "border rounded-lg aspect-[350/200] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden",
-                          "hover:bg-muted/50 transition-colors",
-                          dragActive && "border-primary bg-muted/50"
-                        )}
-                        onDragEnter={() => setDragActive(true)}
-                        onDragLeave={() => setDragActive(false)}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={handleDrop}
-                        onClick={() =>
-                          document.getElementById("file-input")?.click()
-                        }
-                      >
-                        <input
-                          id="file-input"
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleFileInput}
-                        />
+                          <FormControl>
+                            <div
+                              className={cn(
+                                "border rounded-lg aspect-[350/200] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden",
+                                "hover:bg-muted/50 transition-colors"
+                              )}
+                              onClick={() =>
+                                document.getElementById("file-input")?.click()
+                              }
+                            >
+                              <input
+                                id="file-input"
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  handleFileInput(e);
+                                  field.onChange(file); // Set the selected file in RHF state
+                                }}
+                              />
 
-                        {imageUrl ? (
-                          <Image
-                            src={imageUrl || "/placeholder.svg"}
-                            alt="Uploaded logo"
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
-                        ) : (
-                          <>
-                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                            <p className="text-sm font-medium">
-                              {uploading
-                                ? "Uploading..."
-                                : "Drag and drop or click to upload"}
-                            </p>
-                            {errorMessage ? (
-                              <p className="text-red-500 text-sm mt-2">
-                                {errorMessage}
-                              </p>
-                            ) : (
-                              <>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  You may change this after deploying your
-                                  contract.
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-4">
-                                  Recommended size: 350 x 350. File types: JPG,
-                                  PNG, SVG, or GIF
-                                </p>
-                              </>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
+                              {imageUrl ? (
+                                <Image
+                                  src={imageUrl}
+                                  alt="Uploaded logo"
+                                  fill
+                                  className="object-contain"
+                                  unoptimized
+                                />
+                              ) : (
+                                <>
+                                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                                  <p className="text-sm font-medium">
+                                    Drag and drop or click to upload
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mt-4">
+                                    Recommended size: 350 x 350. File types:
+                                    JPG, PNG, SVG, or GIF
+                                  </p>
+                                </>
+                              )}
+                            </div>
+                          </FormControl>
+
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     <div className="grid gap-6 sm:grid-cols-2">
                       <FormField
