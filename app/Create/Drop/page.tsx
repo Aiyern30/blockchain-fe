@@ -20,6 +20,7 @@ import {
   FormItem,
   FormMessage,
   Button,
+  Textarea,
 } from "@/components/ui";
 import { FormProvider, useForm } from "react-hook-form";
 import Information from "./Information";
@@ -34,6 +35,7 @@ type Blockchain = "ethereum" | "base" | null;
 type FormValues = {
   contractName: string;
   tokenSymbol: string;
+  contractDescription: string;
 };
 
 type StagingStatus =
@@ -92,6 +94,7 @@ export default function DropNFT() {
     defaultValues: {
       contractName: "",
       tokenSymbol: "",
+      contractDescription: "",
     },
   });
 
@@ -311,6 +314,34 @@ export default function DropNFT() {
                             <FormLabel>Token Symbol</FormLabel>
                             <FormControl>
                               <Input placeholder="MCN" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1">
+                      <FormField
+                        control={control}
+                        name="contractDescription"
+                        rules={{
+                          required: "Contract description is required",
+                          maxLength: {
+                            value: 500,
+                            message:
+                              "Description must be 500 characters or less",
+                          },
+                        }}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Enter NFT description (Max 500 chars)"
+                                {...field}
+                                maxLength={500}
+                                className="resize-none h-32 overflow-hidden"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
