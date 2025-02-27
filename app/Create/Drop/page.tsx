@@ -58,6 +58,7 @@ export default function DropNFT() {
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -66,11 +67,14 @@ export default function DropNFT() {
     const file = e.dataTransfer.files?.[0];
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
-        alert("File size exceeds 500MB. Please upload a smaller file.");
+        setErrorMessage(
+          "File size exceeds 10MB. Please upload a smaller file."
+        );
         return;
       }
       setSelectedFile(file);
       setImageUrl(URL.createObjectURL(file));
+      setErrorMessage("");
     }
   };
 
@@ -78,11 +82,14 @@ export default function DropNFT() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
-        alert("File size exceeds 500MB. Please upload a smaller file.");
+        setErrorMessage(
+          "File size exceeds 10MB. Please upload a smaller file."
+        );
         return;
       }
       setSelectedFile(file);
       setImageUrl(URL.createObjectURL(file));
+      setErrorMessage("");
     }
   };
 
@@ -227,7 +234,11 @@ export default function DropNFT() {
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <FormLabel>Logo Image</FormLabel>
+                        <FormLabel
+                          className={cn(errorMessage && "text-red-500")}
+                        >
+                          Logo Image
+                        </FormLabel>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
@@ -278,13 +289,22 @@ export default function DropNFT() {
                                 ? "Uploading..."
                                 : "Drag and drop or click to upload"}
                             </p>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              You may change this after deploying your contract.
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-4">
-                              Recommended size: 350 x 350. File types: JPG, PNG,
-                              SVG, or GIF
-                            </p>
+                            {errorMessage ? (
+                              <p className="text-red-500 text-sm mt-2">
+                                {errorMessage}
+                              </p>
+                            ) : (
+                              <>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  You may change this after deploying your
+                                  contract.
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-4">
+                                  Recommended size: 350 x 350. File types: JPG,
+                                  PNG, SVG, or GIF
+                                </p>
+                              </>
+                            )}
                           </>
                         )}
                       </div>
