@@ -33,12 +33,14 @@ interface NFTMintingUIProps {
   status: StagingStatus;
   txHash?: string | null;
   walletAddress?: string | null;
+  onRetry: () => void;
 }
 
 export default function NFTMintingUI({
   status,
   txHash,
   walletAddress,
+  onRetry,
 }: NFTMintingUIProps) {
   return (
     <div className="flex h-[calc(100vh-120px)] items-center justify-center ">
@@ -123,7 +125,12 @@ export default function NFTMintingUI({
               Mint Another
             </Button>
           ) : status === "error" ? (
-            <Button className="bg-red-600 hover:bg-red-700">Retry</Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => onRetry()}
+            >
+              Retry
+            </Button>
           ) : (
             <Button
               disabled
