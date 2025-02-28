@@ -39,6 +39,9 @@ type FormValues = {
   tokenSymbol: string;
   contractDescription: string;
   logoImage: File | string | null;
+  maxSupply: number;
+  price: number;
+  status: "PUBLIC" | "PRIVATE";
 };
 
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
@@ -85,6 +88,9 @@ export default function DropNFT() {
       tokenSymbol: "",
       contractDescription: "",
       logoImage: null,
+      maxSupply: 0,
+      price: 0,
+      status: "PUBLIC",
     },
   });
 
@@ -358,6 +364,44 @@ export default function DropNFT() {
                                 {...field}
                                 maxLength={500}
                                 className="resize-none h-32 overflow-hidden"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <FormField
+                        control={control}
+                        name="price"
+                        rules={{ required: "Listed Price is required" }}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Listed Price</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="My Listed Price"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={control}
+                        name="maxSupply"
+                        rules={{ required: "Maximum Supply is required" }}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Maximum Supply</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Maximum Supply"
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />
