@@ -26,7 +26,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import Information from "../../../components/page/Explore/Create/Drop/Information";
 import { useAccount } from "wagmi";
 // import { useToast } from "@/hooks/use-toast";
-import { getNFTContract } from "@/lib/nftContract";
+import { getERC721Contract } from "@/lib/erc721Config";
 import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import NFTMintingUI from "../../../components/page/Explore/Create/Drop/NFTMintingUI";
@@ -159,9 +159,9 @@ export default function DropNFT() {
       // ✅ Check if CID already exists on-chain
       const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
-      const nftContract = getNFTContract(signer);
+      const nftContract = getERC721Contract(signer);
 
-      const existingTokenURI = await nftContract.tokenURI(metadataUrl);
+      const existingTokenURI = await nftContract.getTokenURIByCID(metadataUrl);
 
       if (existingTokenURI === metadataUrl) {
         console.log("NFT with this metadata already exists!");
