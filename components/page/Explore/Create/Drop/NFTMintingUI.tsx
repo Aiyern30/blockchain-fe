@@ -10,10 +10,10 @@ import {
   LinkIcon,
   ExternalLink,
   AlertTriangle,
+  XCircle,
 } from "lucide-react";
 import { StagingStatus } from "@/type/stagingStatus";
 
-// Define minting statuses
 const STATUS_STAGES = {
   idle: { label: "Idle", duration: 0 },
   checking: { label: "Checking Wallet", duration: 1500 },
@@ -21,6 +21,7 @@ const STATUS_STAGES = {
   minting: { label: "Minting on Blockchain", duration: 2500 },
   exists: { label: "NFT Already Exists", duration: 0 },
   done: { label: "Minting Complete", duration: 0 },
+  cancelled: { label: "Transaction Cancelled", duration: 0 },
   error: { label: "Error Occurred", duration: 0 },
 };
 
@@ -47,21 +48,24 @@ export default function NFTMintingUI({
 
         <div className="relative mb-6 overflow-hidden rounded-lg">
           <div className="aspect-square w-full bg-gray-700">
-            {status !== "done" && status !== "idle" && status !== "exists" && (
-              <motion.div
-                className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
+            {status !== "done" &&
+              status !== "idle" &&
+              status !== "exists" &&
+              status !== "cancelled" && (
                 <motion.div
-                  className="rounded-full bg-purple-500/20 p-8"
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                 >
-                  <Sparkles className="h-12 w-12 text-purple-400" />
+                  <motion.div
+                    className="rounded-full bg-purple-500/20 p-8"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                  >
+                    <Sparkles className="h-12 w-12 text-purple-400" />
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            )}
+              )}
 
             {status === "done" && (
               <motion.div
@@ -83,6 +87,18 @@ export default function NFTMintingUI({
               >
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
                   <AlertTriangle className="h-16 w-16 text-yellow-400" />
+                </motion.div>
+              </motion.div>
+            )}
+
+            {status === "cancelled" && (
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center bg-red-500/20 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                  <XCircle className="h-16 w-16 text-red-400" />
                 </motion.div>
               </motion.div>
             )}
@@ -137,13 +153,24 @@ export default function NFTMintingUI({
           </div>
         )}
 
+        {status === "cancelled" && (
+          <div className="mb-6 rounded-lg bg-red-700/40 p-3 border border-red-500">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-400" />
+              <span className="text-sm text-red-300">
+                Transaction was cancelled by the user.
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Action Button */}
         <div className="flex justify-center">
           {status === "done" || status === "exists" ? (
             <Button className="bg-green-600 hover:bg-green-700">
               Mint Another
             </Button>
-          ) : status === "error" ? (
+          ) : status === "cancelled" || status === "error" ? ( // 🚀 Retry for Cancelled or Error
             <Button
               className="bg-red-600 hover:bg-red-700"
               onClick={() => onRetry()}
