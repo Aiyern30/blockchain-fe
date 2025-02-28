@@ -185,19 +185,22 @@ export default function DropNFT() {
       alert("NFT successfully minted!");
       setStagingStatus("done");
     } catch (error: unknown) {
+      console.error("Error:", error);
+
       const err = error as { code?: number; message?: string };
 
-      // ✅ Handle user rejection first
-      if (err.code === 4001) {
+      if (
+        err?.code === 4001 ||
+        err?.message?.includes("User denied transaction signature")
+      ) {
         console.warn("User rejected the transaction.");
         alert("Minting cancelled by user.");
-        setStagingStatus("cancelled"); // <-- Fix: Show cancel UI
+        setStagingStatus("cancelled");
         return;
       }
 
-      console.error("Error:", error);
       alert("Something went wrong!");
-      setStagingStatus("error"); // This will only be set if it's a real error
+      setStagingStatus("error");
     }
   };
 
