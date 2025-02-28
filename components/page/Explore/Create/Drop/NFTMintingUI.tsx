@@ -9,6 +9,7 @@ import {
   Zap,
   LinkIcon,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import { StagingStatus } from "@/type/stagingStatus";
 
@@ -18,6 +19,7 @@ const STATUS_STAGES = {
   checking: { label: "Checking Wallet", duration: 1500 },
   uploading: { label: "Uploading to IPFS", duration: 2000 },
   minting: { label: "Minting on Blockchain", duration: 2500 },
+  exists: { label: "NFT Already Exists", duration: 0 },
   done: { label: "Minting Complete", duration: 0 },
   error: { label: "Error Occurred", duration: 0 },
 };
@@ -45,7 +47,7 @@ export default function NFTMintingUI({
 
         <div className="relative mb-6 overflow-hidden rounded-lg">
           <div className="aspect-square w-full bg-gray-700">
-            {status !== "done" && status !== "idle" && (
+            {status !== "done" && status !== "idle" && status !== "exists" && (
               <motion.div
                 className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
                 initial={{ opacity: 0 }}
@@ -69,6 +71,18 @@ export default function NFTMintingUI({
               >
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
                   <CheckCircle className="h-16 w-16 text-green-400" />
+                </motion.div>
+              </motion.div>
+            )}
+
+            {status === "exists" && (
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center bg-yellow-500/20 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                  <AlertTriangle className="h-16 w-16 text-yellow-400" />
                 </motion.div>
               </motion.div>
             )}
@@ -111,9 +125,21 @@ export default function NFTMintingUI({
           </div>
         )}
 
+        {/* Exists Warning UI */}
+        {status === "exists" && (
+          <div className="mb-6 rounded-lg bg-yellow-700/40 p-3 border border-yellow-500">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              <span className="text-sm text-yellow-300">
+                This NFT has already been minted!
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Action Button */}
         <div className="flex justify-center">
-          {status === "done" ? (
+          {status === "done" || status === "exists" ? (
             <Button className="bg-green-600 hover:bg-green-700">
               Mint Another
             </Button>

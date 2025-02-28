@@ -101,6 +101,7 @@ export default function DropNFT() {
     try {
       setStagingStatus("checking");
 
+      // ✅ Upload Image to IPFS
       setStagingStatus("uploading");
       console.log("Uploading image to IPFS...");
       const formData = new FormData();
@@ -118,10 +119,9 @@ export default function DropNFT() {
       if (!imageResponse.ok) throw new Error("Image upload failed");
       const imageData = await imageResponse.json();
       const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
-
       console.log("Image uploaded:", imageUrl);
 
-      // ✅ Upload Metadata
+      // ✅ Upload Metadata to IPFS
       console.log("Uploading metadata to IPFS...");
       const metadata = {
         name: data.contractName,
@@ -134,7 +134,9 @@ export default function DropNFT() {
       const metadataFile = new File(
         [JSON.stringify(metadata)],
         "metadata.json",
-        { type: "application/json" }
+        {
+          type: "application/json",
+        }
       );
 
       const metadataFormData = new FormData();
@@ -152,16 +154,25 @@ export default function DropNFT() {
       if (!metadataResponse.ok) throw new Error("Metadata upload failed");
       const metadataData = await metadataResponse.json();
       const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
-
       console.log("Metadata uploaded:", metadataUrl);
 
-      // ✅ Mint NFT
-      setStagingStatus("minting");
-      console.log("Minting NFT...");
+      // ✅ Check if CID already exists on-chain
       const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
       const nftContract = getNFTContract(signer);
 
+      const existingTokenURI = await nftContract.tokenURI(metadataUrl);
+
+      if (existingTokenURI === metadataUrl) {
+        console.log("NFT with this metadata already exists!");
+        setStagingStatus("exists");
+        alert("This NFT has already been minted!");
+        return;
+      }
+
+      // ✅ Mint NFT
+      setStagingStatus("minting");
+      console.log("Minting NFT...");
       const mintTx = await nftContract.mintNFT(
         walletClient.account.address,
         metadataUrl
@@ -172,8 +183,6 @@ export default function DropNFT() {
       console.log("NFT Minted Successfully!");
       alert("NFT successfully minted!");
       setStagingStatus("done");
-
-      // ✅ Reset File Selection
     } catch (error) {
       console.error("Error:", error);
       alert("Something went wrong!");
