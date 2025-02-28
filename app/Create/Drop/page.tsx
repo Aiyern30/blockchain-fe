@@ -148,6 +148,10 @@ export default function DropNFT() {
         image: imageUrl,
         blockchain: "ethereum",
         owner: walletClient.account.address,
+        attributes: [
+          { trait_type: "Price", value: data.price },
+          { trait_type: "maxSupply", value: data.maxSupply },
+        ],
       };
 
       const metadataFile = new File(
