@@ -31,6 +31,7 @@ import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import NFTMintingUI from "../../../components/page/Explore/Create/Drop/NFTMintingUI";
 import { StagingStatus } from "@/type/stagingStatus";
+import { checkNFTExists } from "@/utils/checkNFTExists";
 type Blockchain = "ethereum" | "base" | null;
 
 type FormValues = {
@@ -101,6 +102,22 @@ export default function DropNFT() {
     try {
       setStagingStatus("checking");
 
+      const provider = new ethers.BrowserProvider(walletClient);
+      const signer = await provider.getSigner();
+      const nftContract = getERC721Contract(signer);
+
+      // ✅ Check if NFT already exists
+      const latestTokenId = await nftContract.totalSupply();
+      const tokenId = Number(latestTokenId.toString()) + 1;
+
+      const exists = await checkNFTExists(provider, tokenId, "");
+      if (exists) {
+        console.log("NFT with this metadata already exists!");
+        setStagingStatus("exists");
+        alert("This NFT has already been minted!");
+        return;
+      }
+
       // ✅ Upload Image to IPFS
       setStagingStatus("uploading");
       console.log("Uploading image to IPFS...");
@@ -121,7 +138,6 @@ export default function DropNFT() {
       const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
       console.log("Image uploaded:", imageUrl);
 
-      // ✅ Upload Metadata to IPFS
       console.log("Uploading metadata to IPFS...");
       const metadata = {
         name: data.contractName,
@@ -156,21 +172,14 @@ export default function DropNFT() {
       const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
       console.log("Metadata uploaded:", metadataUrl);
 
-      // ✅ Check if CID already exists on-chain
-      const provider = new ethers.BrowserProvider(walletClient);
-      const signer = await provider.getSigner();
-      const nftContract = getERC721Contract(signer);
-
-      const existingTokenURI = await nftContract.getTokenURIByCID(metadataUrl);
-
-      if (existingTokenURI === metadataUrl) {
-        console.log("NFT with this metadata already exists!");
+      const finalExists = await checkNFTExists(provider, tokenId, metadataUrl);
+      if (finalExists) {
+        console.log("NFT already exists after metadata upload!");
         setStagingStatus("exists");
         alert("This NFT has already been minted!");
         return;
       }
 
-      // ✅ Mint NFT
       setStagingStatus("minting");
       console.log("Minting NFT...");
       const mintTx = await nftContract.mintNFT(
