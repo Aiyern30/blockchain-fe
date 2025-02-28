@@ -119,7 +119,6 @@ export default function DropNFT() {
       const exists = await checkNFTExists(provider, tokenId, "");
       if (exists) {
         setStagingStatus("exists");
-        alert("This NFT has already been minted!");
         return;
       }
 
@@ -179,7 +178,6 @@ export default function DropNFT() {
       const finalExists = await checkNFTExists(provider, tokenId, metadataUrl);
       if (finalExists) {
         setStagingStatus("exists");
-        alert("This NFT has already been minted!");
         return;
       }
 
@@ -192,7 +190,6 @@ export default function DropNFT() {
       );
       setTxHash(mintTx.hash);
       await mintTx.wait();
-      alert("NFT successfully minted!");
       setStagingStatus("done");
     } catch (error: unknown) {
       console.error("Error:", error);
@@ -204,12 +201,10 @@ export default function DropNFT() {
         err?.message?.includes("User denied transaction signature")
       ) {
         console.warn("User rejected the transaction.");
-        alert("Minting cancelled by user.");
         setStagingStatus("cancelled");
         return;
       }
 
-      alert("Something went wrong!");
       setStagingStatus("error");
     }
   };
@@ -530,7 +525,7 @@ export default function DropNFT() {
                 </form>
               </FormProvider>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-6 self-start sticky top-6 h-fit">
               <Information />
             </div>
           </div>
