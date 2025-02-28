@@ -112,7 +112,6 @@ export default function DropNFT() {
 
       const exists = await checkNFTExists(provider, tokenId, "");
       if (exists) {
-        console.log("NFT with this metadata already exists!");
         setStagingStatus("exists");
         alert("This NFT has already been minted!");
         return;
@@ -120,7 +119,6 @@ export default function DropNFT() {
 
       // ✅ Upload Image to IPFS
       setStagingStatus("uploading");
-      console.log("Uploading image to IPFS...");
       const formData = new FormData();
       formData.append("file", selectedFile);
 
@@ -136,9 +134,8 @@ export default function DropNFT() {
       if (!imageResponse.ok) throw new Error("Image upload failed");
       const imageData = await imageResponse.json();
       const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
-      console.log("Image uploaded:", imageUrl);
 
-      console.log("Uploading metadata to IPFS...");
+      // ✅ Upload Metadata to IPFS
       const metadata = {
         name: data.contractName,
         symbol: data.tokenSymbol,
@@ -150,9 +147,7 @@ export default function DropNFT() {
       const metadataFile = new File(
         [JSON.stringify(metadata)],
         "metadata.json",
-        {
-          type: "application/json",
-        }
+        { type: "application/json" }
       );
 
       const metadataFormData = new FormData();
@@ -170,32 +165,39 @@ export default function DropNFT() {
       if (!metadataResponse.ok) throw new Error("Metadata upload failed");
       const metadataData = await metadataResponse.json();
       const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
-      console.log("Metadata uploaded:", metadataUrl);
 
       const finalExists = await checkNFTExists(provider, tokenId, metadataUrl);
       if (finalExists) {
-        console.log("NFT already exists after metadata upload!");
         setStagingStatus("exists");
         alert("This NFT has already been minted!");
         return;
       }
 
+      // ✅ Mint NFT
       setStagingStatus("minting");
-      console.log("Minting NFT...");
+
       const mintTx = await nftContract.mintNFT(
         walletClient.account.address,
         metadataUrl
       );
       setTxHash(mintTx.hash);
-
       await mintTx.wait();
-      console.log("NFT Minted Successfully!");
       alert("NFT successfully minted!");
       setStagingStatus("done");
-    } catch (error) {
+    } catch (error: unknown) {
+      const err = error as { code?: number; message?: string };
+
+      // ✅ Handle user rejection first
+      if (err.code === 4001) {
+        console.warn("User rejected the transaction.");
+        alert("Minting cancelled by user.");
+        setStagingStatus("cancelled"); // <-- Fix: Show cancel UI
+        return;
+      }
+
       console.error("Error:", error);
       alert("Something went wrong!");
-      setStagingStatus("error");
+      setStagingStatus("error"); // This will only be set if it's a real error
     }
   };
 
