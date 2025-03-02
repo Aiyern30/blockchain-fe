@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Pacifico } from "next/font/google";
 import Image from "next/image";
 import { CheckCircle, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 const pacifico = Pacifico({
   subsets: ["latin"],
@@ -117,6 +118,34 @@ const sparkleVariants = {
       duration: 1.5,
       repeat: Number.POSITIVE_INFINITY,
       repeatType: "loop" as const,
+    },
+  },
+};
+
+const buttonVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.4, 0.25, 1],
+    },
+  },
+  hover: {
+    scale: 1.05,
+    boxShadow: "0 0 20px rgba(165, 180, 252, 0.4)",
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  },
+  tap: {
+    scale: 0.98,
+    boxShadow: "0 0 10px rgba(165, 180, 252, 0.4)",
+    transition: {
+      duration: 0.1,
+      ease: "easeOut",
     },
   },
 };
@@ -271,6 +300,53 @@ export default function Home() {
                 />
               </motion.div>
             ))}
+          </motion.div>
+          <motion.div
+            custom={3}
+            variants={fadeUpVariants(3)}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8"
+          >
+            <Link href="/Explore" className="w-full sm:w-auto">
+              <motion.button
+                variants={buttonVariants}
+                initial="initial"
+                animate="animate"
+                whileHover="hover"
+                whileTap="tap"
+                className="w-full sm:w-auto px-8 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-700 text-white font-medium text-lg relative overflow-hidden group"
+              >
+                <span className="relative z-10">Explore NFTs</span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <motion.div className="absolute -inset-1 rounded-full blur-md bg-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </motion.button>
+            </Link>
+
+            <Link href="/Create" className="w-full sm:w-auto">
+              <motion.button
+                variants={buttonVariants}
+                initial="initial"
+                animate="animate"
+                whileHover="hover"
+                whileTap="tap"
+                className="w-full sm:w-auto px-8 py-3 rounded-full bg-transparent border-2 border-indigo-400/30 text-white font-medium text-lg relative overflow-hidden group"
+              >
+                <span className="relative z-10">Create NFT</span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 opacity-0"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <motion.div className="absolute -inset-1 rounded-full blur-md bg-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </motion.button>
+            </Link>
           </motion.div>
         </motion.div>
       </div>
