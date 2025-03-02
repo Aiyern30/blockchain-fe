@@ -1,16 +1,6 @@
 import { getERC721Contract } from "@/lib/erc721Config";
+import { NFTAttribute, NFTMetadata } from "@/type/NFT";
 import { ethers } from "ethers";
-
-interface NFTAttribute {
-  trait_type: string;
-  value: string;
-}
-
-interface NFTMetadata {
-  name?: string;
-  image?: string;
-  attributes?: NFTAttribute[];
-}
 
 export async function fetchNFTs() {
   try {
