@@ -5,37 +5,34 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui";
-import { cn } from "@/lib/utils";
-import { ChevronLeft, VerifiedIcon, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDeviceType } from "@/utils/useDeviceType";
+import { getIpfsUrl } from "@/utils/function";
 
-// type Collection = {
-//     rank:number,
-//     name: string,
-//     image: string,
-//     verified:boolean,
-//     floorPrice: string;
-//     volume: string;
-// }
+interface NFTAttribute {
+  trait_type: string;
+  value: string;
+}
 
-type items = {
-  title: string;
-  floor: string;
-  image: string;
-  verified: boolean;
-};
+interface NFTMetadata {
+  name?: string;
+  image?: string;
+  attributes?: NFTAttribute[];
+}
 
 interface HeroCarouselProps {
   categories: string[];
-  items: items[];
+  items: NFTMetadata[];
 }
 
 const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
   const { isMobile, isTablet } = useDeviceType();
   const [startIndex, setStartIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(4);
+
+  console.log("Pasted", items);
 
   useEffect(() => {
     if (isMobile) {
@@ -48,9 +45,6 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
   }, [isMobile, isTablet]);
 
   const previousPage = () => {
-    // setStartIndex((prev) =>
-    //   prev === 0 ? items.length - itemsPerPage : prev - itemsPerPage
-    // );
     setStartIndex((prev) => {
       if (prev === 0) {
         const remainder = items.length % itemsPerPage;
@@ -69,6 +63,7 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
   };
 
   const currentItems = items.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <div className="w-full relative">
       <Tabs defaultValue={categories[0].toLowerCase()} className="w-full mb-5">
@@ -84,17 +79,13 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
       <div className="relative flex items-center justify-between">
         <button
           onClick={previousPage}
-          className={cn(
-            "h-full w-12",
-            "flex items-center justify-center",
-            "text-white  transition-opacity duration-300"
-          )}
+          className="h-full w-12 flex items-center justify-center text-white"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
 
         <div
-          className={`grid gap-4 w-full`}
+          className="grid gap-4 w-full"
           style={{
             gridTemplateColumns: `repeat(${itemsPerPage}, minmax(0, 1fr))`,
           }}
@@ -105,22 +96,24 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
               className="relative w-full h-80 bg-transparent border-none overflow-hidden group"
             >
               <Image
-                src={item.image || "/placeholder.svg"}
-                alt={item.title}
-                fill
-                className="object-cover absolute inset-0 transition-transform duration-300 group-hover:scale-110"
+                src={getIpfsUrl(item.image)}
+                alt={item.name || "NFT Image"}
+                width={384}
+                height={384}
+                className="object-cover group-hover:scale-110"
+                unoptimized
               />
-
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent " />
 
-              <CardContent className="absolute bottom-0 left-0 w-full p-4 ">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-white font-medium">{item.title}</h3>
-                  {item.verified && (
-                    <VerifiedIcon className="w-4 h-4 text-blue-400" />
-                  )}
-                </div>
-                <p className="text-white/60 text-sm">Floor: {item.floor}</p>
+              <CardContent className="absolute bottom-0 left-0 w-full p-4">
+                <h3 className="text-white font-medium">
+                  {item.name || "Unknown"}
+                </h3>
+                <p className="text-white/60 text-sm">
+                  Floor:{" "}
+                  {item.attributes?.find((attr) => attr.trait_type === "Floor")
+                    ?.value || "N/A"}
+                </p>
               </CardContent>
             </Card>
           ))}
@@ -128,11 +121,7 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
 
         <button
           onClick={nextPage}
-          className={cn(
-            "h-full w-12",
-            "flex items-center justify-center",
-            "text-white  transition-opacity duration-300"
-          )}
+          className="h-full w-12 flex items-center justify-center text-white"
         >
           <ChevronRight className="w-6 h-6" />
         </button>

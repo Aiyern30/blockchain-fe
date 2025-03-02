@@ -173,7 +173,7 @@ export default function NFTMintingUI({
             >
               Mint Another
             </Button>
-          ) : status === "cancelled" || status === "error" ? ( // 🚀 Retry for Cancelled or Error
+          ) : status === "cancelled" || status === "error" ? (
             <Button
               className="bg-red-600 hover:bg-red-700"
               onClick={() => onRetry()}
