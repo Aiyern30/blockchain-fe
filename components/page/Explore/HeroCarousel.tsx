@@ -10,17 +10,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDeviceType } from "@/utils/useDeviceType";
 import { getIpfsUrl } from "@/utils/function";
-
-interface NFTAttribute {
-  trait_type: string;
-  value: string;
-}
-
-interface NFTMetadata {
-  name?: string;
-  image?: string;
-  attributes?: NFTAttribute[];
-}
+import { NFTMetadata } from "@/type/NFT";
 
 interface HeroCarouselProps {
   categories: string[];

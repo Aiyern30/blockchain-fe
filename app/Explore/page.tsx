@@ -19,6 +19,7 @@ import DrawingCarousel from "./DrawingCarousel";
 import HeroCarousel from "@/components/page/Explore/HeroCarousel";
 import CryptoTable from "@/components/page/Explore/CryptoTable";
 import { fetchNFTs } from "@/utils/fetchNFTs";
+import { FetchedNFT, NFTMetadata } from "@/type/NFT";
 
 const categories = [
   "All",
@@ -52,23 +53,6 @@ const collections = [
     volume: "63",
   },
 ];
-
-interface NFTAttribute {
-  trait_type: string;
-  value: string;
-}
-
-interface NFTMetadata {
-  name?: string;
-  image?: string;
-  attributes?: NFTAttribute[];
-}
-
-interface FetchedNFT {
-  title?: string;
-  image?: string;
-  floor?: string;
-}
 
 export default function NFTCarousel() {
   const { isMobile } = useDeviceType();
