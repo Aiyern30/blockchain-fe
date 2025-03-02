@@ -33,7 +33,7 @@ import { getERC721Contract } from "@/lib/erc721Config";
 import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import NFTMintingUI from "../../../components/page/Explore/Create/Drop/NFTMintingUI";
-import { StagingStatus } from "@/type/stagingStatus";
+import type { StagingStatus } from "@/type/stagingStatus";
 import { checkNFTExists } from "@/utils/checkNFTExists";
 type Blockchain = "ethereum" | "base" | null;
 
@@ -227,7 +227,7 @@ export default function DropNFT() {
         />
       ) : (
         <div className="min-h-screen p-6">
-          <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1fr,320px] ">
+          <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1fr,320px]">
             <Card className="space-y-8 bg-background">
               <CardHeader>
                 <CardTitle>
@@ -284,7 +284,7 @@ export default function DropNFT() {
 
                                 {imageUrl ? (
                                   <Image
-                                    src={imageUrl}
+                                    src={imageUrl || "/placeholder.svg"}
                                     alt="Uploaded logo"
                                     fill
                                     className="object-contain"
@@ -527,8 +527,10 @@ export default function DropNFT() {
                 </FormProvider>
               </CardContent>
             </Card>
-            <div className="space-y-6 self-start sticky top-6 h-fit">
-              <Information />
+            <div className="hidden lg:block">
+              <div className="space-y-6 self-start sticky top-6 h-fit">
+                <Information />
+              </div>
             </div>
           </div>
         </div>
