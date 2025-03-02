@@ -22,8 +22,6 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
   const [startIndex, setStartIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(4);
 
-  console.log("Pasted", items);
-
   useEffect(() => {
     if (isMobile) {
       setItemsPerPage(1);
@@ -67,6 +65,7 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
       </Tabs>
 
       <div className="relative flex items-center justify-between">
+        {/* Left Button */}
         <button
           onClick={previousPage}
           className="h-full w-12 flex items-center justify-center text-white"
@@ -74,8 +73,9 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
           <ChevronLeft className="w-6 h-6" />
         </button>
 
+        {/* NFT Cards */}
         <div
-          className="grid gap-4 w-full"
+          className="grid gap-6 w-full"
           style={{
             gridTemplateColumns: `repeat(${itemsPerPage}, minmax(0, 1fr))`,
           }}
@@ -83,20 +83,23 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
           {currentItems.map((item, index) => (
             <Card
               key={index}
-              className="relative w-full h-80 bg-transparent border-none overflow-hidden group"
+              className="relative w-full overflow-hidden group rounded-lg shadow-lg"
             >
-              <Image
-                src={getIpfsUrl(item.image)}
-                alt={item.name || "NFT Image"}
-                width={384}
-                height={384}
-                className="object-cover group-hover:scale-110"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent " />
+              <div className="relative w-full max-w-[300px] aspect-[3/4] mx-auto">
+                <Image
+                  src={getIpfsUrl(item.image)}
+                  alt={item.name || "NFT Image"}
+                  fill
+                  className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                  unoptimized
+                />
+              </div>
 
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+
+              {/* NFT Details */}
               <CardContent className="absolute bottom-0 left-0 w-full p-4">
-                <h3 className="text-white font-medium">
+                <h3 className="text-white font-medium truncate">
                   {item.name || "Unknown"}
                 </h3>
                 <p className="text-white/60 text-sm">
@@ -109,6 +112,7 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
           ))}
         </div>
 
+        {/* Right Button */}
         <button
           onClick={nextPage}
           className="h-full w-12 flex items-center justify-center text-white"
