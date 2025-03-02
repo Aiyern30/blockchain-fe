@@ -75,9 +75,11 @@ export default function NFTCarousel() {
   const shouldSplit = collections.length > 5;
 
   const [nftItems, setNftItems] = useState<NFTMetadata[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadNFTs() {
+      setLoading(true);
       const fetchedNFTs: FetchedNFT[] = await fetchNFTs();
       const formattedNFTs = fetchedNFTs.map((nft) => ({
         name: nft.title,
@@ -86,6 +88,7 @@ export default function NFTCarousel() {
       }));
 
       setNftItems(formattedNFTs);
+      setLoading(false);
     }
 
     loadNFTs();
@@ -93,8 +96,11 @@ export default function NFTCarousel() {
 
   return (
     <>
-      <CarouselSkeleton />
-      <HeroCarousel categories={categories} items={nftItems} />
+      {loading ? (
+        <CarouselSkeleton />
+      ) : (
+        <HeroCarousel categories={categories} items={nftItems} />
+      )}
 
       <div
         className={cn(
