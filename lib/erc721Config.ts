@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 // Your deployed contract details
-const NFT_CONTRACT_ADDRESS = "0xe17EaDAb3a63f2D26afa8D70511d55eE691091D0"; // Change to your deployed address
+const NFT_CONTRACT_ADDRESS = "0xa1A5523c2d90E1fA80A53D3A590eb48973348BAc";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {

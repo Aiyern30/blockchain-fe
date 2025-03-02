@@ -189,7 +189,10 @@ export default function DropNFT() {
 
       const mintTx = await nftContract.mintNFT(
         walletClient.account.address,
-        metadataUrl
+        metadataUrl,
+        {
+          value: ethers.parseEther("0.01"),
+        }
       );
       setTxHash(mintTx.hash);
       await mintTx.wait();
