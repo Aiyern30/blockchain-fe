@@ -167,7 +167,10 @@ export default function NFTMintingUI({
         {/* Action Button */}
         <div className="flex justify-center">
           {status === "done" || status === "exists" ? (
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => onRetry()}
+            >
               Mint Another
             </Button>
           ) : status === "cancelled" || status === "error" ? ( // 🚀 Retry for Cancelled or Error
