@@ -61,7 +61,7 @@ export default function CreatePage() {
             >
               <Link href={href} className="block">
                 <motion.div
-                  className={`p-6 rounded-lg border shadow-lg transition-all duration-300 relative overflow-hidden group
+                  className={`p-6 rounded-lg border shadow-lg transition-all duration-300 relative overflow-hidden flex items-center justify-between
                   ${
                     theme === "dark"
                       ? "bg-zinc-900 border-zinc-700 text-white"
@@ -72,17 +72,18 @@ export default function CreatePage() {
                     boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.3)",
                   }}
                 >
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {icon}
-                        <h2 className="text-xl font-semibold">{title}</h2>
-                      </div>
-                      <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      {icon}
+                      <h2 className="text-xl font-semibold">{title}</h2>
                     </div>
                     <p className="mt-2 text-sm text-opacity-80">
                       {description}
                     </p>
+                  </div>
+
+                  <div className="flex items-center">
+                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </div>
                 </motion.div>
               </Link>
