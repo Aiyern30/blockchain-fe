@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -17,6 +18,7 @@ import { TableSkeleton } from "@/components/page/Explore/TableSkeleton";
 import DrawingCarousel from "./DrawingCarousel";
 import HeroCarousel from "@/components/page/Explore/HeroCarousel";
 import CryptoTable from "@/components/page/Explore/CryptoTable";
+import { fetchNFTs } from "@/utils/fetchNFTs";
 
 const categories = [
   "All",
@@ -26,86 +28,6 @@ const categories = [
   "PFPs",
   "Photography",
   "Music",
-];
-
-const items = [
-  {
-    title: "Murakami.Flowers Official",
-    floor: "0.2 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "Letters by Vinnie Hager",
-    floor: "0.44 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "When Two Stars Collide",
-    floor: "0.5 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: false,
-  },
-  {
-    title: "Doodles",
-    floor: "3.85 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "Cool Cats NFT",
-    floor: "1.2 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "Bored Ape Yacht Club",
-    floor: "68.9 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "1",
-    floor: "68.9 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "2",
-    floor: "68.9 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "3",
-    floor: "68.9 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "4",
-    floor: "68.9 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
-  {
-    title: "5",
-    floor: "68.9 ETH",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    verified: true,
-  },
 ];
 
 const timeFrames = ["1h", "6h", "24h", "7d"];
@@ -129,56 +51,55 @@ const collections = [
     floorPrice: "0.05",
     volume: "63",
   },
-  {
-    rank: 3,
-    name: "Courtyard.io",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
-    verified: true,
-    floorPrice: "< 0.01",
-    volume: "400",
-  },
-  {
-    rank: 4,
-    name: "Gemesis",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
-    verified: true,
-    floorPrice: "0.05",
-    volume: "63",
-  },
-  {
-    rank: 5,
-    name: "Courtyard.io",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
-    verified: true,
-    floorPrice: "< 0.01",
-    volume: "400",
-  },
-  {
-    rank: 6,
-    name: "Gemesis",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
-    verified: true,
-    floorPrice: "0.05",
-    volume: "63",
-  },
 ];
+
+interface NFTAttribute {
+  trait_type: string;
+  value: string;
+}
+
+interface NFTMetadata {
+  name?: string;
+  image?: string;
+  attributes?: NFTAttribute[];
+}
+
+interface FetchedNFT {
+  title?: string;
+  image?: string;
+  floor?: string;
+}
 
 export default function NFTCarousel() {
   const { isMobile } = useDeviceType();
   const shouldSplit = collections.length > 5;
 
+  const [nftItems, setNftItems] = useState<NFTMetadata[]>([]);
+
+  useEffect(() => {
+    async function loadNFTs() {
+      const fetchedNFTs: FetchedNFT[] = await fetchNFTs();
+      const formattedNFTs = fetchedNFTs.map((nft) => ({
+        name: nft.title,
+        image: nft.image,
+        attributes: [{ trait_type: "Floor", value: nft.floor || "N/A" }],
+      }));
+
+      setNftItems(formattedNFTs);
+    }
+
+    loadNFTs();
+  }, []);
+
   return (
     <>
       <CarouselSkeleton />
-      <HeroCarousel categories={categories} items={items} />
+      <HeroCarousel categories={categories} items={nftItems} />
+
       <div
         className={cn(
-          "mt-5 space-y-4 ",
-          isMobile ? "flex flex-col" : "flex justify-between items-center "
+          "mt-5 space-y-4",
+          isMobile ? "flex flex-col" : "flex justify-between items-center"
         )}
       >
         <div className="flex justify-between items-center">
@@ -216,10 +137,9 @@ export default function NFTCarousel() {
           </Select>
         </div>
       </div>
+
       <TableSkeleton isMobile={isMobile} shouldSplit={shouldSplit} />
-
       <CryptoTable collections={collections} shouldSplit={shouldSplit} />
-
       <DrawingCarousel />
     </>
   );
