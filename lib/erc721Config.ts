@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 // Your deployed contract details
-const NFT_CONTRACT_ADDRESS = "0x940267a100CA866218ACfacF495DE0686A94fee0"; // Change to your deployed address
+const NFT_CONTRACT_ADDRESS = "0xe17EaDAb3a63f2D26afa8D70511d55eE691091D0"; // Change to your deployed address
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
@@ -339,7 +339,14 @@ const nftABI = [
     ],
     name: "mintNFT",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "mintingFee",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
     type: "function",
   },
   {
