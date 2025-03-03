@@ -1,6 +1,7 @@
 import { getERC721Contract } from "@/lib/erc721Config";
 import { NFTAttribute, NFTMetadata } from "@/type/NFT";
 import { ethers } from "ethers";
+import { extractCID } from "./function";
 
 export async function fetchNFTs() {
   try {
@@ -44,9 +45,4 @@ export async function fetchNFTs() {
     console.error("Error fetching NFTs:", error);
     return [];
   }
-}
-
-function extractCID(url: string): string {
-  const match = url.match(/(?:ipfs:\/\/|https?:\/\/.*?\/ipfs\/)([a-zA-Z0-9]+)/);
-  return match ? match[1] : url;
 }
