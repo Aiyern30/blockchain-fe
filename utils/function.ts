@@ -4,16 +4,18 @@ export const formatAddress = (address?: string) => {
 };
 
 export const getIpfsUrl = (cidOrUrl?: string): string => {
-  if (!cidOrUrl) return "/placeholder.svg"; // Default placeholder image
+  if (!cidOrUrl) return "/placeholder.svg";
 
-  // If the input already starts with "http" (a full URL), return as is
   if (cidOrUrl.startsWith("http")) return cidOrUrl;
 
-  // If the input starts with "ipfs://", extract the CID
   if (cidOrUrl.startsWith("ipfs://")) {
     cidOrUrl = cidOrUrl.replace("ipfs://", "");
   }
 
-  // Return a valid IPFS Gateway URL
   return `https://dweb.link/ipfs/${cidOrUrl}`;
 };
+
+export function extractCID(url: string): string {
+  const match = url.match(/(?:ipfs:\/\/|https?:\/\/.*?\/ipfs\/)([a-zA-Z0-9]+)/);
+  return match ? match[1] : url;
+}
