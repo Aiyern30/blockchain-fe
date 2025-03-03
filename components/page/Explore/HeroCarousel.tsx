@@ -11,6 +11,7 @@ import Image from "next/image";
 import { useDeviceType } from "@/utils/useDeviceType";
 import { getIpfsUrl } from "@/utils/function";
 import { NFTMetadata } from "@/type/NFT";
+import { useRouter } from "next/navigation";
 
 interface HeroCarouselProps {
   categories: string[];
@@ -18,8 +19,7 @@ interface HeroCarouselProps {
 }
 
 const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
-  console.log("items", items);
-
+  const router = useRouter();
   const { isMobile, isTablet } = useDeviceType();
   const [startIndex, setStartIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(4);
@@ -85,7 +85,8 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
           {currentItems.map((item, index) => (
             <Card
               key={index}
-              className="relative w-full overflow-hidden group rounded-lg shadow-lg"
+              className="relative w-full overflow-hidden group rounded-lg shadow-lg cursor-pointer"
+              onClick={() => router.push(`/Explore/${item.id}`)}
             >
               <div className="relative w-full max-w-[300px] aspect-[3/4] mx-auto">
                 <Image
