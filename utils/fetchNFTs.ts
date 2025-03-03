@@ -23,8 +23,6 @@ export async function fetchNFTs() {
         const metadataResponse = await fetch(tokenURI);
         const metadata: NFTMetadata = await metadataResponse.json();
 
-        console.log("metadata", metadata);
-
         nftList.push({
           id: cid,
           title: metadata.name || `NFT #${tokenId}`,

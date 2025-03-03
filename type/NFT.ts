@@ -14,4 +14,5 @@ export interface FetchedNFT {
   title?: string;
   image?: string;
   floor?: string;
+  id?: string;
 }
