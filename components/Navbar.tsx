@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Cart } from "./Cart";
 import WalletConnectDropdown from "./wallet-dropdown/WalletConnectDropdown";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -90,13 +91,20 @@ function NavLink({
   href: string;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+
   return (
     <Link
       href={href}
       className="text-gray-300 hover:text-white transition-colors relative group"
     >
       {children}
-      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-500 dark:bg-[#007bff] transition-all group-hover:w-full" />
+      <span
+        className={`absolute -bottom-1 left-0 h-0.5 bg-purple-500 dark:bg-[#007bff] transition-all ${
+          isActive ? "w-full" : "w-0 group-hover:w-full"
+        }`}
+      />
     </Link>
   );
 }
