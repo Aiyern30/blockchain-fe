@@ -69,6 +69,7 @@ export default function NFTCarousel() {
         name: nft.title,
         image: nft.image,
         attributes: [{ trait_type: "Floor", value: nft.floor || "N/A" }],
+        id: nft.id,
       }));
 
       setNftItems(formattedNFTs);
