@@ -18,6 +18,8 @@ interface HeroCarouselProps {
 }
 
 const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
+  console.log("items", items);
+
   const { isMobile, isTablet } = useDeviceType();
   const [startIndex, setStartIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(4);

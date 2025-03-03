@@ -16,10 +16,16 @@ export async function fetchNFTs() {
     for (let tokenId = 1; tokenId <= totalSupply; tokenId++) {
       try {
         const tokenURI = await nftContract.tokenURI(tokenId);
+
+        const cid = extractCID(tokenURI);
+
         const metadataResponse = await fetch(tokenURI);
         const metadata: NFTMetadata = await metadataResponse.json();
 
+        console.log("metadata", metadata);
+
         nftList.push({
+          id: cid,
           title: metadata.name || `NFT #${tokenId}`,
           floor:
             metadata.attributes?.find(
@@ -38,4 +44,9 @@ export async function fetchNFTs() {
     console.error("Error fetching NFTs:", error);
     return [];
   }
+}
+
+function extractCID(url: string): string {
+  const match = url.match(/(?:ipfs:\/\/|https?:\/\/.*?\/ipfs\/)([a-zA-Z0-9]+)/);
+  return match ? match[1] : url;
 }

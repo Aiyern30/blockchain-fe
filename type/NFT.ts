@@ -7,6 +7,7 @@ export interface NFTMetadata {
   name?: string;
   image?: string;
   attributes?: NFTAttribute[];
+  id?: string;
 }
 
 export interface FetchedNFT {
