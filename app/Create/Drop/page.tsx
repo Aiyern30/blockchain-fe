@@ -60,7 +60,7 @@ export default function DropNFT() {
 
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [stagingStatus, setStagingStatus] = useState<StagingStatus>("idle");
-  const [txHash, setTxHash] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<string[] | null>(null);
 
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -115,15 +115,8 @@ export default function DropNFT() {
       const signer = await provider.getSigner();
       const nftContract = getERC721Contract(signer);
 
-      // ✅ Check if NFT already exists
-      const latestTokenId = await nftContract.totalSupply();
-      const tokenId = Number(latestTokenId.toString()) + 1;
-
-      const exists = await checkNFTExists(provider, tokenId, "");
-      if (exists) {
-        setStagingStatus("exists");
-        return;
-      }
+      // ✅ Get maxSupply
+      const maxSupply = Number(data.maxSupply);
 
       // ✅ Upload Image to IPFS
       setStagingStatus("uploading");
@@ -144,16 +137,14 @@ export default function DropNFT() {
       const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
 
       // ✅ Upload Metadata to IPFS
+      setStagingStatus("uploading");
       const metadata = {
         name: data.contractName,
         symbol: data.tokenSymbol,
         image: imageUrl,
         blockchain: "ethereum",
         owner: walletClient.account.address,
-        attributes: [
-          { trait_type: "Price", value: data.price },
-          { trait_type: "maxSupply", value: data.maxSupply },
-        ],
+        attributes: [{ trait_type: "Price", value: data.price }],
       };
 
       const metadataFile = new File(
@@ -178,24 +169,42 @@ export default function DropNFT() {
       const metadataData = await metadataResponse.json();
       const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
 
-      const finalExists = await checkNFTExists(provider, tokenId, metadataUrl);
-      if (finalExists) {
-        setStagingStatus("exists");
-        return;
-      }
-
-      // ✅ Mint NFT
       setStagingStatus("minting");
 
-      const mintTx = await nftContract.mintNFT(
-        walletClient.account.address,
-        metadataUrl,
-        {
-          value: ethers.parseEther("0.01"),
+      const mintedTxHashes: string[] = [];
+
+      // ✅ Mint multiple NFTs using maxSupply
+      for (let i = 0; i < maxSupply; i++) {
+        const tokenId = i + 1; // Assign sequential token IDs
+
+        // ✅ Check if NFT already exists before minting
+        const exists = await checkNFTExists(provider, tokenId, metadataUrl);
+        if (exists) {
+          console.warn(
+            `NFT with Token ID ${tokenId} already exists. Skipping.`
+          );
+          continue;
         }
-      );
-      setTxHash(mintTx.hash);
-      await mintTx.wait();
+
+        // ✅ Mint NFT
+        const mintTx = await nftContract.mintNFT(
+          walletClient.account.address,
+          metadataUrl,
+          {
+            value: ethers.parseEther("0.01"),
+          }
+        );
+        await mintTx.wait(); // Wait for transaction confirmation
+
+        // Store transaction hash
+        mintedTxHashes.push(mintTx.hash);
+        console.log(
+          `NFT minted! Token ID: ${tokenId}, Tx Hash: ${mintTx.hash}`
+        );
+      }
+
+      // ✅ Pass all txHashes to NFTMintingUI
+      setTxHash(mintedTxHashes);
       setStagingStatus("done");
     } catch (error: unknown) {
       console.error("Error:", error);

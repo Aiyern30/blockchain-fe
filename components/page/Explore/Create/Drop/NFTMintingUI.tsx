@@ -27,7 +27,7 @@ const STATUS_STAGES = {
 
 interface NFTMintingUIProps {
   status: StagingStatus;
-  txHash?: string | null;
+  txHash?: string[] | null;
   walletAddress?: string | null;
   onRetry: () => void;
 }
@@ -106,25 +106,32 @@ export default function NFTMintingUI({
         </div>
 
         {/* Transaction Hash & Wallet Address (only show when complete) */}
-        {status === "done" && txHash && (
+        {status === "done" && txHash && Array.isArray(txHash) && (
           <div className="mb-6 rounded-lg bg-gray-700 p-3">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <LinkIcon className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-400">Transaction Hash:</span>
+                <span className="text-sm text-gray-400">
+                  Transaction Hashes:
+                </span>
               </div>
-              <a
-                href={`https://sepolia.etherscan.io/tx/${txHash}`}
-                className="flex items-center gap-1 text-purple-400 hover:text-purple-300"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="text-sm">View on Etherscan</span>
-                <ExternalLink className="h-3 w-3" />
-              </a>
-              <p className="mt-1 truncate text-sm font-mono text-gray-300">
-                {txHash}
-              </p>
+
+              {txHash.map((hash, index) => (
+                <div key={index} className="flex flex-col gap-1">
+                  <a
+                    href={`https://sepolia.etherscan.io/tx/${hash}`}
+                    className="flex items-center gap-1 text-purple-400 hover:text-purple-300"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span className="text-sm">Tx {index + 1}</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                  <p className="truncate text-sm font-mono text-gray-300">
+                    {hash}
+                  </p>
+                </div>
+              ))}
             </div>
 
             {walletAddress && (
