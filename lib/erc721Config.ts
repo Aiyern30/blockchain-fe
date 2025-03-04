@@ -1,9 +1,15 @@
 import { ethers } from "ethers";
 
 // Your deployed contract details
-const NFT_CONTRACT_ADDRESS = "0xa1A5523c2d90E1fA80A53D3A590eb48973348BAc";
+const NFT_CONTRACT_ADDRESS = "0x4a1e201681a7b206148a21aDf9faa38c382deA44";
 const nftABI = [
-  { inputs: [], stateMutability: "nonpayable", type: "constructor" },
+  {
+    inputs: [
+      { internalType: "address", name: "_ownerWallet", type: "address" },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
   {
     inputs: [
       { internalType: "address", name: "sender", type: "address" },
@@ -182,6 +188,31 @@ const nftABI = [
       {
         indexed: false,
         internalType: "address",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "tokenURI",
+        type: "string",
+      },
+    ],
+    name: "NFTMinted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
         name: "buyer",
         type: "address",
       },
@@ -335,6 +366,16 @@ const nftABI = [
   {
     inputs: [
       { internalType: "address", name: "recipient", type: "address" },
+      { internalType: "string[]", name: "tokenURIs", type: "string[]" },
+    ],
+    name: "mintMultipleNFTs",
+    outputs: [{ internalType: "uint256[]", name: "", type: "uint256[]" }],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "recipient", type: "address" },
       { internalType: "string", name: "tokenURI", type: "string" },
     ],
     name: "mintNFT",
@@ -373,6 +414,13 @@ const nftABI = [
   {
     inputs: [{ internalType: "uint256", name: "tokenId", type: "uint256" }],
     name: "ownerOf",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "ownerWallet",
     outputs: [{ internalType: "address", name: "", type: "address" }],
     stateMutability: "view",
     type: "function",
