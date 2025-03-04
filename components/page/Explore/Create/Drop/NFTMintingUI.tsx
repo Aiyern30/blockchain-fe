@@ -116,22 +116,24 @@ export default function NFTMintingUI({
                 </span>
               </div>
 
-              {txHash.map((hash, index) => (
-                <div key={index} className="flex flex-col gap-1">
-                  <a
-                    href={`https://sepolia.etherscan.io/tx/${hash}`}
-                    className="flex items-center gap-1 text-purple-400 hover:text-purple-300"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="text-sm">Tx {index + 1}</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                  <p className="truncate text-sm font-mono text-gray-300">
-                    {hash}
-                  </p>
-                </div>
-              ))}
+              <div className="max-h-[200px] overflow-y-auto space-y-2 pr-2">
+                {txHash.map((hash, index) => (
+                  <div key={index} className="flex flex-col gap-1">
+                    <a
+                      href={`https://sepolia.etherscan.io/tx/${hash}`}
+                      className="flex items-center gap-1 text-purple-400 hover:text-purple-300"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className="text-sm">Tx {index + 1}</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <p className="truncate text-sm font-mono text-gray-300">
+                      {hash}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {walletAddress && (
