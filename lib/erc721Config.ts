@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 // Your deployed contract details
-const NFT_CONTRACT_ADDRESS = "0x4a1e201681a7b206148a21aDf9faa38c382deA44";
+const NFT_CONTRACT_ADDRESS = "0xe17EaDAb3a63f2D26afa8D70511d55eE691091D0";
 const nftABI = [
   {
     inputs: [
@@ -129,6 +129,27 @@ const nftABI = [
       },
     ],
     name: "BatchMetadataUpdate",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: "string", name: "name", type: "string" },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      { indexed: false, internalType: "string", name: "image", type: "string" },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "baseURI",
+        type: "string",
+      },
+    ],
+    name: "CollectionMetadataUpdated",
     type: "event",
   },
   {
@@ -306,6 +327,27 @@ const nftABI = [
     name: "cancelListing",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "collectionDescription",
+    outputs: [{ internalType: "string", name: "", type: "string" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "collectionImage",
+    outputs: [{ internalType: "string", name: "", type: "string" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "collectionName",
+    outputs: [{ internalType: "string", name: "", type: "string" }],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -507,6 +549,18 @@ const nftABI = [
   {
     inputs: [{ internalType: "address", name: "newOwner", type: "address" }],
     name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "string", name: "_name", type: "string" },
+      { internalType: "string", name: "_description", type: "string" },
+      { internalType: "string", name: "_image", type: "string" },
+      { internalType: "string", name: "_baseURI", type: "string" },
+    ],
+    name: "updateCollectionMetadata",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
