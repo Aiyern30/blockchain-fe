@@ -1,10 +1,18 @@
 import { getERC721Contract } from "@/lib/erc721Config";
-import { NFTAttribute, NFTMetadata } from "@/type/NFT";
+import { FetchedNFT, NFTAttribute, NFTMetadata } from "@/type/NFT";
 import { ethers } from "ethers";
 
-export async function fetchNFTsByCollection(collectionUrl: string) {
+interface Collection {
+  name: string;
+  description: string;
+  image?: string;
+  collectionUrl: string;
+  nfts: FetchedNFT[];
+}
+
+export async function fetchCollectionsWithNFTs() {
   try {
-    console.log("Fetching NFTs for collection:", collectionUrl);
+    console.log("Fetching all NFTs...");
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
@@ -15,47 +23,59 @@ export async function fetchNFTsByCollection(collectionUrl: string) {
 
     console.log("Total NFTs Supply:", totalSupply);
 
-    const nftList = [];
+    const collections: Record<string, Collection> = {};
 
     for (let tokenId = 1; tokenId <= totalSupply; tokenId++) {
       try {
         const tokenURI = await nftContract.tokenURI(tokenId);
-        console.log(`Fetching Token #${tokenId} URI:`, tokenURI);
-
-        if (!tokenURI) {
-          console.warn(`Token #${tokenId} has no URI`);
-          continue;
-        }
+        if (!tokenURI) continue;
 
         const response = await fetch(tokenURI);
-        if (!response.ok) {
-          console.warn(`Failed to fetch metadata for Token #${tokenId}`);
-          continue;
+        if (!response.ok) continue;
+
+        const metadata: NFTMetadata & { collection?: string } =
+          await response.json();
+        if (!metadata.collection) continue;
+
+        const collectionUrl = metadata.collection;
+
+        if (!collections[collectionUrl]) {
+          const collectionResponse = await fetch(collectionUrl);
+          if (!collectionResponse.ok) continue;
+
+          const collectionData = await collectionResponse.json();
+
+          collections[collectionUrl] = {
+            name: collectionData.name || "Unnamed Collection",
+            description: collectionData.description || "No description",
+            image: collectionData.image || "",
+            collectionUrl,
+            nfts: [],
+          };
         }
 
-        const metadata: NFTMetadata = await response.json();
-        console.log(`Metadata for Token #${tokenId}:`, metadata);
-
-        if (metadata.collection === collectionUrl) {
-          nftList.push({
-            id: tokenId,
-            title: metadata.name || `NFT #${tokenId}`,
-            floor:
-              metadata.attributes?.find(
-                (attr: NFTAttribute) => attr.trait_type === "Price"
-              )?.value || "N/A",
-            image: metadata.image || "",
-            verified: true,
-          });
-        }
+        // Add NFT to the respective collection
+        collections[collectionUrl].nfts.push({
+          id: tokenId,
+          title: metadata.name || `NFT #${tokenId}`,
+          image: metadata.image || "",
+          floor:
+            metadata.attributes?.find(
+              (attr: NFTAttribute) => attr.trait_type === "Price"
+            )?.value || "N/A",
+        });
       } catch (error) {
         console.warn(`Error fetching NFT ${tokenId}:`, error);
       }
     }
 
-    return nftList;
+    // Convert collections object to an array
+    const collectionsArray = Object.values(collections);
+
+    console.log("Fetched Collections with NFTs:", collectionsArray);
+    return collectionsArray;
   } catch (error) {
-    console.error("Error fetching NFTs by collection:", error);
+    console.error("Error fetching collections:", error);
     return [];
   }
 }
