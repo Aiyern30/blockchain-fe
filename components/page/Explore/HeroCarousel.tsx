@@ -85,30 +85,35 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
           {currentItems.map((item, index) => (
             <Card
               key={index}
-              className="relative w-full overflow-hidden group rounded-lg shadow-lg cursor-pointer"
+              className="relative w-full overflow-hidden group rounded-2xl shadow-xl cursor-pointer flex flex-col items-center p-4 transition"
               onClick={() => router.push(`/Explore/${item.id}`)}
             >
-              <div className="relative w-full max-w-[300px] aspect-[3/4] mx-auto">
+              {/* Image with hover effect */}
+              <div className="relative w-full max-w-[300px] aspect-[3/4] rounded-lg overflow-hidden shadow-lg">
                 <Image
                   src={getIpfsUrl(item.image)}
                   alt={item.name || "NFT Image"}
-                  fill
-                  className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                  width={300}
+                  height={400}
+                  className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105"
                   unoptimized
                 />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
-              {/* NFT Details */}
-              <CardContent className="absolute bottom-0 left-0 w-full p-4">
-                <h3 className="text-white font-medium truncate">
+              {/* NFT Details - Below Image */}
+              <CardContent className="w-full text-center mt-4">
+                <h3 className="font-semibold text-lg truncate">
                   {item.name || "Unknown"}
                 </h3>
-                <p className="text-white/60 text-sm">
-                  Floor:{" "}
-                  {item.attributes?.find((attr) => attr.trait_type === "Floor")
-                    ?.value || "N/A"}
+                <p className="text-gray-400 text-sm mt-1">
+                  Floor Price:{" "}
+                  <span className="font-medium">
+                    {item.attributes?.find(
+                      (attr) => attr.trait_type === "Floor"
+                    )?.value || "N/A"}
+                  </span>
                 </p>
               </CardContent>
             </Card>
