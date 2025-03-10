@@ -34,11 +34,12 @@ import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import NFTMintingUI from "../../../components/page/Explore/Create/Drop/NFTMintingUI";
 import type { StagingStatus } from "@/type/stagingStatus";
-import { checkNFTExists } from "@/utils/checkNFTExists";
 type Blockchain = "ethereum" | "base" | null;
 
 type FormValues = {
+  collectionName: string;
   contractName: string;
+  collectionDescription: string;
   tokenSymbol: string;
   contractDescription: string;
   logoImage: File | string | null;
@@ -87,6 +88,8 @@ export default function DropNFT() {
   const formMethods = useForm<FormValues>({
     mode: "onChange",
     defaultValues: {
+      collectionName: "",
+      collectionDescription: "",
       contractName: "",
       tokenSymbol: "",
       contractDescription: "",
@@ -115,96 +118,133 @@ export default function DropNFT() {
       const signer = await provider.getSigner();
       const nftContract = getERC721Contract(signer);
 
-      // ✅ Get maxSupply
       const maxSupply = Number(data.maxSupply);
 
-      // ✅ Upload Image to IPFS
+      // ✅ Upload Collection Metadata to IPFS
       setStagingStatus("uploading");
-      const formData = new FormData();
-      formData.append("file", selectedFile);
 
-      const imageResponse = await fetch(
-        "https://api.pinata.cloud/pinning/pinFileToIPFS",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${PINATA_JWT}` },
-          body: formData,
-        }
-      );
+      // Handle collection image (use `logoImage` if available)
+      let collectionImageUrl = "";
+      if (data.logoImage && typeof data.logoImage !== "string") {
+        const formData = new FormData();
+        formData.append("file", data.logoImage);
 
-      if (!imageResponse.ok) throw new Error("Image upload failed");
-      const imageData = await imageResponse.json();
-      const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
+        const imageResponse = await fetch(
+          "https://api.pinata.cloud/pinning/pinFileToIPFS",
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${PINATA_JWT}` },
+            body: formData,
+          }
+        );
 
-      // ✅ Upload Metadata to IPFS
-      setStagingStatus("uploading");
-      const metadata = {
-        name: data.contractName,
-        symbol: data.tokenSymbol,
-        image: imageUrl,
+        if (!imageResponse.ok)
+          throw new Error("Collection image upload failed");
+        const imageData = await imageResponse.json();
+        collectionImageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
+      }
+
+      const collectionMetadata = {
+        name: data.collectionName,
+        description: data.collectionDescription,
+        image: collectionImageUrl, // ✅ Store collection image
         blockchain: "ethereum",
         owner: walletClient.account.address,
-        attributes: [{ trait_type: "Price", value: data.price }],
       };
 
-      const metadataFile = new File(
-        [JSON.stringify(metadata)],
-        "metadata.json",
+      const collectionMetadataFile = new File(
+        [JSON.stringify(collectionMetadata)],
+        "collection-metadata.json",
         { type: "application/json" }
       );
 
-      const metadataFormData = new FormData();
-      metadataFormData.append("file", metadataFile);
+      const collectionFormData = new FormData();
+      collectionFormData.append("file", collectionMetadataFile);
 
-      const metadataResponse = await fetch(
+      const collectionResponse = await fetch(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
         {
           method: "POST",
           headers: { Authorization: `Bearer ${PINATA_JWT}` },
-          body: metadataFormData,
+          body: collectionFormData,
         }
       );
 
-      if (!metadataResponse.ok) throw new Error("Metadata upload failed");
-      const metadataData = await metadataResponse.json();
-      const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
+      if (!collectionResponse.ok) throw new Error("Collection upload failed");
+      const collectionData = await collectionResponse.json();
+      const collectionMetadataUrl = `https://ipfs.io/ipfs/${collectionData.IpfsHash}`;
 
-      setStagingStatus("minting");
+      // ✅ Upload NFT Images & Metadata to IPFS
+      setStagingStatus("uploading");
+      const tokenURIs: string[] = [];
 
-      const mintedTxHashes: string[] = [];
-
-      // ✅ Mint multiple NFTs using maxSupply
       for (let i = 0; i < maxSupply; i++) {
-        const tokenId = i + 1; // Assign sequential token IDs
+        // Upload Image to IPFS
+        const formData = new FormData();
+        formData.append("file", selectedFile);
 
-        // ✅ Check if NFT already exists before minting
-        const exists = await checkNFTExists(provider, tokenId, metadataUrl);
-        if (exists) {
-          console.warn(
-            `NFT with Token ID ${tokenId} already exists. Skipping.`
-          );
-          continue;
-        }
-
-        // ✅ Mint NFT
-        const mintTx = await nftContract.mintNFT(
-          walletClient.account.address,
-          metadataUrl,
+        const imageResponse = await fetch(
+          "https://api.pinata.cloud/pinning/pinFileToIPFS",
           {
-            value: ethers.parseEther("0.01"),
+            method: "POST",
+            headers: { Authorization: `Bearer ${PINATA_JWT}` },
+            body: formData,
           }
         );
-        await mintTx.wait(); // Wait for transaction confirmation
 
-        // Store transaction hash
-        mintedTxHashes.push(mintTx.hash);
-        console.log(
-          `NFT minted! Token ID: ${tokenId}, Tx Hash: ${mintTx.hash}`
+        if (!imageResponse.ok) throw new Error("Image upload failed");
+        const imageData = await imageResponse.json();
+        const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
+
+        // Upload Metadata to IPFS
+        const metadata = {
+          name: `${data.collectionName} #${i + 1}`, // Unique NFT name
+          description: `Part of ${data.collectionName} collection`,
+          image: imageUrl,
+          attributes: [{ trait_type: "Price", value: data.price }],
+          collection: collectionMetadataUrl, // ✅ Link to collection metadata
+        };
+
+        const metadataFile = new File(
+          [JSON.stringify(metadata)],
+          `metadata-${i + 1}.json`,
+          { type: "application/json" }
         );
+
+        const metadataFormData = new FormData();
+        metadataFormData.append("file", metadataFile);
+
+        const metadataResponse = await fetch(
+          "https://api.pinata.cloud/pinning/pinFileToIPFS",
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${PINATA_JWT}` },
+            body: metadataFormData,
+          }
+        );
+
+        if (!metadataResponse.ok) throw new Error("Metadata upload failed");
+        const metadataData = await metadataResponse.json();
+        const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
+
+        tokenURIs.push(metadataUrl);
       }
 
-      // ✅ Pass all txHashes to NFTMintingUI
-      setTxHash(mintedTxHashes);
+      // ✅ Mint Multiple NFTs in One Transaction
+      setStagingStatus("minting");
+      const mintTx = await nftContract.mintMultipleNFTs(
+        walletClient.account.address,
+        tokenURIs,
+        {
+          value: ethers.parseEther("0.01") * BigInt(maxSupply),
+        }
+      );
+
+      await mintTx.wait(); // Wait for transaction confirmation
+
+      console.log("NFTs minted successfully!", mintTx.hash);
+
+      setTxHash([mintTx.hash]);
       setStagingStatus("done");
     } catch (error: unknown) {
       console.error("Error:", error);
