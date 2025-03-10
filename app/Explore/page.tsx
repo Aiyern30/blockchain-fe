@@ -65,6 +65,7 @@ export default function NFTCarousel() {
     async function loadNFTs() {
       setLoading(true);
       const fetchedNFTs: FetchedNFT[] = await fetchNFTs();
+      console.log("fetchedNFTs", fetchedNFTs);
       const formattedNFTs = fetchedNFTs.map((nft) => ({
         name: nft.title,
         image: nft.image,
