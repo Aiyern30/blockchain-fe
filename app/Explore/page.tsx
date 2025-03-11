@@ -18,23 +18,14 @@ import { TableSkeleton } from "@/components/page/Explore/TableSkeleton";
 import DrawingCarousel from "./DrawingCarousel";
 import HeroCarousel from "@/components/page/Explore/HeroCarousel";
 // import CryptoTable from "@/components/page/Explore/CryptoTable";
-// import { fetchNFTs } from "@/utils/fetchNFTs";
-// import { FetchedNFT, NFTMetadata } from "@/type/NFT";
 import { fetchCollectionsWithNFTs } from "@/utils/fetchNFTsByCollection";
+import { Collection } from "@/type/NFT";
 
 const timeFrames = ["1h", "6h", "24h", "7d"];
 
 export default function NFTCarousel() {
   const { isMobile } = useDeviceType();
-  const [collections, setCollections] = useState<
-    {
-      name: string;
-      description: string;
-      floorPrice: string;
-      image: string;
-      id: string;
-    }[]
-  >([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
 
   const shouldSplit = collections.length > 5;
 

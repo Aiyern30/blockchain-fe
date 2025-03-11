@@ -20,10 +20,10 @@ export interface FetchedNFT {
   owner?: string;
 }
 
-export interface CollectionMetadata {
+export interface Collection {
   name: string;
   description?: string;
-  image?: string;
-  totalSupply?: number;
-  creator?: string;
+  floorPrice: string;
+  image: string;
+  id: string;
 }
