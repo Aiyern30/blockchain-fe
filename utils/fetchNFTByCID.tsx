@@ -1,4 +1,6 @@
+import { getERC721Contract } from "@/lib/erc721Config";
 import { FetchedNFT, NFTAttribute, NFTMetadata } from "@/type/NFT";
+import { ethers } from "ethers";
 
 export async function fetchNFTByCID(
   nftCID: string
@@ -16,8 +18,27 @@ export async function fetchNFTByCID(
 
     const metadata: NFTMetadata = await response.json();
 
+    let tokenId = metadata.id;
+
+    if (!tokenId) {
+      console.log("Token ID not found in metadata, fetching from contract...");
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const nftContract = getERC721Contract(signer);
+
+      const totalSupply = await nftContract.totalSupply();
+      for (let i = 1; i <= totalSupply; i++) {
+        const tokenURI = await nftContract.tokenURI(i);
+        if (tokenURI.includes(nftCID)) {
+          tokenId = i;
+          break;
+        }
+      }
+    }
+
     return {
-      id: metadata.id,
+      id: tokenId,
       cid: nftCID,
       title: metadata.name || "Unknown NFT",
       image: metadata.image || "/nft-placeholder.png",

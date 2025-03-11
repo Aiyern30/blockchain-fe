@@ -18,3 +18,11 @@ export interface FetchedNFT {
   image: string;
   floor: string;
 }
+
+export interface CollectionMetadata {
+  name: string;
+  description?: string;
+  image?: string;
+  totalSupply?: number;
+  creator?: string;
+}
