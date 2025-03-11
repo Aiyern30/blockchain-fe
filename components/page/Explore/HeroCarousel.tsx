@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDeviceType } from "@/utils/useDeviceType";
 import { useRouter } from "next/navigation";
+import { extractCID } from "@/utils/function";
 
 interface Collection {
   name: string;
@@ -90,7 +91,11 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
             <Card
               key={index}
               className="relative w-full overflow-hidden group rounded-2xl shadow-xl cursor-pointer flex flex-col items-center p-4 transition"
-              onClick={() => router.push(`/collections/${item.id}`)}
+              onClick={() => {
+                const collectionId = extractCID(item.id);
+                console.log(collectionId);
+                router.push(`/Explore/${collectionId}`);
+              }}
             >
               <div className="relative w-full max-w-[300px] aspect-[3/4] rounded-lg overflow-hidden shadow-lg">
                 <Image
