@@ -28,12 +28,12 @@ import {
 import { FormProvider, useForm } from "react-hook-form";
 import Information from "../../../components/page/Explore/Create/Drop/Information";
 import { useAccount } from "wagmi";
-// import { useToast } from "@/hooks/use-toast";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import NFTMintingUI from "../../../components/page/Explore/Create/Drop/NFTMintingUI";
 import type { StagingStatus } from "@/type/stagingStatus";
+import { toast } from "sonner";
 type Blockchain = "ethereum" | "base" | null;
 
 type FormValues = {
@@ -51,7 +51,6 @@ type FormValues = {
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 
 export default function DropNFT() {
-  // const { toast } = useToast();
   const { data: walletClient } = useWalletClient();
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -107,7 +106,12 @@ export default function DropNFT() {
 
   const onSubmit = async (data: FormValues) => {
     if (!selectedFile || !walletClient || !walletAddress) {
-      alert("Please complete all fields and connect your wallet!");
+      toast.warning("Please complete all fields and connect your wallet!", {
+        style: {
+          backgroundColor: "#f59e0b",
+          color: "white",
+        },
+      });
       return;
     }
 
@@ -120,10 +124,8 @@ export default function DropNFT() {
 
       const maxSupply = Number(data.maxSupply);
 
-      // ✅ Upload Collection Metadata to IPFS
       setStagingStatus("uploading");
 
-      // Handle collection image (use `logoImage` if available)
       let collectionImageUrl = "";
       if (data.logoImage && typeof data.logoImage !== "string") {
         const formData = new FormData();
@@ -147,14 +149,14 @@ export default function DropNFT() {
       const collectionMetadata = {
         name: data.collectionName,
         description: data.collectionDescription,
-        image: collectionImageUrl, // ✅ Store collection image
+        image: collectionImageUrl,
         blockchain: "ethereum",
         owner: walletClient.account.address,
       };
 
       const collectionMetadataFile = new File(
         [JSON.stringify(collectionMetadata)],
-        "collection-metadata.json",
+        `${data.collectionName}-metadata.json`,
         { type: "application/json" }
       );
 
@@ -174,12 +176,10 @@ export default function DropNFT() {
       const collectionData = await collectionResponse.json();
       const collectionMetadataUrl = `https://ipfs.io/ipfs/${collectionData.IpfsHash}`;
 
-      // ✅ Upload NFT Images & Metadata to IPFS
       setStagingStatus("uploading");
       const tokenURIs: string[] = [];
 
       for (let i = 0; i < maxSupply; i++) {
-        // Upload Image to IPFS
         const formData = new FormData();
         formData.append("file", selectedFile);
 
@@ -196,18 +196,17 @@ export default function DropNFT() {
         const imageData = await imageResponse.json();
         const imageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
 
-        // Upload Metadata to IPFS
         const metadata = {
-          name: `${data.collectionName} #${i + 1}`, // Unique NFT name
-          description: `Part of ${data.collectionName} collection`,
+          name: `${data.contractName} #${i + 1}`,
+          description: `${data.contractDescription}`,
           image: imageUrl,
           attributes: [{ trait_type: "Price", value: data.price }],
-          collection: collectionMetadataUrl, // ✅ Link to collection metadata
+          collection: collectionMetadataUrl,
         };
 
         const metadataFile = new File(
           [JSON.stringify(metadata)],
-          `metadata-${i + 1}.json`,
+          `${data.contractName}-${i + 1}.json`,
           { type: "application/json" }
         );
 
@@ -230,7 +229,6 @@ export default function DropNFT() {
         tokenURIs.push(metadataUrl);
       }
 
-      // ✅ Mint Multiple NFTs in One Transaction
       setStagingStatus("minting");
       const mintTx = await nftContract.mintMultipleNFTs(
         walletClient.account.address,
@@ -240,7 +238,7 @@ export default function DropNFT() {
         }
       );
 
-      await mintTx.wait(); // Wait for transaction confirmation
+      await mintTx.wait();
 
       console.log("NFTs minted successfully!", mintTx.hash);
 
@@ -330,7 +328,7 @@ export default function DropNFT() {
                                   onChange={(e) => {
                                     const file = e.target.files?.[0] || null;
                                     handleFileInput(e);
-                                    field.onChange(file); // Set the selected file in RHF state
+                                    field.onChange(file);
                                   }}
                                 />
 
@@ -361,7 +359,53 @@ export default function DropNFT() {
                           </FormItem>
                         )}
                       />
-
+                      <div className="grid gap-6 grid-cols-1">
+                        <FormField
+                          control={control}
+                          name="collectionName"
+                          rules={{ required: "Collection name is required" }}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Collection Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="My Collection Name"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1">
+                        <FormField
+                          control={control}
+                          name="collectionDescription"
+                          rules={{
+                            required: "Collection description is required",
+                            maxLength: {
+                              value: 500,
+                              message:
+                                "Collection description must be 500 characters or less",
+                            },
+                          }}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Collection Description</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Enter Collection description (Max 500 chars)"
+                                  {...field}
+                                  maxLength={500}
+                                  className="resize-none h-32 overflow-hidden"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                       <div className="grid gap-6 sm:grid-cols-2">
                         <FormField
                           control={control}

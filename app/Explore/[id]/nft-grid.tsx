@@ -12,23 +12,18 @@ import {
   TableRow,
 } from "@/components/ui";
 import Image from "next/image";
+import { FetchedNFT } from "@/type/NFT";
 
 interface NFTGridProps {
   view: GridView;
+  nfts: FetchedNFT[];
 }
 
-const nfts = Array.from({ length: 8 }, (_, i) => ({
-  id: i,
-  name: `OCH Genesis Ring #${i + 1}`,
-  price: (Math.random() * 2).toFixed(2),
-  image:
-    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-  lastSale: (Math.random() * 1).toFixed(2),
-  owner: "0x1234...5678",
-  timeListed: "2 hours ago",
-}));
+export function NFTGrid({ view, nfts }: NFTGridProps) {
+  if (!nfts || nfts.length === 0) {
+    return <div className="text-center text-gray-500">No NFTs found.</div>;
+  }
 
-export function NFTGrid({ view }: NFTGridProps) {
   if (view === "list") {
     return (
       <div className="w-full overflow-x-auto">
@@ -50,20 +45,20 @@ export function NFTGrid({ view }: NFTGridProps) {
                   <div className="flex items-center gap-2">
                     <div className="relative w-10 h-10">
                       <Image
-                        src={nft.image}
-                        alt={nft.name}
+                        src={nft.image || "/nft-placeholder.png"}
+                        alt={nft.title || "NFT Image"}
                         className="rounded object-cover"
                         fill
                       />
                     </div>
-                    <span>{nft.name}</span>
+                    <span>{nft.title}</span>
                   </div>
                 </TableCell>
-                <TableCell>{nft.price} ETH</TableCell>
+                <TableCell>{nft.floor} ETH</TableCell>
                 <TableCell>1.33 WETH</TableCell>
-                <TableCell>{nft.lastSale} WETH</TableCell>
-                <TableCell>{nft.owner}</TableCell>
-                <TableCell>{nft.timeListed}</TableCell>
+                <TableCell>--</TableCell>
+                <TableCell>0x1234...5678</TableCell>
+                <TableCell>2 hours ago</TableCell>
               </TableRow>
             ))}
           </TableBody>

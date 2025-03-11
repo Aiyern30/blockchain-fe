@@ -1,31 +1,25 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { NFTGrid } from "./nft-grid";
-import { CollectionStats } from "./collection-stats";
+// import { CollectionStats } from "./collection-stats";
 import { ActivityTable } from "./activity-table";
 import { FilterSection } from "./filter-section";
 import { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
+import { fetchNFTsByCollectionId } from "@/utils/fetchNFTsByCollectionId";
+import { FetchedNFT } from "@/type/NFT";
 
 export default function CollectionPage() {
   const [gridView, setGridView] = useState<GridView>("medium");
-  const collection = {
-    name: "Bored Ape Yacht Club",
-    description:
-      "The Bored Ape Yacht Club is a collection of 10,000 unique Bored Ape NFTs— unique digital collectibles living on the Ethereum blockchain.",
-    bannerUrl:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    profileUrl:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-    owner: "BoredApeYachtClub",
-    items: 10000,
-    owners: 6400,
-    floorPrice: 27.95,
-    volumeTraded: 850123,
-  };
+  const [nfts, setNfts] = useState<FetchedNFT[]>([]);
+  console.log("NFTs:", nfts);
+  const params = useParams();
+  const collectionId = params.id as string;
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedView = localStorage.getItem("nft-grid-view") as GridView;
@@ -34,6 +28,17 @@ export default function CollectionPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (collectionId) {
+      console.log("Collection ID from URL:", collectionId);
+
+      fetchNFTsByCollectionId(collectionId).then((fetchedNFTs) => {
+        console.log("Fetched NFTs:", fetchedNFTs);
+        setNfts(fetchedNFTs);
+      });
+    }
+  }, [collectionId]);
 
   return (
     <main className="min-h-screen bg-background">
@@ -58,7 +63,7 @@ export default function CollectionPage() {
           </div>
         </div>
 
-        <CollectionStats collection={collection} />
+        {/* <CollectionStats collection={{ name: "Loading...", ...nfts }} /> */}
 
         <Tabs defaultValue="items" className="mt-8">
           <div className="flex items-center justify-between">
@@ -78,7 +83,7 @@ export default function CollectionPage() {
             <div className="col-span-12 lg:col-span-9">
               <TabsContent value="items" className="mt-0">
                 <Suspense fallback={<div>Loading...</div>}>
-                  <NFTGrid view={gridView} />
+                  <NFTGrid view={gridView} nfts={nfts} />
                 </Suspense>
               </TabsContent>
               <TabsContent value="activity" className="mt-0">
