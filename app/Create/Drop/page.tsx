@@ -156,7 +156,7 @@ export default function DropNFT() {
 
       const collectionMetadataFile = new File(
         [JSON.stringify(collectionMetadata)],
-        "collection-metadata.json",
+        `${data.collectionName}-metadata.json`,
         { type: "application/json" }
       );
 

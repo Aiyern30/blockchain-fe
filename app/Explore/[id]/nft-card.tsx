@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button, Card, CardContent, CardFooter } from "@/components/ui";
 import { ShoppingCart } from "lucide-react";
 import { FetchedNFT } from "@/type/NFT";
+import { useRouter } from "next/navigation";
 
 interface NFTCardProps {
   nft: FetchedNFT;
@@ -12,13 +13,14 @@ interface NFTCardProps {
 
 export function NFTCard({ nft, imageSize }: NFTCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-
+  const router = useRouter();
   return (
     <Card
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="relative overflow-hidden"
       style={{ cursor: "pointer" }}
+      onClick={() => router.push(`/Explore/${nft.id}/Details`)}
     >
       <CardContent className="p-0">
         <Image
