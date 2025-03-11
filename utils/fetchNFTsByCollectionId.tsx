@@ -42,7 +42,7 @@ export async function fetchNFTsByCollectionId(collectionId: string) {
         if (metadataCollectionId !== normalizedCollectionId) return null;
 
         return {
-          id: tokenId,
+          id: tokenURI.replace("https://ipfs.io/ipfs/", ""),
           title: metadata.name || `NFT #${tokenId}`,
           image: metadata.image || "",
           floor:

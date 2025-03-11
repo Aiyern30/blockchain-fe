@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Button,
   Card,
@@ -24,6 +26,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { StatsChart } from "./stats-chart";
 import { MetricsCard } from "./MetricsCard";
+import { useParams } from "next/navigation";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const activities = Array.from({ length: 5 }).map((_, i) => ({
@@ -32,8 +35,11 @@ const activities = Array.from({ length: 5 }).map((_, i) => ({
   from: "0x1234...5678",
   date: "2 days ago",
 }));
-
 export default function NFTDetails() {
+  const params = useParams();
+  const collectionId = params.id as string;
+  console.log("collectionId", collectionId);
+
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto px-4 py-8">

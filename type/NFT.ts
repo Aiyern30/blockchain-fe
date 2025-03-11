@@ -12,8 +12,9 @@ export interface NFTMetadata {
 }
 
 export interface FetchedNFT {
-  title?: string;
-  image?: string;
-  floor?: string;
   id?: number;
+  cid?: string;
+  title: string;
+  image: string;
+  floor: string;
 }
