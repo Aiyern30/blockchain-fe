@@ -6,7 +6,16 @@ import { Upload } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Textarea, Button, Input, Label } from "@/components/ui";
+import {
+  Textarea,
+  Button,
+  Input,
+  Label,
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui";
+import DeployContractForm from "@/components/DeployContractForm";
 
 export default function CreateNFT() {
   const [dragActive, setDragActive] = useState(false);
@@ -48,6 +57,20 @@ export default function CreateNFT() {
       setUploading(false);
     };
     reader.readAsDataURL(file);
+  };
+  type FormValues = {
+    collectionName: string;
+    contractName: string;
+    collectionDescription: string;
+    tokenSymbol: string;
+    contractDescription: string;
+    logoImage: File | string | null;
+    maxSupply: number;
+    price: number;
+    status: "PUBLIC" | "PRIVATE";
+  };
+  const onSubmit = (values: FormValues) => {
+    console.log(values);
   };
 
   return (
@@ -113,13 +136,21 @@ export default function CreateNFT() {
                 Collection
                 <span className="text-red-500 ml-1">*</span>
               </Label>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left bg-zinc-900 border-zinc-800"
-              >
-                <span className="mr-2">+</span>
-                Create a new collection
-              </Button>
+              <Dialog>
+                <DialogTrigger className="w-full justify-start text-left bg-zinc-900 border-zinc-800 rounded-xl">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left bg-zinc-900 border-zinc-800"
+                  >
+                    <span className="mr-2">+</span>
+                    Create a new collection
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                  <DeployContractForm onSubmit={onSubmit} />
+                </DialogContent>
+              </Dialog>
+
               <p className="text-sm text-zinc-400">
                 Not all collections are eligible.{" "}
                 <Link href="#" className="text-blue-400 hover:text-blue-300">
