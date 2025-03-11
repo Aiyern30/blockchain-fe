@@ -11,14 +11,7 @@ import Image from "next/image";
 import { useDeviceType } from "@/utils/useDeviceType";
 import { useRouter } from "next/navigation";
 import { extractCID } from "@/utils/function";
-
-interface Collection {
-  name: string;
-  description?: string;
-  floorPrice: string;
-  image: string;
-  id: string;
-}
+import { Collection } from "@/type/NFT";
 
 interface HeroCarouselProps {
   categories: string[];
