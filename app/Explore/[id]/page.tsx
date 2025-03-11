@@ -83,8 +83,7 @@ export default function CollectionPage() {
             <div className="col-span-12 lg:col-span-9">
               <TabsContent value="items" className="mt-0">
                 <Suspense fallback={<div>Loading...</div>}>
-                  {/* <NFTGrid view={gridView} nfts={nfts} /> */}
-                  <NFTGrid view={gridView} />
+                  <NFTGrid view={gridView} nfts={nfts} />
                 </Suspense>
               </TabsContent>
               <TabsContent value="activity" className="mt-0">
