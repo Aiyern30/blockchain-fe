@@ -30,6 +30,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchNFTByCID } from "@/utils/fetchNFTByCID";
 import { FetchedNFT } from "@/type/NFT";
+import { convertEthToUsd } from "@/utils/converter";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const activities = Array.from({ length: 5 }).map((_, i) => ({
@@ -42,8 +43,8 @@ export default function NFTDetails() {
   const params = useParams();
   const collectionId = params.id as string;
   const [nft, setNft] = useState<FetchedNFT | null>(null);
-  console.log("NFT:", nft);
-
+  const [usdPrice, setUsdPrice] = useState<number | null>(null);
+  console.log("usdPrice", usdPrice);
   useEffect(() => {
     if (!collectionId) return;
 
@@ -54,6 +55,14 @@ export default function NFTDetails() {
         const nftData = await fetchNFTByCID(collectionId);
         console.log("Fetched NFT Data:", nftData);
         setNft(nftData);
+
+        if (nftData?.floor) {
+          const ethAmount = parseFloat(nftData.floor);
+          if (!isNaN(ethAmount)) {
+            const convertedPrice = await convertEthToUsd(ethAmount);
+            setUsdPrice(convertedPrice);
+          }
+        }
       } catch (error) {
         console.error("Error fetching NFT details:", error);
       }
@@ -149,7 +158,7 @@ export default function NFTDetails() {
             </div>
 
             <div>
-              <h1 className="text-3xl font-bold">NFT Name #1234</h1>
+              <h1 className="text-3xl font-bold">{nft?.title}</h1>
               <p className="text-sm text-muted-foreground">
                 Owned by{" "}
                 <Link href="#" className="text-primary hover:underline">
@@ -166,8 +175,14 @@ export default function NFTDetails() {
                       Current Price
                     </p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-bold">12.34 ETH</span>
-                      <span className="text-muted-foreground">($23,456)</span>
+                      <span className="text-3xl font-bold">
+                        {nft?.floor}ETH
+                      </span>
+                      <span className="text-muted-foreground">
+                        {usdPrice !== null
+                          ? `$${usdPrice.toFixed(2)}`
+                          : "Loading..."}
+                      </span>
                     </div>
                   </div>
                   <div
