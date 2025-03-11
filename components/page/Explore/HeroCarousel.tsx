@@ -9,13 +9,20 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDeviceType } from "@/utils/useDeviceType";
-import { getIpfsUrl } from "@/utils/function";
-import { NFTMetadata } from "@/type/NFT";
 import { useRouter } from "next/navigation";
+import { extractCID } from "@/utils/function";
+
+interface Collection {
+  name: string;
+  description?: string;
+  floorPrice: string;
+  image: string;
+  id: string;
+}
 
 interface HeroCarouselProps {
   categories: string[];
-  items: NFTMetadata[];
+  items: Collection[];
 }
 
 const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
@@ -67,7 +74,6 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
       </Tabs>
 
       <div className="relative flex items-center justify-between">
-        {/* Left Button */}
         <button
           onClick={previousPage}
           className="h-full w-12 flex items-center justify-center text-white"
@@ -75,7 +81,6 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        {/* NFT Cards */}
         <div
           className="grid gap-6 w-full"
           style={{
@@ -85,37 +90,39 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
           {currentItems.map((item, index) => (
             <Card
               key={index}
-              className="relative w-full overflow-hidden group rounded-lg shadow-lg cursor-pointer"
-              onClick={() => router.push(`/Explore/${item.id}`)}
+              className="relative w-full overflow-hidden group rounded-2xl shadow-xl cursor-pointer flex flex-col items-center p-4 transition"
+              onClick={() => {
+                const collectionId = extractCID(item.id);
+                console.log(collectionId);
+                router.push(`/Explore/${collectionId}`);
+              }}
             >
-              <div className="relative w-full max-w-[300px] aspect-[3/4] mx-auto">
+              <div className="relative w-full max-w-[300px] aspect-[3/4] rounded-lg overflow-hidden shadow-lg">
                 <Image
-                  src={getIpfsUrl(item.image)}
-                  alt={item.name || "NFT Image"}
-                  fill
-                  className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                  src={item.image}
+                  alt={item.name || "Collection Image"}
+                  width={300}
+                  height={400}
+                  className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105"
                   unoptimized
                 />
               </div>
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
-              {/* NFT Details */}
-              <CardContent className="absolute bottom-0 left-0 w-full p-4">
-                <h3 className="text-white font-medium truncate">
+              <CardContent className="w-full text-center mt-4">
+                <h3 className="font-semibold text-lg truncate">
                   {item.name || "Unknown"}
                 </h3>
-                <p className="text-white/60 text-sm">
-                  Floor:{" "}
-                  {item.attributes?.find((attr) => attr.trait_type === "Floor")
-                    ?.value || "N/A"}
+                <p className="text-gray-400 text-sm mt-1">
+                  Floor Price:{" "}
+                  <span className="font-medium">
+                    {item.floorPrice || "N/A"}
+                  </span>
                 </p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Right Button */}
         <button
           onClick={nextPage}
           className="h-full w-12 flex items-center justify-center text-white"

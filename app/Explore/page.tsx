@@ -17,66 +17,57 @@ import { CarouselSkeleton } from "@/components/page/Explore/CarouselSkeleton";
 import { TableSkeleton } from "@/components/page/Explore/TableSkeleton";
 import DrawingCarousel from "./DrawingCarousel";
 import HeroCarousel from "@/components/page/Explore/HeroCarousel";
-import CryptoTable from "@/components/page/Explore/CryptoTable";
-import { fetchNFTs } from "@/utils/fetchNFTs";
-import { FetchedNFT, NFTMetadata } from "@/type/NFT";
-
-const categories = [
-  "All",
-  "Art",
-  "Gaming",
-  "Memberships",
-  "PFPs",
-  "Photography",
-  "Music",
-];
+// import CryptoTable from "@/components/page/Explore/CryptoTable";
+// import { fetchNFTs } from "@/utils/fetchNFTs";
+// import { FetchedNFT, NFTMetadata } from "@/type/NFT";
+import { fetchCollectionsWithNFTs } from "@/utils/fetchNFTsByCollection";
 
 const timeFrames = ["1h", "6h", "24h", "7d"];
 
-const collections = [
-  {
-    rank: 1,
-    name: "Courtyard.io",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
-    verified: true,
-    floorPrice: "< 0.01",
-    volume: "400",
-  },
-  {
-    rank: 2,
-    name: "Gemesis",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tO1dmfKUgg1zYW5TQWC5KzvN36RPil.png",
-    verified: true,
-    floorPrice: "0.05",
-    volume: "63",
-  },
-];
-
 export default function NFTCarousel() {
   const { isMobile } = useDeviceType();
+  const [collections, setCollections] = useState<
+    {
+      name: string;
+      description: string;
+      floorPrice: string;
+      image: string;
+      id: string;
+    }[]
+  >([]);
+
   const shouldSplit = collections.length > 5;
 
-  const [nftItems, setNftItems] = useState<NFTMetadata[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadNFTs() {
+    async function loadCollections() {
       setLoading(true);
-      const fetchedNFTs: FetchedNFT[] = await fetchNFTs();
-      const formattedNFTs = fetchedNFTs.map((nft) => ({
-        name: nft.title,
-        image: nft.image,
-        attributes: [{ trait_type: "Floor", value: nft.floor || "N/A" }],
-        id: nft.id,
+
+      const fetchedCollections = await fetchCollectionsWithNFTs();
+      console.log("Fetched Collections:", fetchedCollections);
+
+      // Format collections for HeroCarousel
+      const formattedCollections = fetchedCollections.map((collection) => ({
+        name: collection.name,
+        description: collection.description || "",
+        floorPrice: collection.nfts
+          ? collection.nfts
+              .reduce(
+                (sum, nft) => sum + (parseFloat(nft.floor || "0") || 0),
+                0
+              )
+              .toFixed(2)
+          : "0.00",
+        image: collection.image || "",
+        id: collection.collectionUrl || "",
       }));
 
-      setNftItems(formattedNFTs);
+      setCollections(formattedCollections);
       setLoading(false);
     }
 
-    loadNFTs();
+    loadCollections();
   }, []);
 
   return (
@@ -84,7 +75,10 @@ export default function NFTCarousel() {
       {loading ? (
         <CarouselSkeleton />
       ) : (
-        <HeroCarousel categories={categories} items={nftItems} />
+        <HeroCarousel
+          categories={collections.map((col) => col.name)}
+          items={collections}
+        />
       )}
 
       <div
@@ -130,7 +124,7 @@ export default function NFTCarousel() {
       </div>
 
       <TableSkeleton isMobile={isMobile} shouldSplit={shouldSplit} />
-      <CryptoTable collections={collections} shouldSplit={shouldSplit} />
+      {/* <CryptoTable collections={collections} shouldSplit={shouldSplit} /> */}
       <DrawingCarousel />
     </>
   );
