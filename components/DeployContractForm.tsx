@@ -115,11 +115,11 @@ export default function DeployContractForm({
                           "hover:bg-muted/50 transition-colors"
                         )}
                         onClick={() =>
-                          document.getElementById("file-input")?.click()
+                          document.getElementById("dialog-file-input")?.click()
                         }
                       >
                         <input
-                          id="file-input"
+                          id="dialog-file-input"
                           type="file"
                           className="hidden"
                           accept="image/*"
