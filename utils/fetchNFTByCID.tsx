@@ -19,15 +19,16 @@ export async function fetchNFTByCID(
     const metadata: NFTMetadata = await response.json();
 
     let tokenId = metadata.id;
+    let owner = "Unknown Owner";
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const nftContract = getERC721Contract(signer);
 
     if (!tokenId) {
       console.log("Token ID not found in metadata, fetching from contract...");
-
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const nftContract = getERC721Contract(signer);
-
       const totalSupply = await nftContract.totalSupply();
+
       for (let i = 1; i <= totalSupply; i++) {
         const tokenURI = await nftContract.tokenURI(i);
         if (tokenURI.includes(nftCID)) {
@@ -35,6 +36,10 @@ export async function fetchNFTByCID(
           break;
         }
       }
+    }
+
+    if (tokenId) {
+      owner = await nftContract.ownerOf(tokenId);
     }
 
     return {
@@ -46,6 +51,7 @@ export async function fetchNFTByCID(
         metadata.attributes?.find(
           (attr: NFTAttribute) => attr.trait_type === "Price"
         )?.value || "N/A",
+      owner,
     };
   } catch (error) {
     console.error(`Error fetching NFT details for CID: ${nftCID}`, error);

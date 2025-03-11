@@ -17,6 +17,7 @@ export interface FetchedNFT {
   title: string;
   image: string;
   floor: string;
+  owner?: string;
 }
 
 export interface CollectionMetadata {
