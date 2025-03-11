@@ -22,6 +22,7 @@ import {
 import Image from "next/image";
 import { Upload, Ban, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type FormValues = {
   collectionName: string;
@@ -36,7 +37,7 @@ type FormValues = {
 };
 type Blockchain = "ethereum" | "base" | null;
 interface DeployContractFormProps {
-  onSubmit: (data: FormValues) => void; // Explicit type for onSubmit
+  onSubmit: (data: FormValues) => void;
 }
 export default function DeployContractForm({
   onSubmit,
@@ -53,10 +54,11 @@ export default function DeployContractForm({
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
         setValue("logoImage", null);
+        toast.error("File size exceeds 50MB!");
         return;
       }
 
-      setValue("logoImage", file);
+      setValue("logoImage", file, { shouldValidate: true });
       setImageUrl(URL.createObjectURL(file));
     }
   };
@@ -76,8 +78,9 @@ export default function DeployContractForm({
     },
   });
 
-  const { handleSubmit, control, setValue, formState } = formMethods;
-  const { errors } = formState;
+  const { handleSubmit, control, setValue, watch, formState } = formMethods;
+  const { errors, isValid } = formState;
+  const selectedFile = watch("logoImage");
 
   return (
     <Card className="space-y-8 bg-background">
@@ -96,11 +99,7 @@ export default function DeployContractForm({
                 control={control}
                 name="logoImage"
                 rules={{
-                  required: "Logo image is required",
-                  validate: (file) =>
-                    file instanceof File && file.size <= MAX_FILE_SIZE
-                      ? true
-                      : "File size exceeds 10MB",
+                  required: "A logo image is required!",
                 }}
                 render={({ field }) => (
                   <FormItem>
@@ -109,7 +108,6 @@ export default function DeployContractForm({
                     >
                       Logo Image
                     </FormLabel>
-
                     <FormControl>
                       <div
                         className={cn(
@@ -126,12 +124,10 @@ export default function DeployContractForm({
                           className="hidden"
                           accept="image/*"
                           onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
                             handleFileInput(e);
-                            field.onChange(file);
+                            field.onChange(e.target.files?.[0] || null);
                           }}
                         />
-
                         {imageUrl ? (
                           <Image
                             src={imageUrl || "/placeholder.svg"}
@@ -154,11 +150,11 @@ export default function DeployContractForm({
                         )}
                       </div>
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <div className="grid gap-6 grid-cols-1">
                 <FormField
                   control={control}
@@ -402,11 +398,13 @@ export default function DeployContractForm({
               type="submit"
               className={cn(
                 "mt-2 flex items-center gap-2",
-                !formState.isValid && "cursor-not-allowed opacity-50"
+                (!isValid || !selectedFile) && "cursor-not-allowed opacity-50"
               )}
-              disabled={!formState.isValid}
+              disabled={!isValid || !selectedFile}
             >
-              {!formState.isValid && <Ban className="w-4 h-4 text-red-500" />}
+              {(!isValid || !selectedFile) && (
+                <Ban className="w-4 h-4 text-red-500" />
+              )}
               Deploy Contract
             </Button>
           </form>

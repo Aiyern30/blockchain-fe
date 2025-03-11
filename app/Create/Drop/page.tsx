@@ -59,11 +59,10 @@ export default function DropNFT() {
     },
   });
 
-  const { watch, reset } = formMethods;
-  const selectedFile = watch("logoImage");
+  const { reset } = formMethods;
 
   const onSubmit = async (data: FormValues) => {
-    if (!selectedFile || !walletClient || !walletAddress) {
+    if (!walletClient || !walletAddress) {
       toast.warning("Please complete all fields and connect your wallet!", {
         style: {
           backgroundColor: "#f59e0b",
@@ -139,7 +138,7 @@ export default function DropNFT() {
 
       for (let i = 0; i < maxSupply; i++) {
         const formData = new FormData();
-        formData.append("file", selectedFile);
+        formData.append("file", data.logoImage as File);
 
         const imageResponse = await fetch(
           "https://api.pinata.cloud/pinning/pinFileToIPFS",
