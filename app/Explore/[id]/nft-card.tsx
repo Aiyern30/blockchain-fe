@@ -26,7 +26,8 @@ export function NFTCard({ nft, imageSize }: NFTCardProps) {
           src={nft.image || "/nft-placeholder.png"}
           width={imageSize}
           height={imageSize}
-          className="aspect-square w-full object-cover"
+          className="aspect-square w-full object-contain"
+          unoptimized
         />
       </CardContent>
       <CardFooter className="p-4">
