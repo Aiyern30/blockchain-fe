@@ -41,16 +41,15 @@ export default function Navbar() {
         >
           <User className="w-6 h-6" />
         </Button>
+        <WishlistSheet />
         <Cart />
         <ThemeToggle />
-        <WishlistSheet />
       </div>
 
-      {/* Mobile Icons + Menu Button */}
       <div className="flex items-center space-x-3 md:hidden">
+        <WishlistSheet />
         <Cart />
         <ThemeToggle />
-        <WishlistSheet />
 
         <Button
           variant="ghost"

@@ -216,7 +216,7 @@ export default function WishlistSheet() {
         </div>
 
         {wishlistItems.length > 0 && (
-          <div className="border-t pt-4 px-6">
+          <div className="border-t py-4 px-6">
             <Link href="/Wishlist">
               <Button className="w-full mt-4" onClick={() => setIsOpen(false)}>
                 View Wishlist
