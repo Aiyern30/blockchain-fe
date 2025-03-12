@@ -25,11 +25,13 @@ export default function Navbar() {
         <span className="text-white font-medium text-xl">GamerTokenHub</span>
       </Link>
 
+      {/* Centered Navigation Links (Hidden on Mobile) */}
       <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
         <NavLink href="/Explore">Explore</NavLink>
         <NavLink href="/Create">Create</NavLink>
       </div>
 
+      {/* Desktop Icons */}
       <div className="hidden md:flex items-center space-x-4 ml-auto">
         <WalletConnectDropdown />
         <Button
@@ -44,14 +46,25 @@ export default function Navbar() {
         <WishlistSheet />
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="md:hidden text-white"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-      >
-        {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </Button>
+      {/* Mobile Icons + Menu Button */}
+      <div className="flex items-center space-x-3 md:hidden">
+        <Cart />
+        <ThemeToggle />
+        <WishlistSheet />
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </Button>
+      </div>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -67,19 +80,6 @@ export default function Navbar() {
           >
             <NavLink href="/Explore">Explore</NavLink>
             <NavLink href="/Create">Create</NavLink>
-
-            <div className="flex flex-row justify-center space-x-2 w-full">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => router.push("/Profile")}
-              >
-                <User className="w-6 h-6" />
-              </Button>
-              <Cart />
-              <ThemeToggle />
-              <WishlistSheet />
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
