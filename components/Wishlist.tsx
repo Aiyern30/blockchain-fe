@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Heart, Trash2, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
 import {
   Button,
   Sheet,
@@ -113,6 +114,12 @@ export default function WishlistSheet() {
 
   const removeItem = (id: number) => {
     setWishlistItems((items) => items.filter((item) => item.id !== id));
+
+    toast.success("Item removed from wishlist!", {
+      description: "You can explore more products to add back.",
+      duration: 3000,
+      style: { background: "#16a34a", color: "#fff" },
+    });
   };
 
   const addToCart = (item: WishlistItem) => {
@@ -131,6 +138,12 @@ export default function WishlistSheet() {
     }
 
     removeItem(item.id);
+
+    toast.success(`${item.name} added to cart!`, {
+      description: "Check your cart to proceed with checkout.",
+      duration: 3000,
+      style: { background: "#16a34a", color: "#fff" },
+    });
   };
 
   return (
