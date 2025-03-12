@@ -8,6 +8,7 @@ import { Cart } from "./Cart";
 import WalletConnectDropdown from "./wallet-dropdown/WalletConnectDropdown";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
+import WishlistSheet from "./Wishlist";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function Navbar() {
         </Button>
         <Cart />
         <ThemeToggle />
+        <WishlistSheet />
       </div>
 
       <Button
@@ -76,6 +78,7 @@ export default function Navbar() {
               </Button>
               <Cart />
               <ThemeToggle />
+              <WishlistSheet />
             </div>
           </motion.div>
         )}
