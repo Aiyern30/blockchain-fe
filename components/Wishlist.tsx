@@ -146,86 +146,104 @@ export default function WishlistSheet() {
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto mt-4 space-y-4">
-          {wishlistItems.map((item, index) => (
-            <div
-              key={item.id}
-              className={`flex items-center gap-4 ${
-                index !== wishlistItems.length - 1 ? "border-b pb-3" : ""
-              }`}
-            >
+          {wishlistItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center h-full">
               <Image
-                src={item.image}
-                alt={item.name}
-                width={50}
-                height={50}
-                className="rounded"
+                src="/shopping-cart.svg"
+                alt="Empty Wishlist"
+                width={300}
+                height={300}
+                className="mb-4"
               />
-              <div className="flex-1">
-                <p className="text-sm font-medium">{item.name}</p>
-                <p className="text-sm text-gray-500">${item.price}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 text-xs"
-                  onClick={() => addToCart(item)}
-                >
-                  <ShoppingBag className="h-3 w-3 mr-1" />
-                  Add to Cart
+              <p className="text-gray-500 text-xl">Your wishlist is empty.</p>
+              <Link href="/Product">
+                <Button className="mt-4" onClick={() => setIsOpen(false)}>
+                  Explore Products
                 </Button>
-              </div>
-
-              {/* Delete Button with AlertDialog */}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button
-                    onClick={() => setSelectedItem(item)}
-                    className="text-red-500 hover:text-red-600 cursor-pointer"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                </AlertDialogTrigger>
-                {selectedItem && (
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Remove Item</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to remove{" "}
-                        <span className="font-semibold">
-                          {selectedItem.name}
-                        </span>{" "}
-                        from your wishlist?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="flex items-center gap-4">
-                      <Image
-                        src={selectedItem.image}
-                        alt={selectedItem.name}
-                        width={60}
-                        height={60}
-                        className="rounded"
-                      />
-                      <div>
-                        <p className="text-sm font-medium">
-                          {selectedItem.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          ${selectedItem.price}
-                        </p>
-                      </div>
-                    </div>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => removeItem(selectedItem.id)}
-                      >
-                        Confirm
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                )}
-              </AlertDialog>
+              </Link>
             </div>
-          ))}
+          ) : (
+            wishlistItems.map((item, index) => (
+              <div
+                key={item.id}
+                className={`flex items-center gap-4 ${
+                  index !== wishlistItems.length - 1 ? "border-b pb-3" : ""
+                }`}
+              >
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  width={50}
+                  height={50}
+                  className="rounded"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{item.name}</p>
+                  <p className="text-sm text-gray-500">${item.price}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 text-xs"
+                    onClick={() => addToCart(item)}
+                  >
+                    <ShoppingBag className="h-3 w-3 mr-1" />
+                    Add to Cart
+                  </Button>
+                </div>
+
+                {/* Delete Button with AlertDialog */}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      onClick={() => setSelectedItem(item)}
+                      className="text-red-500 hover:text-red-600 cursor-pointer"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </AlertDialogTrigger>
+                  {selectedItem && (
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove Item</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to remove{" "}
+                          <span className="font-semibold">
+                            {selectedItem.name}
+                          </span>{" "}
+                          from your wishlist?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <div className="flex items-center gap-4">
+                        <Image
+                          src={selectedItem.image}
+                          alt={selectedItem.name}
+                          width={60}
+                          height={60}
+                          className="rounded"
+                        />
+                        <div>
+                          <p className="text-sm font-medium">
+                            {selectedItem.name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            ${selectedItem.price}
+                          </p>
+                        </div>
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => removeItem(selectedItem.id)}
+                        >
+                          Confirm
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  )}
+                </AlertDialog>
+              </div>
+            ))
+          )}
         </div>
 
         {wishlistItems.length > 0 && (
