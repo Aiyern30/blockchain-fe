@@ -7,8 +7,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Textarea,
   Button,
+  Textarea,
   Input,
   Label,
   Dialog,
@@ -25,10 +25,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui";
-import DeployCollectionForm from "@/components/DeployCollectionForm";
 import { FormProvider, useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import DeployCollectionForm from "@/components/DeployCollectionForm";
 
 export default function CreateNFT() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -48,6 +48,15 @@ export default function CreateNFT() {
       setImageUrl(URL.createObjectURL(file));
     }
   };
+  type ContractFormValues = {
+    contractName: string;
+    supply: number;
+    tokenSymbol: string;
+    contractDescription: string;
+    logoImage: File | string | null;
+    status: "PUBLIC" | "PRIVATE";
+  };
+
   type FormValues = {
     contractName: string;
     tokenSymbol: string;
@@ -56,10 +65,11 @@ export default function CreateNFT() {
     status: "PUBLIC" | "PRIVATE";
   };
 
-  const formMethods = useForm<FormValues>({
+  const formMethods = useForm<ContractFormValues>({
     mode: "onChange",
     defaultValues: {
       contractName: "",
+      supply: 0,
       tokenSymbol: "",
       contractDescription: "",
       logoImage: null,
@@ -71,13 +81,13 @@ export default function CreateNFT() {
   const { errors, isValid } = formState;
   const selectedFile = watch("logoImage");
 
-  const handleCollectionSubmit = (
-    collectionData: FormValues & { txHash: string }
+  const handleContractSubmit = (
+    ContractData: FormValues & { txHash: string }
   ) => {
-    console.log("Deployed Collection:", collectionData);
+    console.log("Deployed Contract:", ContractData);
   };
   const onSubmit = () => {
-    console.log("Deployed Collection:");
+    console.log("Deployed Contract:");
   };
 
   return (
@@ -157,7 +167,7 @@ export default function CreateNFT() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label className="flex items-center">
-                    Collection
+                    Contract
                     <span className="text-red-500 ml-1">*</span>
                   </Label>
                   <Dialog>
@@ -167,16 +177,16 @@ export default function CreateNFT() {
                         className="w-full justify-start text-left bg-zinc-900 border-zinc-800"
                       >
                         <span className="mr-2">+</span>
-                        Create a new collection
+                        Create a new Contract
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-h-[90vh] overflow-y-auto">
-                      <DeployCollectionForm onSubmit={handleCollectionSubmit} />{" "}
+                      <DeployCollectionForm onSubmit={handleContractSubmit} />
                     </DialogContent>
                   </Dialog>
 
                   <p className="text-sm text-zinc-400">
-                    Not all collections are eligible.{" "}
+                    Not all Contracts are eligible.{" "}
                     <Link
                       href="#"
                       className="text-blue-400 hover:text-blue-300"
@@ -185,63 +195,65 @@ export default function CreateNFT() {
                     </Link>
                   </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center">
-                    Name
-                    <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    placeholder="Name your NFT"
-                    className="bg-zinc-900 border-zinc-800"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center">
-                    Supply
-                    <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    type="number"
-                    defaultValue="1"
-                    min="1"
-                    className="bg-zinc-900 border-zinc-800"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea
-                    placeholder="Enter a description"
-                    className="bg-zinc-900 border-zinc-800 min-h-[100px]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>External link</Label>
-                  <Input
-                    placeholder="https://collection.io/item/123"
-                    className="bg-zinc-900 border-zinc-800"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Traits</Label>
-                  <p className="text-sm text-zinc-400">
-                    Traits describe attributes of your item. They appear as
-                    filters inside your collection page and are also listed out
-                    inside your item page.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left bg-zinc-900 border-zinc-800"
-                  >
-                    <span className="mr-2">+</span>
-                    Add trait
-                  </Button>
-                </div>
               </div>
+              <div className="grid gap-6 grid-cols-1">
+                <FormField
+                  control={control}
+                  name="contractName"
+                  rules={{ required: "Contract name is required" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contract Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="My Contract Name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-1">
+                <FormField
+                  control={control}
+                  name="contractDescription"
+                  rules={{
+                    required: "Contract description is required",
+                    maxLength: {
+                      value: 500,
+                      message:
+                        "Contract description must be 500 characters or less",
+                    },
+                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contract Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter Contract description (Max 500 chars)"
+                          {...field}
+                          maxLength={500}
+                          className="resize-none h-32 overflow-hidden"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={control}
+                name="supply"
+                rules={{ required: "Supply is required" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Supply</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="Supply" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <Button
                 variant="default"
                 type="submit"
