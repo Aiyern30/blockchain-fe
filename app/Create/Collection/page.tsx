@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { Upload, Ban, Trash, Plus } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -37,7 +37,6 @@ export default function CreateNFT() {
   type ContractFormValues = {
     contractName: string;
     supply: number;
-    tokenSymbol: string;
     contractDescription: string;
     logoImage: File | string | null;
     status: "PUBLIC" | "PRIVATE";
@@ -58,7 +57,6 @@ export default function CreateNFT() {
     defaultValues: {
       contractName: "",
       supply: 0,
-      tokenSymbol: "",
       contractDescription: "",
       logoImage: null,
       status: "PUBLIC",
@@ -71,21 +69,23 @@ export default function CreateNFT() {
     formMethods;
   const { errors, isValid } = formState;
   const selectedFile = watch("logoImage");
-  // Use useMemo to prevent the watched traits from causing infinite re-renders
-  const watchedTraits = useMemo(() => watch("traits") || [], [watch]);
 
+  // Use a local state to track traits to avoid re-render issues
+  const [traits, setTraits] = useState<{ type: string; name: string }[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isTraitDialogOpen, setTraitDialogOpen] = useState(false);
   const [traitType, setTraitType] = useState("");
   const [traitName, setTraitName] = useState("");
 
+  // Update form value when traits change
+  useEffect(() => {
+    setValue("traits", traits, { shouldValidate: true });
+  }, [traits, setValue]);
+
   const addTrait = () => {
     if (traitType && traitName) {
-      const newTraits = [
-        ...watchedTraits,
-        { type: traitType, name: traitName },
-      ];
-      setValue("traits", newTraits, { shouldValidate: true });
+      const newTraits = [...traits, { type: traitType, name: traitName }];
+      setTraits(newTraits);
       setTraitType("");
       setTraitName("");
       setTraitDialogOpen(false);
@@ -93,8 +93,8 @@ export default function CreateNFT() {
   };
 
   const removeTrait = (index: number) => {
-    const newTraits = watchedTraits.filter((_, i) => i !== index);
-    setValue("traits", newTraits, { shouldValidate: true });
+    const newTraits = traits.filter((_, i) => i !== index);
+    setTraits(newTraits);
   };
 
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -114,9 +114,6 @@ export default function CreateNFT() {
     }
   };
 
-  // Remove the useEffect that was causing the infinite loop
-  // We don't need to sync traits since we're using watch directly
-
   const handleContractSubmit = (
     ContractData: FormValues & { txHash: string }
   ) => {
@@ -126,7 +123,7 @@ export default function CreateNFT() {
   const onSubmit = (data: ContractFormValues) => {
     // Validate traits
     if (!data.traits || data.traits.length === 0) {
-      // Set error for traits using setError instead of setValue with shouldError
+      // Set error for traits using setError
       setError("traits", {
         type: "manual",
         message: "At least one trait is required",
@@ -379,29 +376,41 @@ export default function CreateNFT() {
                           </FormLabel>
                         </div>
                         <FormControl>
-                          <>
+                          <div className="space-y-2">
                             <p className="text-sm text-zinc-400">
                               Traits describe attributes of your item. They
                               appear as filters inside your collection page and
                               are also listed out inside your item page.
                             </p>
-                            {watchedTraits.map((trait, index) => (
-                              <div
-                                key={index}
-                                className="flex justify-between items-center border p-2 rounded-lg mt-2"
-                              >
-                                <span>
-                                  {trait.type}: {trait.name}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removeTrait(index)}
-                                >
-                                  <Trash className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </div>
-                            ))}
+
+                            {/* Display traits */}
+                            <div className="space-y-2 mt-2">
+                              {traits.length > 0 ? (
+                                traits.map((trait, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex justify-between items-center border border-zinc-700 p-2 rounded-lg"
+                                  >
+                                    <div className="flex items-center justify-center gap-5">
+                                      <div>{trait.type}</div>:
+                                      <div>{trait.name}</div>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => removeTrait(index)}
+                                    >
+                                      <Trash className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-sm text-zinc-500 italic">
+                                  No traits added yet
+                                </div>
+                              )}
+                            </div>
+
                             <Dialog
                               open={isTraitDialogOpen}
                               onOpenChange={setTraitDialogOpen}
@@ -441,7 +450,7 @@ export default function CreateNFT() {
                                 </Button>
                               </DialogContent>
                             </Dialog>
-                          </>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
