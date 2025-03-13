@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { Upload, Ban } from "lucide-react";
+import { Upload, Ban, Trash, Plus } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,6 +24,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui";
 import { FormProvider, useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
@@ -32,6 +35,18 @@ import DeployCollectionForm from "@/components/DeployCollectionForm";
 
 export default function CreateNFT() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [traits, setTraits] = useState<{ type: string; name: string }[]>([]);
+  const [isTraitDialogOpen, setTraitDialogOpen] = useState(false);
+  const [traitType, setTraitType] = useState("");
+  const [traitName, setTraitName] = useState("");
+  const addTrait = () => {
+    if (traitType && traitName) {
+      setTraits([...traits, { type: traitType, name: traitName }]);
+      setTraitType("");
+      setTraitName("");
+      setTraitDialogOpen(false);
+    }
+  };
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,6 +269,64 @@ export default function CreateNFT() {
                   </FormItem>
                 )}
               />
+              <div className="space-y-4">
+                <Label>Traits</Label>
+                {traits.map((trait, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center border p-2 rounded-lg"
+                  >
+                    <span>
+                      {trait.type}: {trait.name}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() =>
+                        setTraits(traits.filter((_, i) => i !== index))
+                      }
+                    >
+                      <Trash className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                ))}
+                <Dialog
+                  open={isTraitDialogOpen}
+                  onOpenChange={setTraitDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Plus className="mr-2" /> Add Trait
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Trait</DialogTitle>
+                      <DialogDescription>
+                        Specify the type and name of the trait.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Input
+                      placeholder="Trait Type (e.g., Background)"
+                      value={traitType}
+                      onChange={(e) => setTraitType(e.target.value)}
+                      className="mb-4"
+                    />
+                    <Input
+                      placeholder="Trait Name (e.g., Red)"
+                      value={traitName}
+                      onChange={(e) => setTraitName(e.target.value)}
+                      className="mb-4"
+                    />
+                    <Button
+                      onClick={addTrait}
+                      disabled={!traitType || !traitName}
+                    >
+                      Add Trait
+                    </Button>
+                  </DialogContent>
+                </Dialog>
+              </div>
               <Button
                 variant="default"
                 type="submit"
