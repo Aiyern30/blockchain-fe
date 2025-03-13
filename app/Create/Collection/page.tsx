@@ -15,7 +15,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui";
-import DeployContractForm from "@/components/DeployContractForm";
+import DeployCollectionForm from "@/components/deployCollectionForm";
 
 export default function CreateNFT() {
   const [dragActive, setDragActive] = useState(false);
@@ -59,14 +59,10 @@ export default function CreateNFT() {
     reader.readAsDataURL(file);
   };
   type FormValues = {
-    collectionName: string;
     contractName: string;
-    collectionDescription: string;
     tokenSymbol: string;
     contractDescription: string;
     logoImage: File | string | null;
-    maxSupply: number;
-    price: number;
     status: "PUBLIC" | "PRIVATE";
   };
   const onSubmit = (values: FormValues) => {
@@ -147,7 +143,7 @@ export default function CreateNFT() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto">
-                  <DeployContractForm onSubmit={onSubmit} />
+                  <DeployCollectionForm onSubmit={onSubmit} />
                 </DialogContent>
               </Dialog>
 

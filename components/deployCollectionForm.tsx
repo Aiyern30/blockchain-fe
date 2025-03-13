@@ -32,12 +32,12 @@ type FormValues = {
   status: "PUBLIC" | "PRIVATE";
 };
 type Blockchain = "ethereum" | "base" | null;
-interface DeployContractFormProps {
+interface DeployCollectionForm {
   onSubmit: (data: FormValues) => void;
 }
-export default function DeployContractForm({
+export default function DeployCollectionForm({
   onSubmit,
-}: DeployContractFormProps) {
+}: DeployCollectionForm) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [selectedBlockchain, setSelectedBlockchain] =
     useState<Blockchain>(null);
