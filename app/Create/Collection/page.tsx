@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { Upload, Ban, Trash, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -34,35 +34,6 @@ import { toast } from "sonner";
 import DeployCollectionForm from "@/components/DeployCollectionForm";
 
 export default function CreateNFT() {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [traits, setTraits] = useState<{ type: string; name: string }[]>([]);
-  const [isTraitDialogOpen, setTraitDialogOpen] = useState(false);
-  const [traitType, setTraitType] = useState("");
-  const [traitName, setTraitName] = useState("");
-  const addTrait = () => {
-    if (traitType && traitName) {
-      setTraits([...traits, { type: traitType, name: traitName }]);
-      setTraitType("");
-      setTraitName("");
-      setTraitDialogOpen(false);
-    }
-  };
-  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        setValue("logoImage", null);
-        toast.error("File size exceeds 50MB!");
-        return;
-      }
-
-      setValue("logoImage", file, { shouldValidate: true });
-      setImageUrl(URL.createObjectURL(file));
-    }
-  };
   type ContractFormValues = {
     contractName: string;
     supply: number;
@@ -70,6 +41,8 @@ export default function CreateNFT() {
     contractDescription: string;
     logoImage: File | string | null;
     status: "PUBLIC" | "PRIVATE";
+    traits: { type: string; name: string }[];
+    externalLink?: string;
   };
 
   type FormValues = {
@@ -89,20 +62,80 @@ export default function CreateNFT() {
       contractDescription: "",
       logoImage: null,
       status: "PUBLIC",
+      traits: [],
+      externalLink: "",
     },
   });
 
-  const { handleSubmit, control, setValue, watch, formState } = formMethods;
+  const { handleSubmit, control, setValue, watch, formState, setError } =
+    formMethods;
   const { errors, isValid } = formState;
   const selectedFile = watch("logoImage");
+  // Use useMemo to prevent the watched traits from causing infinite re-renders
+  const watchedTraits = useMemo(() => watch("traits") || [], [watch]);
+
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isTraitDialogOpen, setTraitDialogOpen] = useState(false);
+  const [traitType, setTraitType] = useState("");
+  const [traitName, setTraitName] = useState("");
+
+  const addTrait = () => {
+    if (traitType && traitName) {
+      const newTraits = [
+        ...watchedTraits,
+        { type: traitType, name: traitName },
+      ];
+      setValue("traits", newTraits, { shouldValidate: true });
+      setTraitType("");
+      setTraitName("");
+      setTraitDialogOpen(false);
+    }
+  };
+
+  const removeTrait = (index: number) => {
+    const newTraits = watchedTraits.filter((_, i) => i !== index);
+    setValue("traits", newTraits, { shouldValidate: true });
+  };
+
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        setValue("logoImage", null);
+        toast.error("File size exceeds 50MB!");
+        return;
+      }
+
+      setValue("logoImage", file, { shouldValidate: true });
+      setImageUrl(URL.createObjectURL(file));
+    }
+  };
+
+  // Remove the useEffect that was causing the infinite loop
+  // We don't need to sync traits since we're using watch directly
 
   const handleContractSubmit = (
     ContractData: FormValues & { txHash: string }
   ) => {
     console.log("Deployed Contract:", ContractData);
   };
-  const onSubmit = () => {
-    console.log("Deployed Contract:");
+
+  const onSubmit = (data: ContractFormValues) => {
+    // Validate traits
+    if (!data.traits || data.traits.length === 0) {
+      // Set error for traits using setError instead of setValue with shouldError
+      setError("traits", {
+        type: "manual",
+        message: "At least one trait is required",
+      });
+      return;
+    }
+
+    console.log("Deployed Contract:", data);
+    toast.success("NFT created successfully!");
   };
 
   return (
@@ -269,14 +302,57 @@ export default function CreateNFT() {
                   <FormField
                     control={control}
                     name="contractDescription"
+                    rules={{
+                      required: "Description is required",
+                      minLength: {
+                        value: 10,
+                        message: "Description must be at least 10 characters",
+                      },
+                      maxLength: {
+                        value: 500,
+                        message: "Description must be 500 characters or less",
+                      },
+                    }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>
+                          Description
+                          <span className="text-red-500 ml-1">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Enter a description"
                             {...field}
                             className="resize-none h-32"
+                          />
+                        </FormControl>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <FormMessage />
+                          <span>{field.value?.length || 0}/500</span>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <FormField
+                    control={control}
+                    name="externalLink"
+                    rules={{
+                      pattern: {
+                        value:
+                          /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/,
+                        message: "Please enter a valid URL",
+                      },
+                    }}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>External link</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="https://collection.io/item/123"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -286,67 +362,91 @@ export default function CreateNFT() {
                 </div>
 
                 <div className="space-y-4">
-                  <Label>Traits</Label>
-                  <p className="text-sm text-zinc-400">
-                    Traits describe attributes of your item. They appear as
-                    filters inside your collection page and are also listed out
-                    inside your item page.
-                  </p>
-                  {traits.map((trait, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center border p-2 rounded-lg"
-                    >
-                      <span>
-                        {trait.type}: {trait.name}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          setTraits(traits.filter((_, i) => i !== index))
-                        }
-                      >
-                        <Trash className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Dialog
-                    open={isTraitDialogOpen}
-                    onOpenChange={setTraitDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <Plus className="mr-2" /> Add trait
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Add Trait</DialogTitle>
-                        <DialogDescription>
-                          Specify the type and name of the trait.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <Input
-                        placeholder="Trait Type (e.g., Background)"
-                        value={traitType}
-                        onChange={(e) => setTraitType(e.target.value)}
-                        className="mb-4"
-                      />
-                      <Input
-                        placeholder="Trait Name (e.g., Red)"
-                        value={traitName}
-                        onChange={(e) => setTraitName(e.target.value)}
-                        className="mb-4"
-                      />
-                      <Button
-                        onClick={addTrait}
-                        disabled={!traitType || !traitName}
-                      >
-                        Add Trait
-                      </Button>
-                    </DialogContent>
-                  </Dialog>
+                  <FormField
+                    control={control}
+                    name="traits"
+                    rules={{
+                      validate: (value) =>
+                        (value && value.length > 0) ||
+                        "At least one trait is required",
+                    }}
+                    render={() => (
+                      <FormItem>
+                        <div className="flex justify-between items-center">
+                          <FormLabel>
+                            Traits
+                            <span className="text-red-500 ml-1">*</span>
+                          </FormLabel>
+                        </div>
+                        <FormControl>
+                          <>
+                            <p className="text-sm text-zinc-400">
+                              Traits describe attributes of your item. They
+                              appear as filters inside your collection page and
+                              are also listed out inside your item page.
+                            </p>
+                            {watchedTraits.map((trait, index) => (
+                              <div
+                                key={index}
+                                className="flex justify-between items-center border p-2 rounded-lg mt-2"
+                              >
+                                <span>
+                                  {trait.type}: {trait.name}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeTrait(index)}
+                                >
+                                  <Trash className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </div>
+                            ))}
+                            <Dialog
+                              open={isTraitDialogOpen}
+                              onOpenChange={setTraitDialogOpen}
+                            >
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="w-full mt-2"
+                                >
+                                  <Plus className="mr-2" /> Add Trait
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Add Trait</DialogTitle>
+                                  <DialogDescription>
+                                    Specify the type and name of the trait.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <Input
+                                  placeholder="Trait Type (e.g., Background)"
+                                  value={traitType}
+                                  onChange={(e) => setTraitType(e.target.value)}
+                                  className="mb-4"
+                                />
+                                <Input
+                                  placeholder="Trait Name (e.g., Red)"
+                                  value={traitName}
+                                  onChange={(e) => setTraitName(e.target.value)}
+                                  className="mb-4"
+                                />
+                                <Button
+                                  onClick={addTrait}
+                                  disabled={!traitType || !traitName}
+                                >
+                                  Add Trait
+                                </Button>
+                              </DialogContent>
+                            </Dialog>
+                          </>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 <Button
