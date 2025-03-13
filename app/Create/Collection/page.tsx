@@ -31,7 +31,7 @@ import {
 import { FormProvider, useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import DeployCollectionForm from "@/components/DeployCollectionForm";
+import DeployCollectionForm from "@/components/deployCollectionForm";
 
 export default function CreateNFT() {
   type ContractFormValues = {
