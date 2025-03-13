@@ -383,7 +383,6 @@ export default function CreateNFT() {
                               are also listed out inside your item page.
                             </p>
 
-                            {/* Display traits */}
                             <div className="space-y-2 mt-2">
                               {traits.length > 0 ? (
                                 traits.map((trait, index) => (
