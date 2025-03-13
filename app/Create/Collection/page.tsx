@@ -15,7 +15,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui";
-import DeployCollectionForm from "@/components/deployCollectionForm";
+import DeployCollectionForm from "@/components/DeployCollectionForm";
 
 export default function CreateNFT() {
   const [dragActive, setDragActive] = useState(false);
