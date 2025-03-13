@@ -65,8 +65,10 @@ export default function CreateNFT() {
     logoImage: File | string | null;
     status: "PUBLIC" | "PRIVATE";
   };
-  const onSubmit = (values: FormValues) => {
-    console.log(values);
+  const handleCollectionSubmit = (
+    collectionData: FormValues & { txHash: string }
+  ) => {
+    console.log("Deployed Collection:", collectionData);
   };
 
   return (
@@ -143,7 +145,7 @@ export default function CreateNFT() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto">
-                  <DeployCollectionForm onSubmit={onSubmit} />
+                  <DeployCollectionForm onSubmit={handleCollectionSubmit} />{" "}
                 </DialogContent>
               </Dialog>
 
