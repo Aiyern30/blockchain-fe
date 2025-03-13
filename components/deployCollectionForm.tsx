@@ -77,10 +77,12 @@ export default function DeployCollectionForm({
   return (
     <Card className="space-y-8 bg-background">
       <CardHeader>
-        <CardTitle>Let&apos;s create a smart contract for your drop.</CardTitle>
+        <CardTitle>
+          First, you need to create a collection for your NFT.
+        </CardTitle>
         <CardDescription>
-          You&apos;ll need to deploy an ERC-721 contract onto the blockchain
-          before you can create a drop.
+          You&apos;ll need to deploy an ERC-721 contract onto the blockchain to
+          create a collection for your NFT.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -261,44 +263,6 @@ export default function DeployCollectionForm({
                       </div>
                     </CardContent>
                   </Card>
-
-                  {/* <Card
-                              className={cn(
-                                "relative cursor-pointer transition-colors hover:border-primary",
-                                selectedBlockchain === "base" &&
-                                  "border-primary bg-muted/50"
-                              )}
-                              onClick={() => setSelectedBlockchain("base")}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-center gap-3 mb-4">
-                                  <div className="rounded-full overflow-hidden bg-white">
-                                    <Image
-                                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-nYlEWWzFKtOY9epUSVbiAOpm3PmO5w.png"
-                                      alt="Base"
-                                      width={32}
-                                      height={32}
-                                    />
-                                  </div>
-                                  <span className="font-medium">Base</span>
-                                </div>
-                                <div className="space-y-2">
-                                  <p className="text-sm text-muted-foreground">
-                                    Cheaper
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Estimated cost to deploy contract: $0.00
-                                  </p>
-                                </div>
-                              </CardContent>
-                            </Card>
-        
-                            <Card className="cursor-pointer hover:border-primary">
-                              <CardContent className="p-4 h-full flex flex-col justify-center items-center text-muted-foreground">
-                                <MoreHorizontal className="h-6 w-6 mb-2" />
-                                <span className="font-medium">See more options</span>
-                              </CardContent>
-                            </Card> */}
                 </div>
               </div>
             </div>
