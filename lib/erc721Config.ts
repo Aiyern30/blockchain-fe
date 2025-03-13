@@ -1,15 +1,8 @@
 import { ethers } from "ethers";
 
-// Your deployed contract details
-const NFT_CONTRACT_ADDRESS = "0x2082f68B9917fF92BEf33Af6E1703A40DE0716Dc";
+const NFT_CONTRACT_ADDRESS = "0xe17EaDAb3a63f2D26afa8D70511d55eE691091D0";
 const nftABI = [
-  {
-    inputs: [
-      { internalType: "address", name: "_ownerWallet", type: "address" },
-    ],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
+  { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
     inputs: [
       { internalType: "address", name: "sender", type: "address" },
@@ -57,6 +50,8 @@ const nftABI = [
     name: "ERC721NonexistentToken",
     type: "error",
   },
+  { inputs: [], name: "InvalidInitialization", type: "error" },
+  { inputs: [], name: "NotInitializing", type: "error" },
   {
     inputs: [{ internalType: "address", name: "owner", type: "address" }],
     name: "OwnableInvalidOwner",
@@ -149,7 +144,41 @@ const nftABI = [
         type: "string",
       },
     ],
+    name: "CollectionCreated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: "string", name: "name", type: "string" },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      { indexed: false, internalType: "string", name: "image", type: "string" },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "baseURI",
+        type: "string",
+      },
+    ],
     name: "CollectionMetadataUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "version",
+        type: "uint64",
+      },
+    ],
+    name: "Initialized",
     type: "event",
   },
   {
@@ -331,22 +360,13 @@ const nftABI = [
   },
   {
     inputs: [],
-    name: "collectionDescription",
-    outputs: [{ internalType: "string", name: "", type: "string" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "collectionImage",
-    outputs: [{ internalType: "string", name: "", type: "string" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "collectionName",
-    outputs: [{ internalType: "string", name: "", type: "string" }],
+    name: "collection",
+    outputs: [
+      { internalType: "string", name: "name", type: "string" },
+      { internalType: "string", name: "description", type: "string" },
+      { internalType: "string", name: "image", type: "string" },
+      { internalType: "string", name: "baseURI", type: "string" },
+    ],
     stateMutability: "view",
     type: "function",
   },
@@ -380,6 +400,16 @@ const nftABI = [
   },
   {
     inputs: [
+      { internalType: "address", name: "_ownerWallet", type: "address" },
+      { internalType: "uint256", name: "_mintingFee", type: "uint256" },
+    ],
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
       { internalType: "address", name: "owner", type: "address" },
       { internalType: "address", name: "operator", type: "address" },
     ],
@@ -403,6 +433,18 @@ const nftABI = [
     name: "listedForSale",
     outputs: [{ internalType: "bool", name: "", type: "bool" }],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "string", name: "_name", type: "string" },
+      { internalType: "string", name: "_description", type: "string" },
+      { internalType: "string", name: "_image", type: "string" },
+      { internalType: "string", name: "_baseURI", type: "string" },
+    ],
+    name: "mintCollection",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -547,20 +589,18 @@ const nftABI = [
     type: "function",
   },
   {
-    inputs: [{ internalType: "address", name: "newOwner", type: "address" }],
-    name: "transferOwnership",
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "tokenId", type: "uint256" },
+    ],
+    name: "transferNFT",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
   {
-    inputs: [
-      { internalType: "string", name: "_name", type: "string" },
-      { internalType: "string", name: "_description", type: "string" },
-      { internalType: "string", name: "_image", type: "string" },
-      { internalType: "string", name: "_baseURI", type: "string" },
-    ],
-    name: "updateCollectionMetadata",
+    inputs: [{ internalType: "address", name: "newOwner", type: "address" }],
+    name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
