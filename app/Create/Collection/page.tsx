@@ -91,6 +91,11 @@ export default function CreateNFT() {
   const [traitType, setTraitType] = useState("");
   const [traitName, setTraitName] = useState("");
   const [collectionCID, setCollectionID] = useState<string | null>(null);
+  const [collectionData, setCollectionData] = useState<{
+    name: string;
+    description: string;
+    image: string;
+  } | null>(null);
   useEffect(() => {
     if (address) {
       setWalletAddress(address);
@@ -132,9 +137,14 @@ export default function CreateNFT() {
     ContractData: FormValues & { collectionCID: string }
   ) => {
     console.log("Deployed Contract:", ContractData);
-    setCollectionID(collectionCID);
-  };
+    setCollectionID(ContractData.collectionCID);
 
+    setCollectionData({
+      name: ContractData.contractName,
+      description: ContractData.contractDescription,
+      image: `https://gateway.pinata.cloud/ipfs/${ContractData.collectionCID}`,
+    });
+  };
   const onSubmit = async (data: ContractFormValues) => {
     if (!walletClient || !walletAddress) {
       toast.warning("Please complete all fields and connect your wallet!", {
@@ -290,15 +300,8 @@ export default function CreateNFT() {
     }
   };
 
-  const hardcodedCollection = {
-    image: "/404.svg",
-    name: "Hardcoded Collection Name",
-    description: "This is a hardcoded description of the collection.",
-  };
-
   return (
     <>
-      {" "}
       {stagingStatus !== "idle" ? (
         <NFTMintingUI
           status={stagingStatus}
@@ -393,7 +396,7 @@ export default function CreateNFT() {
                 </div>
 
                 <div className="space-y-6">
-                  {!collectionCID ? (
+                  {!collectionData ? (
                     <div className="space-y-2">
                       <Label className="flex items-center">
                         Collection
@@ -430,7 +433,7 @@ export default function CreateNFT() {
                     <div className="p-4 rounded-xl flex space-x-4 items-center">
                       <Image
                         src={
-                          hardcodedCollection.image ||
+                          collectionData.image ||
                           "https://via.placeholder.com/100"
                         }
                         alt="Collection Image"
@@ -440,10 +443,10 @@ export default function CreateNFT() {
                       />
                       <div>
                         <h3 className="text-lg font-semibold text-white">
-                          {hardcodedCollection.name || "Unnamed Collection"}
+                          {collectionData.name || "Unnamed Collection"}
                         </h3>
                         <p className="text-sm text-zinc-400">
-                          {hardcodedCollection.description ||
+                          {collectionData.description ||
                             "No description available."}
                         </p>
                       </div>
