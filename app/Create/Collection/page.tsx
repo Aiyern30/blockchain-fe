@@ -337,21 +337,21 @@ export default function CreateNFT() {
       console.log("NFTs minted successfully!", tx.hash);
       setTxHash([tx.hash]);
       setStagingStatus("done");
-    } catch (error) {
-      console.error("Error during minting:", error);
-      setStagingStatus("error");
+    } catch (error: unknown) {
+      console.error("Error:", error);
 
-      let errorMessage = "An unknown error occurred.";
+      const err = error as { code?: number; message?: string };
 
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
+      if (
+        err?.code === 4001 ||
+        err?.message?.includes("User denied transaction signature")
+      ) {
+        console.warn("User rejected the transaction.");
+        setStagingStatus("cancelled");
+        return;
       }
 
-      toast.error(`Minting failed: ${errorMessage}`, {
-        style: { backgroundColor: "#dc2626", color: "white" },
-      });
+      setStagingStatus("error");
     }
   };
 
