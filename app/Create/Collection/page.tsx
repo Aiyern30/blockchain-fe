@@ -211,7 +211,6 @@ export default function CreateNFT() {
                 />
               </div>
 
-              {/* Form Fields Section - Right Side */}
               <div className="space-y-6">
                 {!collectionCID ? (
                   <div className="space-y-2">
@@ -245,7 +244,7 @@ export default function CreateNFT() {
                     </p>
                   </div>
                 ) : (
-                  <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex space-x-4 items-center">
+                  <div className="p-4 rounded-xl flex space-x-4 items-center">
                     <Image
                       src={
                         hardcodedCollection.image ||
@@ -480,12 +479,23 @@ export default function CreateNFT() {
                   type="submit"
                   className={cn(
                     "mt-6 w-full",
-                    (!isValid || !selectedFile || traits.length === 0) &&
+                    (!isValid ||
+                      !selectedFile ||
+                      !collectionCID ||
+                      traits.length === 0) &&
                       "cursor-not-allowed opacity-50"
                   )}
-                  disabled={!isValid || !selectedFile || traits.length === 0}
+                  disabled={
+                    !isValid ||
+                    !selectedFile ||
+                    !collectionCID ||
+                    traits.length === 0
+                  }
                 >
-                  {(!isValid || !selectedFile || traits.length === 0) && (
+                  {(!isValid ||
+                    !selectedFile ||
+                    !collectionCID ||
+                    traits.length === 0) && (
                     <Ban className="w-4 h-4 text-red-500 mr-2" />
                   )}
                   Deploy Contract
