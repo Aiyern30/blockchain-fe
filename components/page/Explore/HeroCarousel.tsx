@@ -56,7 +56,10 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
 
   return (
     <div className="w-full relative">
-      <Tabs defaultValue={categories[0].toLowerCase()} className="w-full mb-5">
+      <Tabs
+        defaultValue={categories[0]?.toLowerCase() || "default"}
+        className="w-full mb-5"
+      >
         <TabsList className="w-full justify-start gap-4">
           {categories.map((category) => (
             <TabsTrigger key={category} value={category.toLowerCase()}>
