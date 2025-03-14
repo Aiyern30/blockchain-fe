@@ -65,8 +65,7 @@ export default function CreateNFT() {
     },
   });
 
-  const { handleSubmit, control, setValue, watch, formState, setError } =
-    formMethods;
+  const { handleSubmit, control, setValue, watch, formState } = formMethods;
   const { errors, isValid } = formState;
   const selectedFile = watch("logoImage");
 
@@ -115,22 +114,12 @@ export default function CreateNFT() {
   };
 
   const handleContractSubmit = (
-    ContractData: FormValues & { txHash: string }
+    ContractData: FormValues & { collectionCID: string }
   ) => {
     console.log("Deployed Contract:", ContractData);
   };
 
   const onSubmit = (data: ContractFormValues) => {
-    // Validate traits
-    if (!data.traits || data.traits.length === 0) {
-      // Set error for traits using setError
-      setError("traits", {
-        type: "manual",
-        message: "At least one trait is required",
-      });
-      return;
-    }
-
     console.log("Deployed Contract:", data);
     toast.success("NFT created successfully!");
   };
