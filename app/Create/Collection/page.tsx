@@ -72,9 +72,15 @@ export default function CreateNFT() {
     },
   });
 
-  const { reset } = formMethods;
-
-  const { handleSubmit, control, setValue, watch, formState } = formMethods;
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    getValues,
+    reset,
+    watch,
+    formState,
+  } = formMethods;
   const { errors, isValid } = formState;
   const selectedFile = watch("logoImage");
   const { data: walletClient } = useWalletClient();
@@ -90,7 +96,6 @@ export default function CreateNFT() {
   const [isTraitDialogOpen, setTraitDialogOpen] = useState(false);
   const [traitType, setTraitType] = useState("");
   const [traitName, setTraitName] = useState("");
-  const [collectionCID, setCollectionID] = useState<string | null>(null);
   const [collectionData, setCollectionData] = useState<{
     name: string;
     description: string;
@@ -101,10 +106,14 @@ export default function CreateNFT() {
       setWalletAddress(address);
     }
   }, [address]);
+
   const addTrait = () => {
     if (traitType && traitName) {
       const newTraits = [...traits, { type: traitType, name: traitName }];
       setTraits(newTraits);
+
+      setValue("traits", newTraits, { shouldValidate: true });
+
       setTraitType("");
       setTraitName("");
       setTraitDialogOpen(false);
@@ -114,6 +123,8 @@ export default function CreateNFT() {
   const removeTrait = (index: number) => {
     const newTraits = traits.filter((_, i) => i !== index);
     setTraits(newTraits);
+
+    setValue("traits", newTraits, { shouldValidate: true });
   };
 
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -132,19 +143,32 @@ export default function CreateNFT() {
       setImageUrl(URL.createObjectURL(file));
     }
   };
+  const fetchCollectionData = async (cid: string) => {
+    try {
+      const response = await fetch(`https://gateway.pinata.cloud/ipfs/${cid}`);
+      if (!response.ok) throw new Error("Failed to fetch collection metadata");
+
+      const metadata = await response.json();
+      console.log("Fetched Collection Metadata:", metadata);
+
+      setCollectionData({
+        name: metadata.name,
+        description: metadata.description,
+        image: metadata.image, // Make sure this is a valid URL
+      });
+    } catch (error) {
+      console.error("Error fetching collection data:", error);
+    }
+  };
 
   const handleContractSubmit = (
     ContractData: FormValues & { collectionCID: string }
   ) => {
     console.log("Deployed Contract:", ContractData);
-    setCollectionID(ContractData.collectionCID);
 
-    setCollectionData({
-      name: ContractData.contractName,
-      description: ContractData.contractDescription,
-      image: `https://gateway.pinata.cloud/ipfs/${ContractData.collectionCID}`,
-    });
+    fetchCollectionData(ContractData.collectionCID);
   };
+
   const onSubmit = async (data: ContractFormValues) => {
     if (!walletClient || !walletAddress) {
       toast.warning("Please complete all fields and connect your wallet!", {
@@ -440,9 +464,10 @@ export default function CreateNFT() {
                         width={64}
                         height={64}
                         className="w-16 h-16 rounded-lg object-cover"
+                        unoptimized
                       />
                       <div>
-                        <h3 className="text-lg font-semibold text-white">
+                        <h3 className="text-lg font-semibold">
                           {collectionData.name || "Unnamed Collection"}
                         </h3>
                         <p className="text-sm text-zinc-400">
@@ -561,11 +586,10 @@ export default function CreateNFT() {
                       control={control}
                       name="traits"
                       rules={{
-                        validate: (value) => {
-                          if (!value || value.length === 0) {
-                            return formState.isSubmitted
-                              ? "At least one trait is required"
-                              : true;
+                        validate: () => {
+                          const currentTraits = getValues("traits");
+                          if (!currentTraits || currentTraits.length === 0) {
+                            return "At least one trait is required";
                           }
                           return true;
                         },
@@ -669,23 +693,12 @@ export default function CreateNFT() {
                     type="submit"
                     className={cn(
                       "mt-6 w-full",
-                      (!isValid ||
-                        !selectedFile ||
-                        !collectionCID ||
-                        traits.length === 0) &&
+                      (!isValid || !selectedFile || traits.length === 0) &&
                         "cursor-not-allowed opacity-50"
                     )}
-                    disabled={
-                      !isValid ||
-                      !selectedFile ||
-                      !collectionCID ||
-                      traits.length === 0
-                    }
+                    disabled={!isValid || !selectedFile || traits.length === 0}
                   >
-                    {(!isValid ||
-                      !selectedFile ||
-                      !collectionCID ||
-                      traits.length === 0) && (
+                    {(!isValid || !selectedFile || traits.length === 0) && (
                       <Ban className="w-4 h-4 text-red-500 mr-2" />
                     )}
                     Deploy Contract
