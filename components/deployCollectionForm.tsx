@@ -38,7 +38,7 @@ type FormValues = {
 };
 type Blockchain = "ethereum" | "base" | null;
 interface DeployCollectionForm {
-  onSubmit: (data: FormValues & { txHash: string }) => void;
+  onSubmit: (data: FormValues & { collectionCID: string }) => void;
 }
 
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
@@ -132,7 +132,7 @@ export default function DeployCollectionForm({
         collectionImageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
       }
 
-      // Upload metadata to IPFS
+      // Upload collection metadata to IPFS
       const collectionMetadata = {
         name: data.contractName,
         description: data.contractDescription,
@@ -140,36 +140,40 @@ export default function DeployCollectionForm({
         baseURI: "https://ipfs.io/ipfs/",
       };
 
-      const collectionMetadataFile = new File(
+      const collectionMetadataFile = new Blob(
         [JSON.stringify(collectionMetadata)],
-        `${data.contractName}-metadata.json`,
         { type: "application/json" }
       );
 
-      const metadataFormData = new FormData();
-      metadataFormData.append("file", collectionMetadataFile);
+      const collectionMetadataFormData = new FormData();
+      collectionMetadataFormData.append("file", collectionMetadataFile);
 
       const metadataResponse = await fetch(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
         {
           method: "POST",
           headers: { Authorization: `Bearer ${PINATA_JWT}` },
-          body: metadataFormData,
+          body: collectionMetadataFormData,
         }
       );
 
       if (!metadataResponse.ok) throw new Error("Metadata upload failed");
-      const metadataData = await metadataResponse.json();
-      const metadataUrl = `https://ipfs.io/ipfs/${metadataData.IpfsHash}`;
+
+      const metadataJson = await metadataResponse.json();
+      const collectionCID = metadataJson.cid; // Get the CID
+
+      console.log("Collection metadata CID:", collectionCID);
 
       setStagingStatus("minting");
 
-      // **Mint Collection using Smart Contract**
+      // **Deploy collection contract with the Metadata CID**
       const tx = await nftContract.mintCollection(
         data.contractName,
+        collectionCID, // Pass the CID here
         data.contractDescription,
-        collectionImageUrl,
-        metadataUrl
+        data.logoImage,
+        data.tokenSymbol,
+        data.status === "PUBLIC"
       );
 
       await tx.wait();
@@ -178,14 +182,14 @@ export default function DeployCollectionForm({
       setTxHash([tx.hash]);
       setStagingStatus("done");
 
-      // ✅ Pass collection data to the parent component
-      onSubmit({
-        ...data,
-        txHash: tx.hash,
-      });
+      // ✅ Pass collection data and collectionCID to parent
+      onSubmit({ ...data, collectionCID });
+
+      return { txHash: tx.hash, collectionCID };
     } catch (error: unknown) {
       console.error("Error:", error);
       setStagingStatus("error");
+      return null;
     }
   };
 
