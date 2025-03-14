@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { Upload, Ban, Trash, Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -77,11 +77,6 @@ export default function CreateNFT() {
   const [traitName, setTraitName] = useState("");
   const [collectionCID, setCollectionID] = useState<string | null>(null);
 
-  // Update form value when traits change
-  useEffect(() => {
-    setValue("traits", traits, { shouldValidate: true });
-  }, [traits, setValue]);
-
   const addTrait = () => {
     if (traitType && traitName) {
       const newTraits = [...traits, { type: traitType, name: traitName }];
@@ -133,7 +128,7 @@ export default function CreateNFT() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-128px)] bg-black text-white p-6">
+    <div className="min-h-[calc(100vh-128px)] p-6">
       <Card className="max-w-6xl mx-auto">
         <CardHeader className="mb-6">
           <CardTitle>Create an NFT</CardTitle>
@@ -149,7 +144,6 @@ export default function CreateNFT() {
               onSubmit={handleSubmit(onSubmit)}
               className="grid lg:grid-cols-2 gap-8"
             >
-              {/* Image Upload Section - Left Side */}
               <div>
                 <FormField
                   control={control}
@@ -219,17 +213,17 @@ export default function CreateNFT() {
 
               {/* Form Fields Section - Right Side */}
               <div className="space-y-6">
-                {collectionCID ? (
+                {!collectionCID ? (
                   <div className="space-y-2">
                     <Label className="flex items-center">
                       Collection
                       <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Dialog>
-                      <DialogTrigger className="w-full justify-start text-left bg-zinc-900 border-zinc-800 rounded-xl">
+                      <DialogTrigger className="w-full justify-start text-left rounded-xl">
                         <Button
                           variant="outline"
-                          className="w-full justify-start text-left bg-zinc-900 border-zinc-800"
+                          className="w-full justify-start text-left "
                         >
                           <span className="mr-2">+</span>
                           Create a new collection
@@ -382,9 +376,14 @@ export default function CreateNFT() {
                     control={control}
                     name="traits"
                     rules={{
-                      validate: (value) =>
-                        (value && value.length > 0) ||
-                        "At least one trait is required",
+                      validate: (value) => {
+                        if (!value || value.length === 0) {
+                          return formState.isSubmitted
+                            ? "At least one trait is required"
+                            : true;
+                        }
+                        return true;
+                      },
                     }}
                     render={() => (
                       <FormItem>
@@ -481,12 +480,12 @@ export default function CreateNFT() {
                   type="submit"
                   className={cn(
                     "mt-6 w-full",
-                    (!isValid || !selectedFile) &&
+                    (!isValid || !selectedFile || traits.length === 0) &&
                       "cursor-not-allowed opacity-50"
                   )}
-                  disabled={!isValid || !selectedFile}
+                  disabled={!isValid || !selectedFile || traits.length === 0}
                 >
-                  {(!isValid || !selectedFile) && (
+                  {(!isValid || !selectedFile || traits.length === 0) && (
                     <Ban className="w-4 h-4 text-red-500 mr-2" />
                   )}
                   Deploy Contract
