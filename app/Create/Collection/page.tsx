@@ -724,12 +724,23 @@ export default function CreateNFT() {
                     type="submit"
                     className={cn(
                       "mt-6 w-full",
-                      (!isValid || !selectedFile || traits.length === 0) &&
+                      (!isValid ||
+                        !selectedFile ||
+                        traits.length === 0 ||
+                        !collectionData) &&
                         "cursor-not-allowed opacity-50"
                     )}
-                    disabled={!isValid || !selectedFile || traits.length === 0}
+                    disabled={
+                      !isValid ||
+                      !selectedFile ||
+                      traits.length === 0 ||
+                      !collectionData
+                    }
                   >
-                    {(!isValid || !selectedFile || traits.length === 0) && (
+                    {(!isValid ||
+                      !selectedFile ||
+                      traits.length === 0 ||
+                      !collectionData) && (
                       <Ban className="w-4 h-4 text-red-500 mr-2" />
                     )}
                     Deploy Contract
