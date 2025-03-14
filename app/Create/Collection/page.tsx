@@ -174,13 +174,11 @@ export default function CreateNFT() {
                             "hover:bg-muted/50 transition-colors"
                           )}
                           onClick={() =>
-                            document
-                              .getElementById("dialog-file-input")
-                              ?.click()
+                            document.getElementById("file-input")?.click()
                           }
                         >
                           <input
-                            id="dialog-file-input"
+                            id="file-input"
                             type="file"
                             className="hidden"
                             accept="image/*"
