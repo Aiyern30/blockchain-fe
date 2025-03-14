@@ -126,6 +126,12 @@ export default function CreateNFT() {
     toast.success("NFT created successfully!");
   };
 
+  const hardcodedCollection = {
+    image: "/404.svg",
+    name: "Hardcoded Collection Name",
+    description: "This is a hardcoded description of the collection.",
+  };
+
   return (
     <div className="min-h-[calc(100vh-128px)] bg-black text-white p-6">
       <Card className="max-w-6xl mx-auto">
@@ -213,7 +219,7 @@ export default function CreateNFT() {
 
               {/* Form Fields Section - Right Side */}
               <div className="space-y-6">
-                {!collectionCID ? (
+                {collectionCID ? (
                   <div className="space-y-2">
                     <Label className="flex items-center">
                       Collection
@@ -245,7 +251,27 @@ export default function CreateNFT() {
                     </p>
                   </div>
                 ) : (
-                  <div>got collectionID</div>
+                  <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex space-x-4 items-center">
+                    <Image
+                      src={
+                        hardcodedCollection.image ||
+                        "https://via.placeholder.com/100"
+                      }
+                      alt="Collection Image"
+                      width={64}
+                      height={64}
+                      className="w-16 h-16 rounded-lg object-cover"
+                    />
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        {hardcodedCollection.name || "Unnamed Collection"}
+                      </h3>
+                      <p className="text-sm text-zinc-400">
+                        {hardcodedCollection.description ||
+                          "No description available."}
+                      </p>
+                    </div>
+                  </div>
                 )}
 
                 <div className="space-y-2">
