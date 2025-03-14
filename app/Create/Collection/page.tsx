@@ -184,29 +184,37 @@ export default function CreateNFT() {
       const signer = await provider.getSigner();
       const nftContract = getERC721Contract(signer);
 
+      // ✅ Check wallet balance
+      const balance = await provider.getBalance(walletClient.account.address);
+      if (balance < ethers.parseEther("0.01")) {
+        throw new Error("Insufficient ETH balance for gas fees.");
+      }
+
       const maxSupply = Number(data.supply);
       setStagingStatus("uploading");
 
+      // ✅ Validate Image Upload
+      if (!data.logoImage || typeof data.logoImage === "string") {
+        throw new Error("Invalid NFT image file");
+      }
+
       // **Upload Collection Image**
       let collectionImageUrl = "";
-      if (data.logoImage && typeof data.logoImage !== "string") {
-        const formData = new FormData();
-        formData.append("file", data.logoImage);
+      const formData = new FormData();
+      formData.append("file", data.logoImage);
 
-        const imageResponse = await fetch(
-          "https://api.pinata.cloud/pinning/pinFileToIPFS",
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${PINATA_JWT}` },
-            body: formData,
-          }
-        );
+      const imageResponse = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${PINATA_JWT}` },
+          body: formData,
+        }
+      );
 
-        if (!imageResponse.ok)
-          throw new Error("Collection image upload failed");
-        const imageData = await imageResponse.json();
-        collectionImageUrl = `https://gateway.pinata.cloud/ipfs/${imageData.IpfsHash}`;
-      }
+      if (!imageResponse.ok) throw new Error("Collection image upload failed");
+      const imageData = await imageResponse.json();
+      collectionImageUrl = `https://gateway.pinata.cloud/ipfs/${imageData.IpfsHash}`;
 
       // **Upload Collection Metadata to IPFS**
       const collectionMetadata = {
@@ -246,11 +254,6 @@ export default function CreateNFT() {
 
       const tokenURIs: string[] = [];
       for (let i = 0; i < maxSupply; i++) {
-        // **Upload NFT Image**
-        if (!data.logoImage || typeof data.logoImage === "string") {
-          throw new Error("Invalid NFT image file");
-        }
-
         const nftImageFormData = new FormData();
         nftImageFormData.append("file", data.logoImage);
 
@@ -302,16 +305,32 @@ export default function CreateNFT() {
         const metadataData = await metadataUploadResponse.json();
         const tokenURI = `https://gateway.pinata.cloud/ipfs/${metadataData.IpfsHash}`;
 
+        // ✅ Validate IPFS Metadata
+        const testResponse = await fetch(tokenURI);
+        if (!testResponse.ok) {
+          throw new Error(`IPFS metadata not available: ${tokenURI}`);
+        }
+
         tokenURIs.push(tokenURI);
       }
 
       // **Mint the NFTs in batch**
       setStagingStatus("minting");
 
-      const tx = await nftContract.mintMultipleNFTs(
+      const gasEstimate = await nftContract.mintMultipleNFTs.estimateGas(
         walletClient.account.address,
         tokenURIs
       );
+
+      const tx = await nftContract.mintMultipleNFTs(
+        walletClient.account.address,
+        tokenURIs,
+        { gasLimit: gasEstimate }
+      );
+
+      if (!tx || !tx.hash) {
+        throw new Error("Transaction failed to send.");
+      }
 
       await tx.wait();
 
@@ -321,6 +340,18 @@ export default function CreateNFT() {
     } catch (error) {
       console.error("Error during minting:", error);
       setStagingStatus("error");
+
+      let errorMessage = "An unknown error occurred.";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+
+      toast.error(`Minting failed: ${errorMessage}`, {
+        style: { backgroundColor: "#dc2626", color: "white" },
+      });
     }
   };
 
