@@ -75,6 +75,7 @@ export default function CreateNFT() {
   const [isTraitDialogOpen, setTraitDialogOpen] = useState(false);
   const [traitType, setTraitType] = useState("");
   const [traitName, setTraitName] = useState("");
+  const [collectionCID, setCollectionID] = useState<string | null>(null);
 
   // Update form value when traits change
   useEffect(() => {
@@ -117,6 +118,7 @@ export default function CreateNFT() {
     ContractData: FormValues & { collectionCID: string }
   ) => {
     console.log("Deployed Contract:", ContractData);
+    setCollectionID(collectionCID);
   };
 
   const onSubmit = (data: ContractFormValues) => {
@@ -211,36 +213,40 @@ export default function CreateNFT() {
 
               {/* Form Fields Section - Right Side */}
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label className="flex items-center">
-                    Collection
-                    <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Dialog>
-                    <DialogTrigger className="w-full justify-start text-left bg-zinc-900 border-zinc-800 rounded-xl">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left bg-zinc-900 border-zinc-800"
-                      >
-                        <span className="mr-2">+</span>
-                        Create a new collection
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-h-[90vh] overflow-y-auto">
-                      <DeployCollectionForm onSubmit={handleContractSubmit} />
-                    </DialogContent>
-                  </Dialog>
+                {!collectionCID ? (
+                  <div className="space-y-2">
+                    <Label className="flex items-center">
+                      Collection
+                      <span className="text-red-500 ml-1">*</span>
+                    </Label>
+                    <Dialog>
+                      <DialogTrigger className="w-full justify-start text-left bg-zinc-900 border-zinc-800 rounded-xl">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left bg-zinc-900 border-zinc-800"
+                        >
+                          <span className="mr-2">+</span>
+                          Create a new collection
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-h-[90vh] overflow-y-auto">
+                        <DeployCollectionForm onSubmit={handleContractSubmit} />
+                      </DialogContent>
+                    </Dialog>
 
-                  <p className="text-sm text-zinc-400">
-                    Not all collections are eligible.{" "}
-                    <Link
-                      href="#"
-                      className="text-blue-400 hover:text-blue-300"
-                    >
-                      Learn more
-                    </Link>
-                  </p>
-                </div>
+                    <p className="text-sm text-zinc-400">
+                      Not all collections are eligible.{" "}
+                      <Link
+                        href="#"
+                        className="text-blue-400 hover:text-blue-300"
+                      >
+                        Learn more
+                      </Link>
+                    </p>
+                  </div>
+                ) : (
+                  <div>got collectionID</div>
+                )}
 
                 <div className="space-y-2">
                   <FormField
