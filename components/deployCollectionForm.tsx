@@ -104,16 +104,39 @@ export default function DeployCollectionForm({
     }
 
     try {
+      console.log("Wallet connected:", walletAddress);
       setStagingStatus("checking");
 
+      // Initialize Provider & Signer
       const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
+      console.log("Signer Address:", await signer.getAddress());
+
+      // Get Updated NFT Contract Instance
       const nftContract = getERC721Contract(signer);
+      console.log("NFT Contract Instance:", nftContract);
+
+      // ✅ 1. Check if Collection Already Exists
+      const collectionExists = await nftContract.userCollections(walletAddress);
+      console.log("Current Collection Data:", collectionExists);
+
+      if (collectionExists.name) {
+        throw new Error("Collection already exists. Cannot mint again.");
+      }
+
+      // ✅ 2. Verify Wallet is Contract Owner
+      const contractOwner = await nftContract.owner();
+      const currentWallet = await signer.getAddress();
+      console.log("Contract Owner:", contractOwner);
+      console.log("Your Wallet Address:", currentWallet);
 
       setStagingStatus("uploading");
 
       let collectionImageUrl = "";
+
+      // Upload Collection Image to IPFS
       if (data.logoImage && typeof data.logoImage !== "string") {
+        console.log("Uploading collection image to IPFS...");
         const formData = new FormData();
         formData.append("file", data.logoImage);
 
@@ -130,14 +153,17 @@ export default function DeployCollectionForm({
           throw new Error("Collection image upload failed");
         const imageData = await imageResponse.json();
         collectionImageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
+        console.log("Collection image URL:", collectionImageUrl);
       }
 
-      // Upload metadata to IPFS
+      // Create Metadata
+      console.log("Creating metadata...");
       const collectionMetadata = {
         name: data.contractName,
         description: data.contractDescription,
         image: collectionImageUrl,
       };
+      console.log("Collection Metadata:", collectionMetadata);
 
       const collectionMetadataFile = new File(
         [JSON.stringify(collectionMetadata)],
@@ -148,6 +174,7 @@ export default function DeployCollectionForm({
       const metadataFormData = new FormData();
       metadataFormData.append("file", collectionMetadataFile);
 
+      console.log("Uploading metadata to IPFS...");
       const metadataResponse = await fetch(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
         {
@@ -159,21 +186,34 @@ export default function DeployCollectionForm({
 
       if (!metadataResponse.ok) throw new Error("Metadata upload failed");
       const metadataData = await metadataResponse.json();
-      const collectionCID = metadataData.IpfsHash; // Get the IPFS CID
+      const collectionCID = metadataData.IpfsHash;
+      console.log("Collection CID:", collectionCID);
 
       setStagingStatus("minting");
 
-      // **Mint Collection using Smart Contract**
+      // **Debug Before Sending Transaction**
+      console.log("Minting collection with parameters:");
+      console.log("Name:", data.contractName);
+      console.log("Description:", data.contractDescription);
+      console.log("Image URL:", collectionImageUrl);
+      console.log("Metadata CID:", collectionCID);
+      console.log("Sender Address:", await signer.getAddress());
+      console.log("Contract Address:", nftContract.target);
+
+      // **Mint Collection Without Estimating Gas**
       const tx = await nftContract.mintCollection(
         data.contractName,
         data.contractDescription,
         collectionImageUrl,
-        collectionCID
+        collectionCID,
+        { gasLimit: 5000000 }
       );
 
-      await tx.wait();
+      console.log("Transaction Sent:", tx);
+      console.log("Transaction Hash:", tx.hash);
 
-      console.log("Collection minted successfully!", tx.hash);
+      await tx.wait();
+      console.log("Transaction Mined! Receipt:", tx);
 
       setTxHash([tx.hash]);
       setStagingStatus("done");
@@ -184,6 +224,9 @@ export default function DeployCollectionForm({
       return collectionCID;
     } catch (error: unknown) {
       console.error("Error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Transaction failed"
+      );
       setStagingStatus("error");
     }
   };
