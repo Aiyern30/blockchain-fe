@@ -68,8 +68,14 @@ export async function fetchNFTsByCollectionID(
 
     console.log("Fetched NFTs:", nfts);
     return nfts;
-  } catch (error) {
-    console.error("Error fetching NFTs for collection:", error);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    // Type assertion to 'any' to allow code access
+    console.error("Error fetching NFTs for collection:", error.message);
+    if (error.code) {
+      // Now TypeScript knows we can access `error.code`
+      console.log("Error Code:", error.code);
+    }
     return [];
   }
 }
