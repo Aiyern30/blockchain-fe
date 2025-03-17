@@ -359,7 +359,15 @@ export default function CreateNFT() {
           txHash={txHash}
           walletAddress={walletAddress}
           onRetry={() => {
-            reset();
+            reset({
+              contractName: "",
+              supply: 0,
+              contractDescription: "",
+              logoImage: null,
+              status: "PUBLIC",
+              traits: [],
+              externalLink: "",
+            });
             setStagingStatus("idle");
           }}
         />
