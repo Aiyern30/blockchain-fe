@@ -110,11 +110,11 @@ export default function DeployCollectionForm({
       const signer = await provider.getSigner();
 
       const nftContract = getERC721Contract(signer);
+      const collections = await nftContract.getCollections(walletAddress);
 
-      const [names] = await nftContract.getCollections(walletAddress);
-
-      if (names.length > 0) {
-        throw new Error("Collection already exists. Cannot mint again.");
+      const collectionExists = collections.includes(data.contractName);
+      if (collectionExists) {
+        throw new Error(`Collection "${data.contractName}" already exists!`);
       }
 
       setStagingStatus("uploading");
