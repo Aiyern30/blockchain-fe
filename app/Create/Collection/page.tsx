@@ -187,7 +187,6 @@ export default function CreateNFT() {
       const signer = await provider.getSigner();
       const nftContract = getERC721Contract(signer);
 
-      // ✅ Check wallet balance
       const balance = await provider.getBalance(walletClient.account.address);
       if (balance < ethers.parseEther("0.01")) {
         throw new Error("Insufficient ETH balance for gas fees.");
@@ -196,12 +195,10 @@ export default function CreateNFT() {
       const maxSupply = Number(data.supply);
       setStagingStatus("uploading");
 
-      // ✅ Validate Image Upload
       if (!data.logoImage || typeof data.logoImage === "string") {
         throw new Error("Invalid NFT image file");
       }
 
-      // **Upload Collection Image**
       let collectionImageUrl = "";
       const formData = new FormData();
       formData.append("file", data.logoImage);
@@ -219,7 +216,6 @@ export default function CreateNFT() {
       const imageData = await imageResponse.json();
       collectionImageUrl = `https://gateway.pinata.cloud/ipfs/${imageData.IpfsHash}`;
 
-      // **Upload Collection Metadata to IPFS**
       const collectionMetadata = {
         name: data.contractName,
         description: data.contractDescription,
@@ -232,7 +228,7 @@ export default function CreateNFT() {
 
       const collectionMetadataFile = new File(
         [JSON.stringify(collectionMetadata)],
-        "collection-metadata.json",
+        `${data.contractName}.json`,
         { type: "application/json" }
       );
 
@@ -284,7 +280,7 @@ export default function CreateNFT() {
 
         const metadataFile = new File(
           [JSON.stringify(metadata)],
-          `metadata_${i + 1}.json`,
+          `${data.contractName}_${i + 1}.json`,
           { type: "application/json" }
         );
 
@@ -306,7 +302,6 @@ export default function CreateNFT() {
         const metadataData = await metadataUploadResponse.json();
         const tokenURI = `https://gateway.pinata.cloud/ipfs/${metadataData.IpfsHash}`;
 
-        // ✅ Validate IPFS Metadata
         const testResponse = await fetch(tokenURI);
         if (!testResponse.ok) {
           throw new Error(`IPFS metadata not available: ${tokenURI}`);
@@ -315,17 +310,14 @@ export default function CreateNFT() {
         tokenURIs.push(tokenURI);
       }
 
-      // **Mint the NFTs in batch**
       setStagingStatus("minting");
 
-      // Get the contract address to verify it's different
       const contractAddress = await nftContract.getAddress();
       console.log("Contract address:", contractAddress);
       console.log("Wallet address:", walletClient.account.address);
 
-      // Then in your transaction
       const tx = await nftContract.mintMultipleNFTs(
-        walletClient.account.address, // This is the recipient of the NFTs
+        walletClient.account.address,
         tokenURIs,
         {
           value: ethers.parseEther("0.01") * BigInt(maxSupply),
