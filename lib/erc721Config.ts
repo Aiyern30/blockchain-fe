@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0x29F497aA0cC1643e7Fd22047E8c13676DD526809";
+const NFT_CONTRACT_ADDRESS = "0x9a4079559163D9a998684AFaa865e96d6dDe5b22";
 const nftABI = [
   {
     inputs: [],
@@ -528,6 +528,30 @@ const nftABI = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    name: "existingCollections",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "tokenId",
         type: "uint256",
@@ -552,27 +576,34 @@ const nftABI = [
         type: "address",
       },
     ],
-    name: "getCollection",
+    name: "getCollections",
     outputs: [
       {
-        internalType: "string",
+        components: [
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "description",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "image",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "baseURI",
+            type: "string",
+          },
+        ],
+        internalType: "struct MyNFTCollection.Collection[]",
         name: "",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
+        type: "tuple[]",
       },
     ],
     stateMutability: "view",
@@ -1098,6 +1129,11 @@ const nftABI = [
         internalType: "address",
         name: "",
         type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     name: "userCollections",
