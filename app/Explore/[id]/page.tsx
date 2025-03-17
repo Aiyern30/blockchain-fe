@@ -46,10 +46,14 @@ export default function CollectionPage() {
     if (collectionId) {
       console.log("Collection ID from URL:", collectionId);
 
-      fetchNFTsByCollectionID(collectionId).then((fetchedNFTs) => {
-        console.log("Fetched NFTs:", fetchedNFTs);
-        setNfts(fetchedNFTs);
-      });
+      fetchNFTsByCollectionID(collectionId)
+        .then((fetchedNFTs) => {
+          console.log("Fetched NFTs:", fetchedNFTs);
+          setNfts(fetchedNFTs);
+        })
+        .catch((error) => {
+          console.error("Error fetching NFTs for collection:", error);
+        });
     }
   }, [collectionId]);
 
