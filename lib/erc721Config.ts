@@ -579,31 +579,24 @@ const nftABI = [
     name: "getCollections",
     outputs: [
       {
-        components: [
-          {
-            internalType: "string",
-            name: "name",
-            type: "string",
-          },
-          {
-            internalType: "string",
-            name: "description",
-            type: "string",
-          },
-          {
-            internalType: "string",
-            name: "image",
-            type: "string",
-          },
-          {
-            internalType: "string",
-            name: "baseURI",
-            type: "string",
-          },
-        ],
-        internalType: "struct MyNFTCollection.Collection[]",
+        internalType: "string[]",
         name: "",
-        type: "tuple[]",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
       },
     ],
     stateMutability: "view",

@@ -104,27 +104,18 @@ export default function DeployCollectionForm({
     }
 
     try {
-      console.log("Wallet connected:", walletAddress);
       setStagingStatus("checking");
 
       const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
-      console.log("Signer Address:", await signer.getAddress());
 
       const nftContract = getERC721Contract(signer);
-      console.log("NFT Contract Instance:", nftContract);
 
-      const collectionExists = await nftContract.userCollections(walletAddress);
-      console.log("Current Collection Data:", collectionExists);
+      const [names] = await nftContract.getCollections(walletAddress);
 
-      if (collectionExists.name) {
+      if (names.length > 0) {
         throw new Error("Collection already exists. Cannot mint again.");
       }
-
-      const contractOwner = await nftContract.owner();
-      const currentWallet = await signer.getAddress();
-      console.log("Contract Owner:", contractOwner);
-      console.log("Your Wallet Address:", currentWallet);
 
       setStagingStatus("uploading");
 
@@ -146,18 +137,16 @@ export default function DeployCollectionForm({
 
         if (!imageResponse.ok)
           throw new Error("Collection image upload failed");
+
         const imageData = await imageResponse.json();
         collectionImageUrl = `https://ipfs.io/ipfs/${imageData.IpfsHash}`;
-        console.log("Collection image URL:", collectionImageUrl);
       }
 
-      console.log("Creating metadata...");
       const collectionMetadata = {
         name: data.contractName,
         description: data.contractDescription,
         image: collectionImageUrl,
       };
-      console.log("Collection Metadata:", collectionMetadata);
 
       const collectionMetadataFile = new File(
         [JSON.stringify(collectionMetadata)],
@@ -168,7 +157,6 @@ export default function DeployCollectionForm({
       const metadataFormData = new FormData();
       metadataFormData.append("file", collectionMetadataFile);
 
-      console.log("Uploading metadata to IPFS...");
       const metadataResponse = await fetch(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
         {
@@ -181,17 +169,8 @@ export default function DeployCollectionForm({
       if (!metadataResponse.ok) throw new Error("Metadata upload failed");
       const metadataData = await metadataResponse.json();
       const collectionCID = metadataData.IpfsHash;
-      console.log("Collection CID:", collectionCID);
 
       setStagingStatus("minting");
-
-      console.log("Minting collection with parameters:");
-      console.log("Name:", data.contractName);
-      console.log("Description:", data.contractDescription);
-      console.log("Image URL:", collectionImageUrl);
-      console.log("Metadata CID:", collectionCID);
-      console.log("Sender Address:", await signer.getAddress());
-      console.log("Contract Address:", nftContract.target);
 
       const tx = await nftContract.mintCollection(
         data.contractName,
@@ -201,11 +180,7 @@ export default function DeployCollectionForm({
         { gasLimit: 5000000 }
       );
 
-      console.log("Transaction Sent:", tx);
-      console.log("Transaction Hash:", tx.hash);
-
       await tx.wait();
-      console.log("Transaction Mined! Receipt:", tx);
 
       setTxHash([tx.hash]);
       setStagingStatus("done");
@@ -214,7 +189,6 @@ export default function DeployCollectionForm({
 
       return collectionCID;
     } catch (error: unknown) {
-      console.error("Error:", error);
       toast.error(
         error instanceof Error ? error.message : "Transaction failed"
       );
@@ -230,7 +204,13 @@ export default function DeployCollectionForm({
           txHash={txHash}
           walletAddress={walletAddress}
           onRetry={() => {
-            reset();
+            reset({
+              contractName: "",
+              tokenSymbol: "",
+              contractDescription: "",
+              logoImage: null,
+              status: "PUBLIC",
+            });
             setStagingStatus("idle");
           }}
         />
