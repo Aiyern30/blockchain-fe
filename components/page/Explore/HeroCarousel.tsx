@@ -114,8 +114,9 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
                   {item.name || "Unknown"}
                 </h3>
                 <p className="text-gray-400 text-sm mt-1">
-                  Floor Price:{" "}
-                  <span className="font-medium">{item.name || "N/A"}</span>
+                  <span className="font-medium">
+                    {item.description || "N/A"}
+                  </span>
                 </p>
               </CardContent>
             </Card>
