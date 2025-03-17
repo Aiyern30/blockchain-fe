@@ -317,15 +317,18 @@ export default function CreateNFT() {
       // **Mint the NFTs in batch**
       setStagingStatus("minting");
 
-      const gasEstimate = await nftContract.mintMultipleNFTs.estimateGas(
-        walletClient.account.address,
-        tokenURIs
-      );
+      // Get the contract address to verify it's different
+      const contractAddress = await nftContract.getAddress();
+      console.log("Contract address:", contractAddress);
+      console.log("Wallet address:", walletClient.account.address);
 
+      // Then in your transaction
       const tx = await nftContract.mintMultipleNFTs(
-        walletClient.account.address,
+        walletClient.account.address, // This is the recipient of the NFTs
         tokenURIs,
-        { gasLimit: gasEstimate }
+        {
+          value: ethers.parseEther("0.01") * BigInt(maxSupply),
+        }
       );
 
       if (!tx || !tx.hash) {
