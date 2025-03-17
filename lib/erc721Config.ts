@@ -562,6 +562,30 @@ const nftABI = [
   {
     inputs: [
       {
+        internalType: "string",
+        name: "collectionCID",
+        type: "string",
+      },
+    ],
+    name: "getAllNFTsByCID",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "tokenId",
         type: "uint256",

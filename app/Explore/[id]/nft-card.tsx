@@ -3,11 +3,22 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { Button, Card, CardContent, CardFooter } from "@/components/ui";
 import { ShoppingCart } from "lucide-react";
-import { FetchedNFT } from "@/type/NFT";
 import { useRouter } from "next/navigation";
+interface NFTAttribute {
+  type: string;
+  name: string;
+}
 
+interface NFT {
+  name: string;
+  description: string;
+  image: string;
+  external_url: string;
+  attributes: NFTAttribute[];
+  collectionCID: string;
+}
 interface NFTCardProps {
-  nft: FetchedNFT;
+  nft: NFT;
   imageSize: number;
 }
 
@@ -20,11 +31,11 @@ export function NFTCard({ nft, imageSize }: NFTCardProps) {
       onMouseLeave={() => setIsHovered(false)}
       className="relative overflow-hidden"
       style={{ cursor: "pointer" }}
-      onClick={() => router.push(`/Explore/${nft.id}/Details`)}
+      onClick={() => router.push(`/Explore/${nft.collectionCID}/Details`)}
     >
       <CardContent className="p-0">
         <Image
-          alt={nft.title || "NFT Image"}
+          alt={nft.name || "NFT Image"}
           src={nft.image || "/nft-placeholder.png"}
           width={imageSize}
           height={imageSize}
@@ -34,10 +45,10 @@ export function NFTCard({ nft, imageSize }: NFTCardProps) {
       </CardContent>
       <CardFooter className="p-4">
         <div>
-          <h3 className="font-medium">{nft.title}</h3>
-          <p className="text-sm text-foreground">{nft.floor} ETH</p>
+          <h3 className="font-medium">{nft.name}</h3>
+          <p className="text-sm text-foreground">{nft.description} ETH</p>
           <p className="text-sm text-muted-foreground">
-            Last Sale: {nft.floor} ETH
+            Last Sale: {nft.description} ETH
           </p>
         </div>
       </CardFooter>

@@ -12,11 +12,22 @@ import {
   TableRow,
 } from "@/components/ui";
 import Image from "next/image";
-import { FetchedNFT } from "@/type/NFT";
+interface NFTAttribute {
+  type: string;
+  name: string;
+}
 
+interface NFT {
+  name: string;
+  description: string;
+  image: string;
+  external_url: string;
+  attributes: NFTAttribute[];
+  collectionCID: string;
+}
 interface NFTGridProps {
   view: GridView;
-  nfts: FetchedNFT[];
+  nfts: NFT[];
 }
 
 export function NFTGrid({ view, nfts }: NFTGridProps) {
@@ -40,21 +51,21 @@ export function NFTGrid({ view, nfts }: NFTGridProps) {
           </TableHeader>
           <TableBody>
             {nfts.map((nft) => (
-              <TableRow key={nft.id} className="cursor-pointer h-16">
+              <TableRow key={nft.collectionCID} className="cursor-pointer h-16">
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div className="relative w-10 h-10">
                       <Image
                         src={nft.image || "/nft-placeholder.png"}
-                        alt={nft.title || "NFT Image"}
+                        alt={nft.name || "NFT Image"}
                         className="rounded object-cover"
                         fill
                       />
                     </div>
-                    <span>{nft.title}</span>
+                    <span>{nft.name}</span>
                   </div>
                 </TableCell>
-                <TableCell>{nft.floor} ETH</TableCell>
+                <TableCell>{nft.external_url} ETH</TableCell>
                 <TableCell>1.33 WETH</TableCell>
                 <TableCell>--</TableCell>
                 <TableCell>0x1234...5678</TableCell>
@@ -88,7 +99,7 @@ export function NFTGrid({ view, nfts }: NFTGridProps) {
       }}
     >
       {nfts.map((nft) => (
-        <NFTCard key={nft.id} nft={nft} imageSize={imageSize} />
+        <NFTCard key={nft.collectionCID} nft={nft} imageSize={imageSize} />
       ))}
     </div>
   );

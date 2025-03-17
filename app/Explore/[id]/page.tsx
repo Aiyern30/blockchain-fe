@@ -10,12 +10,25 @@ import { ActivityTable } from "./activity-table";
 import { FilterSection } from "./filter-section";
 import { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
-import { fetchNFTsByCollectionId } from "@/utils/fetchNFTsByCollectionId";
-import { FetchedNFT } from "@/type/NFT";
+import { fetchNFTsByCollectionID } from "@/utils/fetchAllNFTsByCID";
+
+interface NFTAttribute {
+  type: string;
+  name: string;
+}
+
+interface NFT {
+  name: string;
+  description: string;
+  image: string;
+  external_url: string;
+  attributes: NFTAttribute[];
+  collectionCID: string;
+}
 
 export default function CollectionPage() {
   const [gridView, setGridView] = useState<GridView>("medium");
-  const [nfts, setNfts] = useState<FetchedNFT[]>([]);
+  const [nfts, setNfts] = useState<NFT[]>([]);
   console.log("NFTs:", nfts);
   const params = useParams();
   const collectionId = params.id as string;
@@ -33,7 +46,7 @@ export default function CollectionPage() {
     if (collectionId) {
       console.log("Collection ID from URL:", collectionId);
 
-      fetchNFTsByCollectionId(collectionId).then((fetchedNFTs) => {
+      fetchNFTsByCollectionID(collectionId).then((fetchedNFTs) => {
         console.log("Fetched NFTs:", fetchedNFTs);
         setNfts(fetchedNFTs);
       });
