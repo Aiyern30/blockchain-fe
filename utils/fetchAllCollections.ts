@@ -27,40 +27,35 @@ export async function fetchAllCollections(): Promise<CollectionData[]> {
     const signer = await provider.getSigner();
     const nftContract = getERC721Contract(signer);
 
-    // ✅ If the contract has a method to get collections directly
-    if (nftContract.getAllCollections) {
-      const collectionURIs: string[] = await nftContract.getAllCollections();
-      const collections: CollectionData[] = [];
+    const rawCollections = await nftContract.getAllCollections();
+    console.log("Raw collections data from contract:", rawCollections);
 
-      for (const uri of collectionURIs) {
-        try {
-          const formattedUrl = formatIPFSUrl(uri);
-          console.log(`Fetching collection metadata: ${formattedUrl}`);
-          const response = await fetch(formattedUrl);
-          if (!response.ok) continue;
-
-          const data = await response.json();
-
-          collections.push({
-            name: data.name || "Unnamed Collection",
-            description: data.description || "No description",
-            image: formatIPFSUrl(data.image),
-            collectionUrl: formattedUrl,
-          });
-        } catch (error) {
-          console.warn(
-            `Error fetching collection metadata from ${uri}:`,
-            error
-          );
-        }
-      }
-
-      console.log("Fetched collections:", collections);
-      return collections;
-    } else {
-      console.error("Contract does not support fetching collections directly.");
+    if (!rawCollections || rawCollections.length === 0) {
+      console.warn("No collections found in contract.");
       return [];
     }
+
+    const [names, descriptions, images, baseURIs]: [
+      string[],
+      string[],
+      string[],
+      string[]
+    ] = rawCollections;
+
+    if (names.length === 0) {
+      console.warn("Collection arrays are empty.");
+      return [];
+    }
+
+    const collections: CollectionData[] = names.map((name, index) => ({
+      name: name || "Unnamed Collection",
+      description: descriptions[index] || "No description",
+      image: formatIPFSUrl(images[index]),
+      collectionUrl: formatIPFSUrl(baseURIs[index]),
+    }));
+
+    console.log("Fetched collections:", collections);
+    return collections;
   } catch (error) {
     console.error("Error fetching collections:", error);
     return [];

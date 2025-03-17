@@ -32,19 +32,16 @@ interface CollectionData {
 export default function NFTCarousel() {
   const { isMobile } = useDeviceType();
   const [collections, setCollections] = useState<CollectionData[]>([]);
+  console.log("collections", collections);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadCollections() {
       setLoading(true);
-
-      const fetchedCollections = await fetchAllCollections();
-      console.log("Fetched Collections for HeroCarousel:", fetchedCollections);
-
-      setCollections(fetchedCollections);
+      const collections = await fetchAllCollections();
+      setCollections(collections);
       setLoading(false);
     }
-
     loadCollections();
   }, []);
 
