@@ -100,7 +100,9 @@ export default function CreateNFT() {
     name: string;
     description: string;
     image: string;
+    cid: string;
   } | null>(null);
+
   useEffect(() => {
     if (address) {
       setWalletAddress(address);
@@ -154,7 +156,8 @@ export default function CreateNFT() {
       setCollectionData({
         name: metadata.name,
         description: metadata.description,
-        image: metadata.image, // Make sure this is a valid URL
+        image: metadata.image,
+        cid,
       });
     } catch (error) {
       console.error("Error fetching collection data:", error);
@@ -248,7 +251,6 @@ export default function CreateNFT() {
       if (!collectionResponse.ok)
         throw new Error("Collection metadata upload failed");
       const collectionData = await collectionResponse.json();
-      const collectionMetadataUrl = `https://gateway.pinata.cloud/ipfs/${collectionData.IpfsHash}`;
 
       setStagingStatus("uploading");
 
@@ -271,14 +273,13 @@ export default function CreateNFT() {
         const nftImageData = await nftImageUploadResponse.json();
         const imageUrl = `https://gateway.pinata.cloud/ipfs/${nftImageData.IpfsHash}`;
 
-        // **Upload metadata for each NFT**
         const metadata = {
           name: `${data.contractName} #${i + 1}`,
           description: data.contractDescription,
           image: imageUrl,
           external_url: data.externalLink,
           attributes: data.traits,
-          collection: collectionMetadataUrl,
+          collectionCID: collectionData.cid,
         };
 
         const metadataFile = new File(
