@@ -246,7 +246,20 @@ export default function CreateNFT() {
 
       if (!collectionResponse.ok)
         throw new Error("Collection metadata upload failed");
-      const collectionData = await collectionResponse.json();
+
+      const collectionDataResponse = await collectionResponse.json();
+      const collectionCID = collectionDataResponse.IpfsHash;
+
+      setCollectionData({
+        name: data.contractName,
+        description: data.contractDescription,
+        image: collectionImageUrl,
+        cid: collectionCID,
+      });
+
+      console.log("Collection CID stored in state:", collectionCID);
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setStagingStatus("uploading");
 
@@ -266,6 +279,7 @@ export default function CreateNFT() {
 
         if (!nftImageUploadResponse.ok)
           throw new Error("NFT image upload failed");
+
         const nftImageData = await nftImageUploadResponse.json();
         const imageUrl = `https://gateway.pinata.cloud/ipfs/${nftImageData.IpfsHash}`;
 
@@ -275,7 +289,7 @@ export default function CreateNFT() {
           image: imageUrl,
           external_url: data.externalLink,
           attributes: data.traits,
-          collectionCID: collectionData.cid,
+          collectionCID: collectionData?.cid || "", // ✅ Use the stored state value
         };
 
         const metadataFile = new File(
