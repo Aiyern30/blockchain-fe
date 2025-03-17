@@ -1,12 +1,7 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0x9a4079559163D9a998684AFaa865e96d6dDe5b22";
+const NFT_CONTRACT_ADDRESS = "0xC0dBEa157C302B1412F91efd8c1D4c07447Ce3E1";
 const nftABI = [
-  {
-    inputs: [],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
   {
     inputs: [
       {
@@ -246,37 +241,6 @@ const nftABI = [
       },
     ],
     name: "CollectionCreated",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "string",
-        name: "name",
-        type: "string",
-      },
-      {
-        indexed: false,
-        internalType: "string",
-        name: "description",
-        type: "string",
-      },
-      {
-        indexed: false,
-        internalType: "string",
-        name: "image",
-        type: "string",
-      },
-      {
-        indexed: false,
-        internalType: "string",
-        name: "baseURI",
-        type: "string",
-      },
-    ],
-    name: "CollectionMetadataUpdated",
     type: "event",
   },
   {
@@ -544,6 +508,52 @@ const nftABI = [
         internalType: "bool",
         name: "",
         type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getAllCollections",
+    outputs: [
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getAllNFTs",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
       },
     ],
     stateMutability: "view",
