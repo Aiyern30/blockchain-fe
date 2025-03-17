@@ -18,43 +18,30 @@ import { TableSkeleton } from "@/components/page/Explore/TableSkeleton";
 import DrawingCarousel from "./DrawingCarousel";
 import HeroCarousel from "@/components/page/Explore/HeroCarousel";
 // import CryptoTable from "@/components/page/Explore/CryptoTable";
-import { fetchCollectionsWithNFTs } from "@/utils/fetchNFTsByCollection";
-import { Collection } from "@/type/NFT";
+import { fetchAllCollections } from "@/utils/fetchAllCollections";
 
 const timeFrames = ["1h", "6h", "24h", "7d"];
 
+interface CollectionData {
+  name: string;
+  description: string;
+  image: string;
+  collectionUrl: string;
+}
+
 export default function NFTCarousel() {
   const { isMobile } = useDeviceType();
-  const [collections, setCollections] = useState<Collection[]>([]);
-
-  const shouldSplit = collections.length > 5;
-
+  const [collections, setCollections] = useState<CollectionData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadCollections() {
       setLoading(true);
 
-      const fetchedCollections = await fetchCollectionsWithNFTs();
-      console.log("Fetched Collections:", fetchedCollections);
+      const fetchedCollections = await fetchAllCollections();
+      console.log("Fetched Collections for HeroCarousel:", fetchedCollections);
 
-      // Format collections for HeroCarousel
-      const formattedCollections = fetchedCollections.map((collection) => ({
-        name: collection.name,
-        description: collection.description || "",
-        floorPrice: collection.nfts
-          ? collection.nfts
-              .reduce(
-                (sum, nft) => sum + (parseFloat(nft.floor || "0") || 0),
-                0
-              )
-              .toFixed(2)
-          : "0.00",
-        image: collection.image || "",
-        id: collection.collectionUrl || "",
-      }));
-
-      setCollections(formattedCollections);
+      setCollections(fetchedCollections);
       setLoading(false);
     }
 
@@ -114,8 +101,8 @@ export default function NFTCarousel() {
         </div>
       </div>
 
-      <TableSkeleton isMobile={isMobile} shouldSplit={shouldSplit} />
-      {/* <CryptoTable collections={collections} shouldSplit={shouldSplit} /> */}
+      <TableSkeleton isMobile={isMobile} shouldSplit={collections.length > 5} />
+      {/* <CryptoTable collections={collections} shouldSplit={collections.length > 5} /> */}
       <DrawingCarousel />
     </>
   );

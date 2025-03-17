@@ -11,11 +11,16 @@ import Image from "next/image";
 import { useDeviceType } from "@/utils/useDeviceType";
 import { useRouter } from "next/navigation";
 import { extractCID } from "@/utils/function";
-import { Collection } from "@/type/NFT";
+interface CollectionData {
+  name: string;
+  description: string;
+  image: string;
+  collectionUrl: string;
+}
 
 interface HeroCarouselProps {
   categories: string[];
-  items: Collection[];
+  items: CollectionData[];
 }
 
 const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
@@ -88,7 +93,7 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
               key={index}
               className="relative w-full overflow-hidden group rounded-2xl shadow-xl cursor-pointer flex flex-col items-center p-4 transition"
               onClick={() => {
-                const collectionId = extractCID(item.id);
+                const collectionId = extractCID(item.collectionUrl);
                 console.log(collectionId);
                 router.push(`/Explore/${collectionId}`);
               }}
@@ -110,9 +115,7 @@ const HeroCarousel = ({ categories, items }: HeroCarouselProps) => {
                 </h3>
                 <p className="text-gray-400 text-sm mt-1">
                   Floor Price:{" "}
-                  <span className="font-medium">
-                    {item.floorPrice || "N/A"}
-                  </span>
+                  <span className="font-medium">{item.name || "N/A"}</span>
                 </p>
               </CardContent>
             </Card>
