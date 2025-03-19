@@ -19,15 +19,26 @@ import {
   base,
   sepolia,
   hardhat,
+  scroll,
+  scrollSepolia,
 } from "wagmi/chains";
 
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
   projectId: process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || "",
-  chains: [mainnet, polygon, optimism, arbitrum, base, sepolia, hardhat],
+  chains: [
+    mainnet,
+    polygon,
+    optimism,
+    arbitrum,
+    base,
+    sepolia,
+    hardhat,
+    scroll,
+    scrollSepolia,
+  ],
   ssr: true,
 });
-
 const queryClient = new QueryClient();
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
