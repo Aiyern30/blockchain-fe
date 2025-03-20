@@ -32,6 +32,7 @@ export default function CollectionPage() {
   console.log("NFTs:", nfts);
   const params = useParams();
   const collectionId = params.id as string;
+  console.log("Collection ID from URL:", collectionId, typeof collectionId);
 
   useEffect(() => {
     if (typeof window !== "undefined") {

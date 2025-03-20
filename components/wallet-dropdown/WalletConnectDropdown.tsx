@@ -45,7 +45,8 @@ const Web3AuthIcon = () => (
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
   chainId: "0xaa36a7", // Ethereum Sepolia Testnet
-  rpcTarget: "https://rpc.ankr.com/eth_sepolia",
+  rpcTarget:
+    "https://eth-sepolia.g.alchemy.com/v2/IoU88nbTo3frUeQnfe1_SeaZ3Jawq8bZ",
   displayName: "Ethereum Sepolia Testnet",
   blockExplorerUrl: "https://sepolia.etherscan.io",
   ticker: "ETH",

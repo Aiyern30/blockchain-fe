@@ -1,12 +1,11 @@
-import { getERC721Contract } from "@/lib/erc721Config";
-import { ethers } from "ethers";
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface NFTAttribute {
   type: string;
   name: string;
 }
 
 interface NFT {
+  tokenId: string;
   name: string;
   description: string;
   image: string;
@@ -17,76 +16,53 @@ interface NFT {
 
 function formatIPFSUrl(url: string): string {
   if (!url) return "";
-
-  if (url.startsWith("ipfs://")) {
-    return url.replace("ipfs://", "https://ipfs.io/ipfs/");
-  }
-
-  return url;
+  return url.startsWith("ipfs://")
+    ? url.replace("ipfs://", "https://ipfs.io/ipfs/")
+    : url;
 }
 
 export async function fetchNFTsByCollectionID(
   collectionCID: string
 ): Promise<NFT[]> {
   try {
-    console.log(`Fetching NFTs for collection: ${collectionCID}...`);
+    const baseUrl = `https://ipfs.io/ipfs/${collectionCID}`;
+    console.log(`Fetching NFTs metadata from IPFS: ${baseUrl}`);
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const nftContract = getERC721Contract(signer);
+    const response = await fetch(baseUrl);
+    if (!response.ok) throw new Error("Failed to fetch collection metadata");
 
-    const rawNFTs = await nftContract.getAllNFTsByCID(collectionCID);
-    console.log("Raw NFTs data from contract:", rawNFTs);
+    const collectionMetadata = await response.json();
+    console.log("Fetched collection metadata from IPFS:", collectionMetadata);
 
-    if (!rawNFTs || rawNFTs.length === 0) {
-      console.warn("No NFTs found for the specified collection.");
-      return [];
+    if (!collectionMetadata.nfts || !Array.isArray(collectionMetadata.nfts)) {
+      throw new Error("No NFT list found in the collection metadata.");
     }
 
-    const [tokenIds, uris]: [ethers.BigNumberish[], string[]] = rawNFTs;
-
-    if (tokenIds.length === 0) {
-      console.warn("NFT arrays are empty.");
-      return [];
-    }
-
-    const nfts: NFT[] = await Promise.all(
-      tokenIds.map(async (tokenId, index) => {
-        const tokenURI = uris[index];
-        const metadata = await fetchMetadataFromIPFS(tokenURI);
+    // Fetch metadata for each NFT in the collection
+    const nftPromises = collectionMetadata.nfts.map(
+      async (nftCID: string, index: number) => {
+        const nftResponse = await fetch(`https://ipfs.io/ipfs/${nftCID}`);
+        if (!nftResponse.ok)
+          throw new Error(`Failed to fetch NFT metadata: ${nftCID}`);
+        const nftMetadata = await nftResponse.json();
 
         return {
-          name: metadata.name || "Unnamed NFT",
-          description: metadata.description || "No description",
-          image: formatIPFSUrl(metadata.image),
-          external_url: metadata.external_url || "",
-          attributes: metadata.attributes || [],
+          tokenId: index.toString(),
+          name: nftMetadata.name || "Unnamed NFT",
+          description: nftMetadata.description || "No description",
+          image: formatIPFSUrl(nftMetadata.image),
+          external_url: nftMetadata.external_url || "",
+          attributes: nftMetadata.attributes || [],
           collectionCID: collectionCID,
         };
-      })
+      }
     );
 
+    const nfts = await Promise.all(nftPromises);
     console.log("Fetched NFTs:", nfts);
     return nfts;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    // Type assertion to 'any' to allow code access
-    console.error("Error fetching NFTs for collection:", error.message);
-    if (error.code) {
-      // Now TypeScript knows we can access `error.code`
-      console.log("Error Code:", error.code);
-    }
-    return [];
-  }
-}
-
-async function fetchMetadataFromIPFS(tokenURI: string) {
-  try {
-    const response = await fetch(formatIPFSUrl(tokenURI));
-    const metadata = await response.json();
-    return metadata;
   } catch (error) {
-    console.error("Error fetching metadata from IPFS:", error);
-    return {};
+    console.error("Error fetching NFTs from IPFS:", error);
+    return [];
   }
 }

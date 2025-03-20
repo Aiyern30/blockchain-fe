@@ -30,11 +30,10 @@ import { ethers } from "ethers";
 import NFTMintingUI from "./page/Explore/Create/Drop/NFTMintingUI";
 
 type FormValues = {
-  contractName: string;
+  collectionName: string;
   tokenSymbol: string;
-  contractDescription: string;
-  logoImage: File | string | null;
-  status: "PUBLIC" | "PRIVATE";
+  collectionDescription: string;
+  collectionImage: File | string | null;
 };
 type Blockchain = "ethereum" | "base" | null;
 interface DeployCollectionForm {
@@ -65,12 +64,12 @@ export default function DeployCollectionForm({
 
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
-        setValue("logoImage", null);
+        setValue("collectionImage", null);
         toast.error("File size exceeds 50MB!");
         return;
       }
 
-      setValue("logoImage", file, { shouldValidate: true });
+      setValue("collectionImage", file, { shouldValidate: true });
       setImageUrl(URL.createObjectURL(file));
     }
   };
@@ -78,18 +77,17 @@ export default function DeployCollectionForm({
   const formMethods = useForm<FormValues>({
     mode: "onChange",
     defaultValues: {
-      contractName: "",
+      collectionName: "",
       tokenSymbol: "",
-      contractDescription: "",
-      logoImage: null,
-      status: "PUBLIC",
+      collectionDescription: "",
+      collectionImage: null,
     },
   });
   const { reset } = formMethods;
 
   const { handleSubmit, control, setValue, watch, formState } = formMethods;
   const { errors, isValid } = formState;
-  const selectedFile = watch("logoImage");
+  const selectedFile = watch("collectionImage");
 
   useEffect(() => {
     if (address) {
@@ -112,19 +110,19 @@ export default function DeployCollectionForm({
       const nftContract = getERC721Contract(signer);
       const collections = await nftContract.getCollections(walletAddress);
 
-      const collectionExists = collections.includes(data.contractName);
+      const collectionExists = collections.includes(data.collectionName);
       if (collectionExists) {
-        throw new Error(`Collection "${data.contractName}" already exists!`);
+        throw new Error(`Collection "${data.collectionName}" already exists!`);
       }
 
       setStagingStatus("uploading");
 
       let collectionImageUrl = "";
 
-      if (data.logoImage && typeof data.logoImage !== "string") {
+      if (data.collectionImage && typeof data.collectionImage !== "string") {
         console.log("Uploading collection image to IPFS...");
         const formData = new FormData();
-        formData.append("file", data.logoImage);
+        formData.append("file", data.collectionImage);
 
         const imageResponse = await fetch(
           "https://api.pinata.cloud/pinning/pinFileToIPFS",
@@ -143,14 +141,14 @@ export default function DeployCollectionForm({
       }
 
       const collectionMetadata = {
-        name: data.contractName,
-        description: data.contractDescription,
+        name: data.collectionName,
+        description: data.collectionDescription,
         image: collectionImageUrl,
       };
 
       const collectionMetadataFile = new File(
         [JSON.stringify(collectionMetadata)],
-        `${data.contractName}.json`,
+        `${data.collectionName}.json`,
         { type: "application/json" }
       );
 
@@ -173,8 +171,8 @@ export default function DeployCollectionForm({
       setStagingStatus("minting");
 
       const tx = await nftContract.mintCollection(
-        data.contractName,
-        data.contractDescription,
+        data.collectionName,
+        data.collectionDescription,
         collectionImageUrl,
         collectionCID,
         { gasLimit: 5000000 }
@@ -205,11 +203,10 @@ export default function DeployCollectionForm({
           walletAddress={walletAddress}
           onRetry={() => {
             reset({
-              contractName: "",
+              collectionName: "",
               tokenSymbol: "",
-              contractDescription: "",
-              logoImage: null,
-              status: "PUBLIC",
+              collectionDescription: "",
+              collectionImage: null,
             });
             setStagingStatus("idle");
           }}
@@ -231,14 +228,16 @@ export default function DeployCollectionForm({
                 <div className="space-y-6">
                   <FormField
                     control={control}
-                    name="logoImage"
+                    name="collectionImage"
                     rules={{
                       required: "A logo image is required!",
                     }}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel
-                          className={cn(errors.logoImage && "text-red-500")}
+                          className={cn(
+                            errors.collectionImage && "text-red-500"
+                          )}
                         >
                           Logo Image
                         </FormLabel>
@@ -294,7 +293,7 @@ export default function DeployCollectionForm({
                   <div className="grid gap-6 sm:grid-cols-2">
                     <FormField
                       control={control}
-                      name="contractName"
+                      name="collectionName"
                       rules={{ required: "Contract name is required" }}
                       render={({ field }) => (
                         <FormItem>
@@ -327,7 +326,7 @@ export default function DeployCollectionForm({
                   <div className="grid grid-cols-1">
                     <FormField
                       control={control}
-                      name="contractDescription"
+                      name="collectionDescription"
                       rules={{
                         required: "Contract description is required",
                         maxLength: {
