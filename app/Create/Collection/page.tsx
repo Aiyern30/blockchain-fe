@@ -52,11 +52,10 @@ export default function CreateNFT() {
   };
 
   type FormValues = {
-    contractName: string;
+    collectionName: string;
     tokenSymbol: string;
-    contractDescription: string;
-    logoImage: File | string | null;
-    status: "PUBLIC" | "PRIVATE";
+    collectionDescription: string;
+    collectionImage: File | string | null;
   };
 
   const formMethods = useForm<ContractFormValues>({
@@ -199,6 +198,9 @@ export default function CreateNFT() {
         throw new Error("Invalid NFT image file");
       }
 
+      /** =======================
+       * Upload Collection Image
+       * ======================== */
       let collectionImageUrl = "";
       const formData = new FormData();
       formData.append("file", data.logoImage);
@@ -216,6 +218,9 @@ export default function CreateNFT() {
       const imageData = await imageResponse.json();
       collectionImageUrl = `https://gateway.pinata.cloud/ipfs/${imageData.IpfsHash}`;
 
+      /** =======================
+       * Upload Collection Metadata
+       * ======================== */
       const collectionMetadata = {
         name: data.contractName,
         description: data.contractDescription,
@@ -259,37 +264,44 @@ export default function CreateNFT() {
 
       console.log("Collection CID stored in state:", collectionCID);
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+      /** =======================
+       * Upload NFT Image ONCE
+       * ======================== */
       setStagingStatus("uploading");
 
+      let nftImageCID = "";
+      const nftImageFormData = new FormData();
+      nftImageFormData.append("file", data.logoImage);
+
+      const nftImageUploadResponse = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${PINATA_JWT}` },
+          body: nftImageFormData,
+        }
+      );
+
+      if (!nftImageUploadResponse.ok)
+        throw new Error("NFT image upload failed");
+
+      const nftImageData = await nftImageUploadResponse.json();
+      nftImageCID = nftImageData.IpfsHash;
+      const nftImageUrl = `https://gateway.pinata.cloud/ipfs/${nftImageCID}`;
+
+      /** =======================
+       * Upload Metadata for Each NFT
+       * ======================== */
       const tokenURIs: string[] = [];
+
       for (let i = 0; i < maxSupply; i++) {
-        const nftImageFormData = new FormData();
-        nftImageFormData.append("file", data.logoImage);
-
-        const nftImageUploadResponse = await fetch(
-          "https://api.pinata.cloud/pinning/pinFileToIPFS",
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${PINATA_JWT}` },
-            body: nftImageFormData,
-          }
-        );
-
-        if (!nftImageUploadResponse.ok)
-          throw new Error("NFT image upload failed");
-
-        const nftImageData = await nftImageUploadResponse.json();
-        const imageUrl = `https://gateway.pinata.cloud/ipfs/${nftImageData.IpfsHash}`;
-
         const metadata = {
           name: `${data.contractName} #${i + 1}`,
           description: data.contractDescription,
-          image: imageUrl,
+          image: nftImageUrl, // ✅ Use the same uploaded image for all NFTs
           external_url: data.externalLink,
           attributes: data.traits,
-          collectionCID: collectionData?.cid || "", // ✅ Use the stored state value
+          collectionCID: collectionData?.cid || "",
         };
 
         const metadataFile = new File(
@@ -324,6 +336,9 @@ export default function CreateNFT() {
         tokenURIs.push(tokenURI);
       }
 
+      /** =======================
+       * Mint NFTs
+       * ======================== */
       setStagingStatus("minting");
 
       const contractAddress = await nftContract.getAddress();

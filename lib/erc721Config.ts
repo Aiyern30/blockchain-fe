@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0xC0dBEa157C302B1412F91efd8c1D4c07447Ce3E1";
+const NFT_CONTRACT_ADDRESS = "0xDfE8B2856dbb45E930823fF2bAcdaf0784cD2FCf";
 const nftABI = [
   {
     inputs: [
@@ -605,6 +605,25 @@ const nftABI = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+    ],
+    name: "getCollectionByToken",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "_owner",
         type: "address",
@@ -836,6 +855,11 @@ const nftABI = [
         name: "tokenURI",
         type: "string",
       },
+      {
+        internalType: "string",
+        name: "collectionCID",
+        type: "string",
+      },
     ],
     name: "mintNFT",
     outputs: [
@@ -888,6 +912,25 @@ const nftABI = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "nftToCollection",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
       },
     ],
     stateMutability: "view",
