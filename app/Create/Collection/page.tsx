@@ -180,27 +180,26 @@ export default function CreateNFT() {
     }
 
     try {
+      console.log("🚀 Starting minting process...");
       setStagingStatus("checking");
 
       const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
       const nftContract = getERC721Contract(signer);
 
-      const balance = await provider.getBalance(walletClient.account.address);
-      if (balance < ethers.parseEther("0.01")) {
-        throw new Error("Insufficient ETH balance for gas fees.");
-      }
+      console.log("✅ Connected to contract:", await nftContract.getAddress());
+      console.log("👤 Wallet address:", walletClient.account.address);
 
-      const maxSupply = Number(data.supply);
       setStagingStatus("uploading");
-
-      if (!data.logoImage || typeof data.logoImage === "string") {
-        throw new Error("Invalid NFT image file");
-      }
 
       /** =======================
        * Upload Collection Image
        * ======================== */
+      if (!data.logoImage || typeof data.logoImage === "string") {
+        throw new Error("❌ Invalid NFT image file");
+      }
+
+      console.log("📤 Uploading collection image...");
       let collectionImageUrl = "";
       const formData = new FormData();
       formData.append("file", data.logoImage);
@@ -214,19 +213,23 @@ export default function CreateNFT() {
         }
       );
 
-      if (!imageResponse.ok) throw new Error("Collection image upload failed");
+      if (!imageResponse.ok)
+        throw new Error("❌ Collection image upload failed");
       const imageData = await imageResponse.json();
       collectionImageUrl = `https://gateway.pinata.cloud/ipfs/${imageData.IpfsHash}`;
+
+      console.log("✅ Collection image uploaded:", collectionImageUrl);
 
       /** =======================
        * Upload Collection Metadata
        * ======================== */
+      console.log("📤 Uploading collection metadata...");
       const collectionMetadata = {
         name: data.contractName,
         description: data.contractDescription,
         image: collectionImageUrl,
         external_url: data.externalLink,
-        supply: maxSupply,
+        supply: Number(data.supply),
         blockchain: "ethereum",
         owner: walletClient.account.address,
       };
@@ -250,25 +253,14 @@ export default function CreateNFT() {
       );
 
       if (!collectionResponse.ok)
-        throw new Error("Collection metadata upload failed");
-
-      const collectionDataResponse = await collectionResponse.json();
-      const collectionCID = collectionDataResponse.IpfsHash;
-
-      setCollectionData({
-        name: data.contractName,
-        description: data.contractDescription,
-        image: collectionImageUrl,
-        cid: collectionCID,
-      });
-
-      console.log("Collection CID stored in state:", collectionCID);
+        throw new Error("❌ Collection metadata upload failed");
+      const collectionData = await collectionResponse.json();
+      console.log("✅ Collection metadata uploaded:", collectionData);
 
       /** =======================
        * Upload NFT Image ONCE
        * ======================== */
-      setStagingStatus("uploading");
-
+      console.log("📤 Uploading NFT image...");
       let nftImageCID = "";
       const nftImageFormData = new FormData();
       nftImageFormData.append("file", data.logoImage);
@@ -283,25 +275,27 @@ export default function CreateNFT() {
       );
 
       if (!nftImageUploadResponse.ok)
-        throw new Error("NFT image upload failed");
+        throw new Error("❌ NFT image upload failed");
 
       const nftImageData = await nftImageUploadResponse.json();
       nftImageCID = nftImageData.IpfsHash;
       const nftImageUrl = `https://gateway.pinata.cloud/ipfs/${nftImageCID}`;
+      console.log("✅ NFT image uploaded:", nftImageUrl);
 
       /** =======================
        * Upload Metadata for Each NFT
        * ======================== */
+      console.log("📤 Uploading metadata for", data.supply, "NFTs...");
       const tokenURIs: string[] = [];
 
-      for (let i = 0; i < maxSupply; i++) {
+      for (let i = 0; i < Number(data.supply); i++) {
         const metadata = {
           name: `${data.contractName} #${i + 1}`,
           description: data.contractDescription,
-          image: nftImageUrl, // ✅ Use the same uploaded image for all NFTs
+          image: nftImageUrl,
           external_url: data.externalLink,
           attributes: data.traits,
-          collectionCID: collectionData?.cid || "",
+          collectionCID: collectionData?.IpfsHash || "",
         };
 
         const metadataFile = new File(
@@ -323,55 +317,80 @@ export default function CreateNFT() {
         );
 
         if (!metadataUploadResponse.ok)
-          throw new Error("Metadata upload failed");
+          throw new Error(`❌ Metadata upload failed for NFT #${i + 1}`);
 
         const metadataData = await metadataUploadResponse.json();
         const tokenURI = `https://gateway.pinata.cloud/ipfs/${metadataData.IpfsHash}`;
 
-        const testResponse = await fetch(tokenURI);
-        if (!testResponse.ok) {
-          throw new Error(`IPFS metadata not available: ${tokenURI}`);
-        }
-
+        console.log(`✅ Metadata for NFT #${i + 1} uploaded:`, tokenURI);
         tokenURIs.push(tokenURI);
       }
 
+      if (tokenURIs.length === 0) {
+        throw new Error("❌ No token URIs found. Minting aborted.");
+      }
+
       /** =======================
-       * Mint NFTs
+       * Check User Collection
+       * ======================== */
+      console.log("🔎 Checking user collections...");
+      const collections = await nftContract.getCollections(
+        walletClient.account.address
+      );
+      console.log("📂 User collections:", collections);
+
+      if (collections[0].length === 0) {
+        throw new Error("❌ User does not have a collection. Minting aborted.");
+      }
+
+      /** =======================
+       * Estimate Gas & Mint NFTs
        * ======================== */
       setStagingStatus("minting");
 
-      const contractAddress = await nftContract.getAddress();
-      console.log("Contract address:", contractAddress);
-      console.log("Wallet address:", walletClient.account.address);
+      const mintCost = ethers.parseEther("0.01") * BigInt(tokenURIs.length);
+      console.log("💰 Minting fee required:", mintCost.toString());
 
+      let gasLimit;
+      try {
+        const gasEstimate = await nftContract.mintMultipleNFTs.estimateGas(
+          walletClient.account.address,
+          tokenURIs,
+          { value: mintCost }
+        );
+        gasLimit = gasEstimate + BigInt(100000);
+      } catch (err) {
+        console.warn("⚠️ Gas estimation failed:", err);
+        gasLimit = ethers.parseUnits("300000", "wei");
+      }
+
+      console.log("⛽ Gas limit set:", gasLimit.toString());
+
+      console.log("🚀 Sending mint transaction...");
       const tx = await nftContract.mintMultipleNFTs(
         walletClient.account.address,
         tokenURIs,
-        {
-          value: ethers.parseEther("0.01") * BigInt(maxSupply),
-        }
+        { value: mintCost, gasLimit: gasLimit }
       );
 
       if (!tx || !tx.hash) {
-        throw new Error("Transaction failed to send.");
+        throw new Error("❌ Transaction failed to send.");
       }
 
+      console.log("✅ Transaction sent! Waiting for confirmation...", tx.hash);
       await tx.wait();
-
-      console.log("NFTs minted successfully!", tx.hash);
+      console.log("🎉 NFTs minted successfully!", tx.hash);
       setTxHash([tx.hash]);
       setStagingStatus("done");
     } catch (error: unknown) {
-      console.error("Error:", error);
-
+      console.error("❌ Error:", error);
       const err = error as { code?: number; message?: string };
 
       if (
         err?.code === 4001 ||
         err?.message?.includes("User denied transaction signature")
       ) {
-        console.warn("User rejected the transaction.");
+        console.warn("⚠️ User rejected the transaction.");
         setStagingStatus("cancelled");
         return;
       }

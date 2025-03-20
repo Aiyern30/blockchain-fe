@@ -28,9 +28,9 @@ import { StatsChart } from "./stats-chart";
 import { MetricsCard } from "./MetricsCard";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { fetchNFTByCID } from "@/utils/fetchNFTByCID";
 import { FetchedNFT } from "@/type/NFT";
 import { convertEthToUsd } from "@/utils/converter";
+import { fetchNFTByCID } from "@/utils/fetchNFTByCID";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const activities = Array.from({ length: 5 }).map((_, i) => ({
