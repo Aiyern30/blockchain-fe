@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0x741dbd056b78A54085Bb21816aF30a522ae2d8C9";
+const NFT_CONTRACT_ADDRESS = "0xe1f42C2a7a900b45829279636C84d647f7abeb9D";
 const nftABI = [
   {
     inputs: [
@@ -241,6 +241,37 @@ const nftABI = [
       },
     ],
     name: "CollectionCreated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "mintingFee",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "numNFTs",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "totalCost",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "receivedValue",
+        type: "uint256",
+      },
+    ],
+    name: "DebugLog",
     type: "event",
   },
   {
