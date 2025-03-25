@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0xDfE8B2856dbb45E930823fF2bAcdaf0784cD2FCf";
+const NFT_CONTRACT_ADDRESS = "0x741dbd056b78A54085Bb21816aF30a522ae2d8C9";
 const nftABI = [
   {
     inputs: [

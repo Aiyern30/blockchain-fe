@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import type React from "react";
@@ -200,24 +201,7 @@ export default function CreateNFT() {
       }
 
       console.log("📤 Uploading collection image...");
-      let collectionImageUrl = "";
-      const formData = new FormData();
-      formData.append("file", data.logoImage);
-
-      const imageResponse = await fetch(
-        "https://api.pinata.cloud/pinning/pinFileToIPFS",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${PINATA_JWT}` },
-          body: formData,
-        }
-      );
-
-      if (!imageResponse.ok)
-        throw new Error("❌ Collection image upload failed");
-      const imageData = await imageResponse.json();
-      collectionImageUrl = `https://gateway.pinata.cloud/ipfs/${imageData.IpfsHash}`;
-
+      const collectionImageUrl = await uploadToIPFS(data.logoImage);
       console.log("✅ Collection image uploaded:", collectionImageUrl);
 
       /** =======================
@@ -234,52 +218,14 @@ export default function CreateNFT() {
         owner: walletClient.account.address,
       };
 
-      const collectionMetadataFile = new File(
-        [JSON.stringify(collectionMetadata)],
-        `${data.contractName}.json`,
-        { type: "application/json" }
-      );
-
-      const collectionFormData = new FormData();
-      collectionFormData.append("file", collectionMetadataFile);
-
-      const collectionResponse = await fetch(
-        "https://api.pinata.cloud/pinning/pinFileToIPFS",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${PINATA_JWT}` },
-          body: collectionFormData,
-        }
-      );
-
-      if (!collectionResponse.ok)
-        throw new Error("❌ Collection metadata upload failed");
-      const collectionData = await collectionResponse.json();
-      console.log("✅ Collection metadata uploaded:", collectionData);
+      const collectionMetadataCID = await uploadJSONToIPFS(collectionMetadata);
+      console.log("✅ Collection metadata uploaded:", collectionMetadataCID);
 
       /** =======================
        * Upload NFT Image ONCE
        * ======================== */
       console.log("📤 Uploading NFT image...");
-      let nftImageCID = "";
-      const nftImageFormData = new FormData();
-      nftImageFormData.append("file", data.logoImage);
-
-      const nftImageUploadResponse = await fetch(
-        "https://api.pinata.cloud/pinning/pinFileToIPFS",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${PINATA_JWT}` },
-          body: nftImageFormData,
-        }
-      );
-
-      if (!nftImageUploadResponse.ok)
-        throw new Error("❌ NFT image upload failed");
-
-      const nftImageData = await nftImageUploadResponse.json();
-      nftImageCID = nftImageData.IpfsHash;
-      const nftImageUrl = `https://gateway.pinata.cloud/ipfs/${nftImageCID}`;
+      const nftImageUrl = await uploadToIPFS(data.logoImage);
       console.log("✅ NFT image uploaded:", nftImageUrl);
 
       /** =======================
@@ -295,33 +241,11 @@ export default function CreateNFT() {
           image: nftImageUrl,
           external_url: data.externalLink,
           attributes: data.traits,
-          collectionCID: collectionData?.IpfsHash || "",
+          collectionCID: collectionMetadataCID,
         };
 
-        const metadataFile = new File(
-          [JSON.stringify(metadata)],
-          `${data.contractName}_${i + 1}.json`,
-          { type: "application/json" }
-        );
-
-        const metadataFormData = new FormData();
-        metadataFormData.append("file", metadataFile);
-
-        const metadataUploadResponse = await fetch(
-          "https://api.pinata.cloud/pinning/pinFileToIPFS",
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${PINATA_JWT}` },
-            body: metadataFormData,
-          }
-        );
-
-        if (!metadataUploadResponse.ok)
-          throw new Error(`❌ Metadata upload failed for NFT #${i + 1}`);
-
-        const metadataData = await metadataUploadResponse.json();
-        const tokenURI = `https://gateway.pinata.cloud/ipfs/${metadataData.IpfsHash}`;
-
+        const metadataCID = await uploadJSONToIPFS(metadata);
+        const tokenURI = `https://gateway.pinata.cloud/ipfs/${metadataCID}`;
         console.log(`✅ Metadata for NFT #${i + 1} uploaded:`, tokenURI);
         tokenURIs.push(tokenURI);
       }
@@ -331,27 +255,14 @@ export default function CreateNFT() {
       }
 
       /** =======================
-       * Check User Collection
-       * ======================== */
-      console.log("🔎 Checking user collections...");
-      const collections = await nftContract.getCollections(
-        walletClient.account.address
-      );
-      console.log("📂 User collections:", collections);
-
-      if (collections[0].length === 0) {
-        throw new Error("❌ User does not have a collection. Minting aborted.");
-      }
-
-      /** =======================
        * Estimate Gas & Mint NFTs
        * ======================== */
       setStagingStatus("minting");
 
-      const mintCost = ethers.parseEther("0.01") * BigInt(tokenURIs.length);
+      const mintCost = BigInt(100) * BigInt(tokenURIs.length);
       console.log("💰 Minting fee required:", mintCost.toString());
 
-      let gasLimit;
+      let gasLimit = ethers.parseUnits("5000000", "wei"); // 5M gas
       try {
         const gasEstimate = await nftContract.mintMultipleNFTs.estimateGas(
           walletClient.account.address,
@@ -384,19 +295,36 @@ export default function CreateNFT() {
       setStagingStatus("done");
     } catch (error: unknown) {
       console.error("❌ Error:", error);
-      const err = error as { code?: number; message?: string };
-
-      if (
-        err?.code === 4001 ||
-        err?.message?.includes("User denied transaction signature")
-      ) {
-        console.warn("⚠️ User rejected the transaction.");
-        setStagingStatus("cancelled");
-        return;
-      }
-
       setStagingStatus("error");
     }
+  };
+
+  /** =======================
+   * Helper Functions to Upload to IPFS
+   * ======================== */
+  const uploadToIPFS = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(
+      "https://api.pinata.cloud/pinning/pinFileToIPFS",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${PINATA_JWT}` },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) throw new Error("❌ File upload failed");
+    const data = await response.json();
+    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
+  };
+
+  const uploadJSONToIPFS = async (json: any): Promise<string> => {
+    const jsonFile = new File([JSON.stringify(json)], "metadata.json", {
+      type: "application/json",
+    });
+    return await uploadToIPFS(jsonFile);
   };
 
   return (
