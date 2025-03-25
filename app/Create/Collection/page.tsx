@@ -191,6 +191,16 @@ export default function CreateNFT() {
       console.log("✅ Connected to contract:", await nftContract.getAddress());
       console.log("👤 Wallet address:", walletClient.account.address);
 
+      // ✅ Check Wallet Balance
+      const balance = await provider.getBalance(walletClient.account.address);
+      console.log("💰 Wallet Balance:", ethers.formatEther(balance), "ETH");
+
+      // Ensure the wallet has enough ETH
+      if (balance < ethers.parseUnits("0.01", "ether")) {
+        toast.error("❌ Insufficient balance! Please add more ETH.");
+        return;
+      }
+
       setStagingStatus("uploading");
 
       /** =======================
@@ -219,36 +229,31 @@ export default function CreateNFT() {
       };
 
       const collectionMetadataCID = await uploadJSONToIPFS(collectionMetadata);
-      console.log("✅ Collection metadata uploaded:", collectionMetadataCID);
-
-      /** =======================
-       * Upload NFT Image ONCE
-       * ======================== */
-      console.log("📤 Uploading NFT image...");
-      const nftImageUrl = await uploadToIPFS(data.logoImage);
-      console.log("✅ NFT image uploaded:", nftImageUrl);
+      const collectionMetadataUrl = `https://gateway.pinata.cloud/ipfs/${collectionMetadataCID}`;
+      console.log("✅ Collection metadata uploaded:", collectionMetadataUrl);
 
       /** =======================
        * Upload Metadata for Each NFT
        * ======================== */
-      console.log("📤 Uploading metadata for", data.supply, "NFTs...");
+      console.log("📤 Uploading metadata...");
       const tokenURIs: string[] = [];
 
       for (let i = 0; i < Number(data.supply); i++) {
         const metadata = {
           name: `${data.contractName} #${i + 1}`,
           description: data.contractDescription,
-          image: nftImageUrl,
+          image: collectionImageUrl,
           external_url: data.externalLink,
           attributes: data.traits,
-          collectionCID: collectionMetadataCID,
+          collection: collectionMetadataUrl, // 🔥 Linking to collection metadata
         };
 
         const metadataCID = await uploadJSONToIPFS(metadata);
-        const tokenURI = `https://gateway.pinata.cloud/ipfs/${metadataCID}`;
+        const tokenURI = `${metadataCID}`;
         console.log(`✅ Metadata for NFT #${i + 1} uploaded:`, tokenURI);
         tokenURIs.push(tokenURI);
       }
+      console.log("✅ Final tokenURIs array:", tokenURIs);
 
       if (tokenURIs.length === 0) {
         throw new Error("❌ No token URIs found. Minting aborted.");
@@ -259,11 +264,23 @@ export default function CreateNFT() {
        * ======================== */
       setStagingStatus("minting");
 
-      const mintCost = BigInt(100) * BigInt(tokenURIs.length);
-      console.log("💰 Minting fee required:", mintCost.toString());
+      const mintingFee = BigInt(10000000000000000); // Adjust based on contract
+      const mintCost = mintingFee * BigInt(tokenURIs.length);
+      console.log(
+        "💰 Minting fee required:",
+        ethers.formatEther(mintCost),
+        "ETH"
+      );
 
-      let gasLimit = ethers.parseUnits("5000000", "wei"); // 5M gas
+      // Ensure wallet balance is sufficient
+      if (balance < mintCost) {
+        toast.error("❌ Insufficient balance to mint NFTs!");
+        return;
+      }
+
+      let gasLimit = BigInt(9000000); // High gas limit
       try {
+        console.log("⛽ Estimating gas...");
         const gasEstimate = await nftContract.mintMultipleNFTs.estimateGas(
           walletClient.account.address,
           tokenURIs,
@@ -272,10 +289,7 @@ export default function CreateNFT() {
         gasLimit = gasEstimate + BigInt(100000);
       } catch (err) {
         console.warn("⚠️ Gas estimation failed:", err);
-        gasLimit = ethers.parseUnits("300000", "wei");
       }
-
-      console.log("⛽ Gas limit set:", gasLimit.toString());
 
       console.log("🚀 Sending mint transaction...");
       const tx = await nftContract.mintMultipleNFTs(
@@ -293,7 +307,7 @@ export default function CreateNFT() {
       console.log("🎉 NFTs minted successfully!", tx.hash);
       setTxHash([tx.hash]);
       setStagingStatus("done");
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("❌ Error:", error);
       setStagingStatus("error");
     }
