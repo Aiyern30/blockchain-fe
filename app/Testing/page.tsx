@@ -8,7 +8,7 @@ import axios from "axios";
 import { getERC721Contract } from "@/lib/erc721Config";
 
 export default function MintNFTForm() {
-  const [image, setImage] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -16,14 +16,13 @@ export default function MintNFTForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
+    if (e.target.files) {
+      setImages(Array.from(e.target.files));
     }
   };
 
-  const uploadToIPFS = async (): Promise<string> => {
+  const uploadToIPFS = async (image: File): Promise<string> => {
     const formData = new FormData();
-    if (!image) throw new Error("No image selected");
 
     formData.append("file", image);
 
@@ -76,31 +75,38 @@ export default function MintNFTForm() {
   };
 
   const mintNFT = async () => {
+    if (images.length === 0) {
+      setStatus("Please select at least one image.");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      setStatus("Uploading image to IPFS...");
-      const imageUrl = await uploadToIPFS();
-
-      setStatus("Creating metadata...");
-      const metadataUrl = await createMetadataAndUpload(imageUrl);
-
-      setStatus("Minting NFT...");
       if (!window.ethereum) throw new Error("MetaMask not detected");
 
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-
       const marketplace = getERC721Contract(signer);
 
       const priceInEther = ethers.parseEther(price);
       const listingFee = ethers.parseEther("0.0015");
 
-      const tx = await marketplace.createToken(metadataUrl, priceInEther, {
-        value: listingFee,
-      });
+      for (const image of images) {
+        setStatus(`Uploading ${image.name} to IPFS...`);
+        const imageUrl = await uploadToIPFS(image);
 
-      await tx.wait();
-      setStatus("✅ NFT Minted and Listed!");
+        setStatus(`Creating metadata for ${image.name}...`);
+        const metadataUrl = await createMetadataAndUpload(imageUrl);
+
+        setStatus(`Minting NFT for ${image.name}...`);
+        const tx = await marketplace.createToken(metadataUrl, priceInEther, {
+          value: listingFee,
+        });
+
+        await tx.wait();
+      }
+
+      setStatus("✅ All NFTs Minted and Listed!");
     } catch (err: any) {
       console.error(err);
       setStatus(`❌ Error: ${err.message}`);
@@ -110,8 +116,8 @@ export default function MintNFTForm() {
 
   return (
     <div className="p-6 space-y-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold">Mint NFT</h1>
-      <input type="file" onChange={handleImageChange} />
+      <h1 className="text-2xl font-bold">Mint Multiple NFTs</h1>
+      <input type="file" multiple onChange={handleImageChange} />
       <input
         type="text"
         placeholder="Name"
@@ -137,7 +143,7 @@ export default function MintNFTForm() {
         disabled={isLoading}
         className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        {isLoading ? "Processing..." : "Mint NFT"}
+        {isLoading ? "Processing..." : "Mint NFTs"}
       </button>
       {status && <p>{status}</p>}
     </div>
