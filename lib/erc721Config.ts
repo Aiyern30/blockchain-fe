@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0x4Fe7EF8F917f1A65F1FaEE7b49f4b67445B17fbF";
+const NFT_CONTRACT_ADDRESS = "0x317aE5cd3932718Af71D2BbD89866b63Eb4dF4B9";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
