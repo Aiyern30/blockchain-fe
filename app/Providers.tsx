@@ -21,6 +21,7 @@ import {
   hardhat,
   scroll,
   scrollSepolia,
+  holesky,
 } from "wagmi/chains";
 
 const config = getDefaultConfig({
@@ -36,6 +37,7 @@ const config = getDefaultConfig({
     hardhat,
     scroll,
     scrollSepolia,
+    holesky,
   ],
   ssr: true,
 });
