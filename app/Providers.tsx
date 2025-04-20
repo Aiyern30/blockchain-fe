@@ -21,8 +21,29 @@ import {
   hardhat,
   scroll,
   scrollSepolia,
-  holesky,
 } from "wagmi/chains";
+import type { Chain } from "viem";
+
+export const holesky: Chain = {
+  id: 17000,
+  name: "Holesky",
+  nativeCurrency: {
+    decimals: 18,
+    name: "Holesky ETH",
+    symbol: "ETH",
+  },
+  rpcUrls: {
+    default: { http: ["https://ethereum-holesky.publicnode.com"] },
+    public: { http: ["https://ethereum-holesky.publicnode.com"] },
+  },
+  blockExplorers: {
+    default: {
+      name: "Holesky Etherscan",
+      url: "https://holesky.etherscan.io",
+    },
+  },
+  testnet: true,
+};
 
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
