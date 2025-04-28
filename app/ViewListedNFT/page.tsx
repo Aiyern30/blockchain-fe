@@ -29,13 +29,13 @@ export default function ViewListedNFTs() {
           const owner = item[3];
           const price = item[4];
           const sold = item[5];
-      
+
           const nftContract = getERC721TokenContract(provider, collection);
-      
+
           let tokenURI = "";
           try {
             tokenURI = await nftContract.tokenURI(tokenId);
-          } catch (err) {
+          } catch {
             console.warn(`Skipping tokenId ${tokenId}: tokenURI() call failed`);
             return null; // Skip this NFT
           }
@@ -55,7 +55,11 @@ export default function ViewListedNFTs() {
           let name = `NFT #${tokenId}`;
           let description = "No description";
 
-          const isDirectImage = metadataURL.endsWith(".png") || metadataURL.endsWith(".jpg") || metadataURL.endsWith(".jpeg") || metadataURL.endsWith(".gif");
+          const isDirectImage =
+            metadataURL.endsWith(".png") ||
+            metadataURL.endsWith(".jpg") ||
+            metadataURL.endsWith(".jpeg") ||
+            metadataURL.endsWith(".gif");
 
           if (isDirectImage) {
             // Directly use image if it's image file
@@ -65,17 +69,21 @@ export default function ViewListedNFTs() {
               const metadata = await axios.get(metadataURL);
               if (metadata.data.image) {
                 imageURL = metadata.data.image.startsWith("ipfs://")
-                  ? metadata.data.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+                  ? metadata.data.image.replace(
+                      "ipfs://",
+                      "https://ipfs.io/ipfs/"
+                    )
                   : metadata.data.image;
               }
               if (metadata.data.name) name = metadata.data.name;
-              if (metadata.data.description) description = metadata.data.description;
+              if (metadata.data.description)
+                description = metadata.data.description;
             } catch (err) {
               console.warn(`Metadata not found for tokenId ${tokenId}`, err);
               imageURL = "/default-image.png"; // fallback
             }
           }
-      
+
           return {
             collection,
             tokenId: Number(tokenId),
@@ -89,10 +97,9 @@ export default function ViewListedNFTs() {
           };
         })
       );
-      
+
       // Remove nulls (NFTs with broken tokenURI)
       setNfts(enrichedItems.filter((nft) => nft !== null));
-      
     } catch (error) {
       console.error("Error loading listed NFTs:", error);
     } finally {
@@ -110,13 +117,9 @@ export default function ViewListedNFTs() {
       const signer = await provider.getSigner();
       const marketplace = getMarketplaceContract(signer);
 
-      const tx = await marketplace.buyNFT(
-        nft.collection,
-        nft.tokenId,
-        {
-          value: ethers.parseUnits(nft.price, "ether")
-        }
-      );
+      const tx = await marketplace.buyNFT(nft.collection, nft.tokenId, {
+        value: ethers.parseUnits(nft.price, "ether"),
+      });
       await tx.wait();
 
       alert("🎉 Purchase successful!");
@@ -144,29 +147,45 @@ export default function ViewListedNFTs() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {nfts.map((nft, idx) => (
-            <div key={idx} className="border rounded-xl shadow hover:shadow-lg transition overflow-hidden">
-              <img src={nft.image} alt={nft.name} className="w-full h-64 object-cover" />
+            <div
+              key={idx}
+              className="border rounded-xl shadow hover:shadow-lg transition overflow-hidden"
+            >
+              <img
+                src={nft.image}
+                alt={nft.name}
+                className="w-full h-64 object-cover"
+              />
               <div className="p-4 flex flex-col h-full">
                 <h2 className="text-lg font-semibold">{nft.name}</h2>
                 <p className="text-sm text-gray-500 mb-2">{nft.description}</p>
                 <div className="text-sm text-gray-400 mb-2">
-                  Collection: <span className="font-mono">{nft.collection.slice(0, 6)}...{nft.collection.slice(-4)}</span>
+                  Collection:{" "}
+                  <span className="font-mono">
+                    {nft.collection.slice(0, 6)}...{nft.collection.slice(-4)}
+                  </span>
                 </div>
                 <div className="text-sm text-gray-400 mb-2">
                   Token ID: #{nft.tokenId}
                 </div>
-                <div className="mt-2 font-bold text-blue-600">{nft.price} ETH</div>
+                <div className="mt-2 font-bold text-blue-600">
+                  {nft.price} ETH
+                </div>
 
                 {/* Buy Button or Sold Out */}
                 {nft.sold ? (
-                  <div className="mt-4 text-center text-red-500 font-bold">SOLD OUT</div>
+                  <div className="mt-4 text-center text-red-500 font-bold">
+                    SOLD OUT
+                  </div>
                 ) : (
                   <button
                     onClick={() => handleBuy(nft)}
                     disabled={buyingTokenId === nft.tokenId}
                     className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50"
                   >
-                    {buyingTokenId === nft.tokenId ? "Processing..." : "Buy Now"}
+                    {buyingTokenId === nft.tokenId
+                      ? "Processing..."
+                      : "Buy Now"}
                   </button>
                 )}
               </div>
