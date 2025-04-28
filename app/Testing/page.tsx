@@ -1,70 +1,72 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
-import { useState } from "react";
+import { getERC721TokenContract } from "@/lib/erc721Config";
 import { ethers } from "ethers";
-import axios from "axios";
-
-import { getERC721Contract } from "@/lib/erc721Config";
+import { useState } from "react";
 
 export default function MintNFTForm() {
-  const [images, setImages] = useState<File[]>([]);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [symbol, setSymbol] = useState("");
-  const [externalLink, setExternalLink] = useState("");
+  const [tokenId, setTokenId] = useState(""); // State for tokenId
+  const [price, setPrice] = useState(""); // State for price
+  const [listingFee, setListingFee] = useState("0.0015"); // State for listing fee
+  const [collectionAddress, setCollectionAddress] = useState(""); // State for collection address
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImages(Array.from(e.target.files));
-    }
-  };
-
-  const uploadToIPFS = async (image: File): Promise<string> => {
-    const formData = new FormData();
-
-    formData.append("file", image);
-
-    const metadata = JSON.stringify({
-      name,
-      keyvalues: {
-        description,
-      },
-    });
-
-    formData.append("pinataMetadata", metadata);
-
-    const res = await axios.post(
-      "https://api.pinata.cloud/pinning/pinFileToIPFS",
-      formData,
-      {
-        maxBodyLength: Infinity,
-        headers: {
-          "Content-Type": "multipart/form-data",
-          pinata_api_key: process.env.NEXT_PUBLIC_PINATA_API_KEY!,
-          pinata_secret_api_key: process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY!,
-        },
-      }
-    );
-
-    const ipfsHash = res.data.IpfsHash;
-    return `ipfs://${ipfsHash}`;
-  };
-
-  const createCollection = async () => {
-    console.log("Triggered createCollection");
-
-    if (images.length === 0) {
-      setStatus("Please select an image for your collection.");
-      console.log("No image selected");
+  const listNFT = async (signer: ethers.Signer) => {
+    if (!tokenId || !price || !listingFee || !collectionAddress) {
+      setStatus(
+        "Please provide all required fields: tokenId, price, listing fee, and collection address."
+      );
       return;
     }
 
-    if (!name || !symbol || !description || !externalLink) {
-      setStatus("Please fill in all fields.");
-      console.log("Missing required fields");
+    try {
+      // Convert listing fee and price
+      const parsedListingFee = ethers.parseUnits(listingFee, "ether"); // Convert listing fee to wei
+      const parsedPrice = ethers.parseUnits(price, "wei"); // Convert price to wei
+
+      // Get contract instance using the helper function
+      const marketplaceAddress = "0xd637898a14E20211BFD466f1b3f8A67cbDBf748E"; // your deployed marketplace address
+
+      // Step 1: Approve the marketplace contract to handle the NFT transfer
+      const nftTokenContract = getERC721TokenContract(
+        signer,
+        collectionAddress
+      ); // Get the NFT contract
+      const tx = await nftTokenContract.approve(marketplaceAddress, tokenId); // Approve transaction
+      await tx.wait(); // Wait for the transaction to be confirmed
+
+      setStatus("NFT approved for listing...");
+
+      // Step 2: List the NFT on the marketplace
+      const marketplaceContract = new ethers.Contract(
+        marketplaceAddress,
+        [
+          // Add the marketplace contract ABI here
+          "function listNFT(address collection, uint256 tokenId, uint256 price) external payable",
+        ],
+        signer
+      );
+      const txList = await marketplaceContract.listNFT(
+        collectionAddress, // Collection contract address
+        tokenId,
+        parsedPrice, // Price in wei
+        { value: parsedListingFee } // Listing fee (converted to wei)
+      );
+      await txList.wait(); // Wait for transaction to be mined
+
+      setStatus(`✅ NFT listed successfully!`);
+    } catch (err: any) {
+      console.error("Error listing NFT:", err);
+      setStatus(`❌ Error: ${err.message}`);
+    }
+  };
+
+  const handleListNFT = async () => {
+    console.log("Triggered listNFT");
+
+    if (!tokenId || !price || !listingFee || !collectionAddress) {
+      setStatus("Please provide all required fields.");
       return;
     }
 
@@ -79,32 +81,10 @@ export default function MintNFTForm() {
       const signer = await provider.getSigner();
       console.log("Signer fetched");
 
-      const contract = getERC721Contract(signer);
-      console.log("Contract loaded");
-
-      // Upload to IPFS
-      setStatus("Uploading collection image to IPFS...");
-      const imageUrl = await uploadToIPFS(images[0]);
-      console.log("IPFS upload done:", imageUrl);
-
-      // Call smart contract
-      setStatus("Creating collection on blockchain...");
-      const tx = await contract.createCollection(
-        name,
-        symbol,
-        description,
-        imageUrl,
-        externalLink
-      );
-      console.log("Transaction sent:", tx);
-
-      const receipt = await tx.wait();
-      console.log("Transaction confirmed:", receipt);
-
-      const collectionAddress = receipt.logs?.[0]?.address;
-      setStatus(`✅ Collection created at ${collectionAddress}`);
+      // Call listNFT using the signer from the browser provider
+      await listNFT(signer);
     } catch (err: any) {
-      console.error("Error in createCollection:", err);
+      console.error("Error in handleListNFT:", err);
       setStatus(`❌ Error: ${err.message}`);
     }
     setIsLoading(false);
@@ -112,47 +92,51 @@ export default function MintNFTForm() {
 
   return (
     <div className="p-6 space-y-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold">Create NFT Collection</h1>
+      <h1 className="text-2xl font-bold">Test List NFT</h1>
 
-      <input type="file" multiple onChange={handleImageChange} />
-
+      {/* Collection Address Input */}
       <input
         type="text"
-        placeholder="Collection Name"
+        placeholder="Collection Address (contract)"
         className="w-full p-2 border"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={collectionAddress}
+        onChange={(e) => setCollectionAddress(e.target.value)}
       />
 
+      {/* Token ID Input */}
+      <input
+        type="number"
+        placeholder="Token ID"
+        className="w-full p-2 border"
+        value={tokenId}
+        onChange={(e) => setTokenId(e.target.value)}
+      />
+
+      {/* Price Input */}
       <input
         type="text"
-        placeholder="Symbol (e.g., COL)"
+        placeholder="Price (in Wei)"
         className="w-full p-2 border"
-        value={symbol}
-        onChange={(e) => setSymbol(e.target.value)}
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
       />
 
-      <textarea
-        placeholder="Description"
-        className="w-full p-2 border"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-
+      {/* Listing Fee Input */}
       <input
         type="text"
-        placeholder="External Link (e.g., https://example.com)"
+        placeholder="Listing Fee (in Ether)"
         className="w-full p-2 border"
-        value={externalLink}
-        onChange={(e) => setExternalLink(e.target.value)}
+        value={listingFee}
+        onChange={(e) => setListingFee(e.target.value)}
       />
 
+      {/* Submit Button */}
       <button
-        onClick={createCollection}
+        onClick={handleListNFT}
         disabled={isLoading}
         className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        {isLoading ? "Processing..." : "Create Collection"}
+        {isLoading ? "Processing..." : "List NFT"}
       </button>
 
       {status && <p className="text-sm text-gray-700 mt-2">{status}</p>}
