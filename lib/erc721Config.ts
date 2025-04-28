@@ -266,11 +266,17 @@ export function getERC721Contract(signer: ethers.Signer) {
   return new ethers.Contract(NFT_CONTRACT_ADDRESS, nftABI, signer);
 }
 
-const ERC721_ABI = ["function approve(address to, uint256 tokenId) external"];
+const ERC721_ABI = [
+  "function approve(address to, uint256 tokenId) external",
+  "function tokenURI(uint256 tokenId) view returns (string memory)" // ADD THIS
+];
 
 export function getERC721TokenContract(
-  signer: ethers.Signer,
+  signerOrProvider: ethers.Signer | ethers.Provider,
   tokenAddress: string
 ) {
-  return new ethers.Contract(tokenAddress, ERC721_ABI, signer);
+  return new ethers.Contract(tokenAddress, ERC721_ABI, signerOrProvider);
 }
+
+
+
