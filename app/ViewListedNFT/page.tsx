@@ -92,6 +92,7 @@ export default function ViewListedNFTs() {
             owner,
             price: ethers.formatEther(price),
             sold,
+
             image: imageURL,
             name,
             description,
