@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import Image from "next/image";
 
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
@@ -151,10 +152,12 @@ export default function ViewListedNFTs() {
               key={idx}
               className="border rounded-xl shadow hover:shadow-lg transition overflow-hidden"
             >
-              <img
+              <Image
                 src={nft.image}
                 alt={nft.name}
-                className="w-full h-64 object-cover"
+                width={500}
+                height={500}
+                className="object-cover"
               />
               <div className="p-4 flex flex-col h-full">
                 <h2 className="text-lg font-semibold">{nft.name}</h2>
