@@ -18,47 +18,81 @@ export default function ViewListedNFTs() {
 
       const provider = new ethers.BrowserProvider(window.ethereum);
       const marketplace = getMarketplaceContract(provider);
-      const signer = await provider.getSigner();
 
-      const items = await marketplace.fetchMarketItems(); // ✅ corrected
-
+      const items = await marketplace.fetchMarketItems();
+      console.log("Fetched items:", items);
       const enrichedItems = await Promise.all(
         items.map(async (item: any) => {
-          const marketplace = getMarketplaceContract(provider); // still use provider
-          const nftContract = getERC721TokenContract(provider, item.collection); // ✅ use provider only
-
-
-          const tokenURI = await nftContract.tokenURI(item.tokenId);
-          const metadataURL = tokenURI.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/");
-          const metadata = await axios.get(metadataURL);
-          console.log("Fetching tokenURI:", tokenURI);
-          // const metadata = await axios.get(metadataURL);
-          console.log("Metadata for tokenId:", item.tokenId, metadata.data);
-          let imageURL = "";
-
-          
-
-          if (metadata.data.image) {
-            imageURL = metadata.data.image.startsWith("ipfs://")
-              ? metadata.data.image.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/")
-              : metadata.data.image;
-          } else {
-            imageURL = "/default-image.png"; // optional fallback
+          const collection = item[0];
+          const tokenId = item[1];
+          const seller = item[2];
+          const owner = item[3];
+          const price = item[4];
+          const sold = item[5];
+      
+          const nftContract = getERC721TokenContract(provider, collection);
+      
+          let tokenURI = "";
+          try {
+            tokenURI = await nftContract.tokenURI(tokenId);
+          } catch (err) {
+            console.warn(`Skipping tokenId ${tokenId}: tokenURI() call failed`);
+            return null; // Skip this NFT
           }
 
+          // 🛠 Correctly handle metadataURL
+          let metadataURL = "";
+          if (tokenURI.startsWith("ipfs://")) {
+            metadataURL = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/");
+          } else if (tokenURI.startsWith("http")) {
+            metadataURL = tokenURI;
+          } else {
+            metadataURL = `https://${tokenURI}`;
+          }
+
+          // Default values
+          let imageURL = "";
+          let name = `NFT #${tokenId}`;
+          let description = "No description";
+
+          const isDirectImage = metadataURL.endsWith(".png") || metadataURL.endsWith(".jpg") || metadataURL.endsWith(".jpeg") || metadataURL.endsWith(".gif");
+
+          if (isDirectImage) {
+            // Directly use image if it's image file
+            imageURL = metadataURL;
+          } else {
+            try {
+              const metadata = await axios.get(metadataURL);
+              if (metadata.data.image) {
+                imageURL = metadata.data.image.startsWith("ipfs://")
+                  ? metadata.data.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+                  : metadata.data.image;
+              }
+              if (metadata.data.name) name = metadata.data.name;
+              if (metadata.data.description) description = metadata.data.description;
+            } catch (err) {
+              console.warn(`Metadata not found for tokenId ${tokenId}`, err);
+              imageURL = "/default-image.png"; // fallback
+            }
+          }
+      
           return {
-            collection: item.collection,
-            tokenId: Number(item.tokenId),
-            price: ethers.formatEther(item.price),
-            seller: item.seller,
+            collection,
+            tokenId: Number(tokenId),
+            seller,
+            owner,
+            price: ethers.formatEther(price),
+            sold,
             image: imageURL,
-            name: metadata.data.name ?? "Unknown",
-            description: metadata.data.description ?? "No description",
+            name,
+            description,
           };
         })
       );
-
-      setNfts(enrichedItems);
+      
+      // Remove nulls (NFTs with broken tokenURI)
+      setNfts(enrichedItems.filter((nft) => nft !== null));
+      
     } catch (error) {
       console.error("Error loading listed NFTs:", error);
     } finally {
@@ -123,14 +157,18 @@ export default function ViewListedNFTs() {
                 </div>
                 <div className="mt-2 font-bold text-blue-600">{nft.price} ETH</div>
 
-                {/* Buy Button */}
-                <button
-                  onClick={() => handleBuy(nft)}
-                  disabled={buyingTokenId === nft.tokenId}
-                  className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50"
-                >
-                  {buyingTokenId === nft.tokenId ? "Processing..." : "Buy Now"}
-                </button>
+                {/* Buy Button or Sold Out */}
+                {nft.sold ? (
+                  <div className="mt-4 text-center text-red-500 font-bold">SOLD OUT</div>
+                ) : (
+                  <button
+                    onClick={() => handleBuy(nft)}
+                    disabled={buyingTokenId === nft.tokenId}
+                    className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50"
+                  >
+                    {buyingTokenId === nft.tokenId ? "Processing..." : "Buy Now"}
+                  </button>
+                )}
               </div>
             </div>
           ))}
