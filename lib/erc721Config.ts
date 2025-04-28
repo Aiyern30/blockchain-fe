@@ -268,7 +268,7 @@ export function getERC721Contract(signer: ethers.Signer) {
 
 const ERC721_ABI = [
   "function approve(address to, uint256 tokenId) external",
-  "function tokenURI(uint256 tokenId) view returns (string memory)" // ADD THIS
+  "function tokenURI(uint256 tokenId) view returns (string memory)", // ADD THIS
 ];
 
 export function getERC721TokenContract(
@@ -277,6 +277,3 @@ export function getERC721TokenContract(
 ) {
   return new ethers.Contract(tokenAddress, ERC721_ABI, signerOrProvider);
 }
-
-
-
