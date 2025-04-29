@@ -6,7 +6,6 @@ import {
   CheckCircle,
   Loader2,
   Sparkles,
-  Zap,
   LinkIcon,
   ExternalLink,
   AlertTriangle,
@@ -28,14 +27,12 @@ const STATUS_STAGES = {
 interface NFTMintingUIProps {
   status: StagingStatus;
   txHash?: string[] | null;
-  walletAddress?: string | null;
   onRetry: () => void;
 }
 
 export default function NFTMintingUI({
   status,
   txHash,
-  walletAddress,
   onRetry,
 }: NFTMintingUIProps) {
   return (
@@ -135,18 +132,6 @@ export default function NFTMintingUI({
                 ))}
               </div>
             </div>
-
-            {walletAddress && (
-              <div className="mt-2 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-400">Wallet Address:</span>
-                </div>
-                <p className="truncate text-sm font-mono text-gray-300">
-                  {walletAddress}
-                </p>
-              </div>
-            )}
           </div>
         )}
 

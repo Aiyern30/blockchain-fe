@@ -232,7 +232,6 @@ export function CreateCollectionForm() {
       <NFTMintingUI
         status={mintingStatus}
         txHash={txHash}
-        walletAddress={walletClient?.account.address}
         onRetry={handleRetry}
       />
     );
