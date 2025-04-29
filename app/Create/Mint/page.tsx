@@ -5,40 +5,65 @@ import { useAccount, useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { toast } from "sonner";
-import Image from "next/image"; // Import Image from next/image
+import Image from "next/image";
+import { ExternalLink, Plus } from "lucide-react";
+import {
+  Button,
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+} from "@/components/ui";
 
-const Page = () => {
+interface CollectionDetail {
+  address: string;
+  name: string;
+  description: string;
+  image: string;
+  externalLink: string;
+}
+
+export default function CollectionsPage() {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
 
   const [collectionDetails, setCollectionDetails] = useState<
-    {
-      address: string;
-      name: string;
-      description: string;
-      image: string;
-      externalLink: string;
-    }[]
+    CollectionDetail[]
   >([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchCollections = async () => {
+      setIsLoading(true);
+
       if (!isConnected || !address || !walletClient) {
-        toast.warning("Please complete all fields and connect your wallet!", {
+        toast.warning("Please connect your wallet to view your collections", {
           style: {
             backgroundColor: "#f59e0b",
             color: "white",
           },
         });
+        setIsLoading(false);
         return;
       }
 
-      const provider = new ethers.BrowserProvider(walletClient);
-      const signer = await provider.getSigner();
-      const nftContract = getERC721Contract(signer);
-
       try {
+        const provider = new ethers.BrowserProvider(walletClient);
+        const signer = await provider.getSigner();
+        const nftContract = getERC721Contract(signer);
+
         const addresses: string[] = await nftContract.getMyCollections();
+
+        if (addresses.length === 0) {
+          setCollectionDetails([]);
+          setIsLoading(false);
+          return;
+        }
+
         const details = await Promise.all(
           addresses.map(async (addr) => {
             const detail = await nftContract.collectionDetails(addr);
@@ -55,58 +80,151 @@ const Page = () => {
         setCollectionDetails(details);
       } catch (error) {
         console.error("Failed to fetch collections or details:", error);
+        toast.error("Failed to load your collections. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchCollections();
   }, [address, isConnected, walletClient]);
 
-  return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">My NFT Collections</h1>
-      {collectionDetails.length === 0 ? (
-        <p>No collections found.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {collectionDetails.map((collection, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200"
-            >
-              <Image
-                src={`https://ipfs.io/ipfs/${collection.image.replace(
-                  "ipfs://",
-                  ""
-                )}`}
-                alt={collection.name}
-                width={400}
-                height={250}
-                className="w-full h-40 object-cover"
-              />
+  const formatImageUrl = (imageUrl: string) => {
+    if (!imageUrl) return "/placeholder.svg";
 
-              <div className="p-4">
-                <h2 className="text-lg font-semibold">{collection.name}</h2>
-                <p className="text-sm text-gray-600 mb-2">
-                  {collection.description}
-                </p>
-                <a
-                  href={collection.externalLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 text-sm underline"
-                >
-                  View External Link
-                </a>
-                <p className="mt-2 text-xs text-gray-400 break-words">
-                  {collection.address}
-                </p>
+    if (imageUrl.startsWith("ipfs://")) {
+      return `https://ipfs.io/ipfs/${imageUrl.replace("ipfs://", "")}`;
+    }
+
+    if (imageUrl.includes("gateway.pinata.cloud/ipfs/")) {
+      return imageUrl;
+    }
+
+    return imageUrl;
+  };
+
+  const truncateAddress = (address: string) => {
+    if (!address) return "";
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const navigateToCreate = () => {
+    window.location.href = "/Create/Collection";
+  };
+
+  return (
+    <div className="container mx-auto py-8 px-4 min-h-[calc(100vh-120px)] flex flex-col">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">My NFT Collections</h1>
+          <p className="text-muted-foreground mt-1">
+            View and manage your created NFT collections
+          </p>
+        </div>
+        {!isLoading && collectionDetails.length > 0 && (
+          <Button variant="outline" onClick={navigateToCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Collection
+          </Button>
+        )}
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="h-48 w-full" />
+              <CardHeader className="pb-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : collectionDetails.length === 0 ? (
+        <Card className="flex flex-col items-center justify-center flex-grow">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">
+              No Collections Found
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            You haven&apos;t created any NFT collections yet. Start by creating
+            your first collection.
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Button size="lg" onClick={navigateToCreate}>
+              <Plus className="h-5 w-5 mr-2" />
+              Create Your First Collection
+            </Button>
+          </CardFooter>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {collectionDetails.map((collection, index) => (
+            <Card key={index} className="overflow-hidden flex flex-col h-full">
+              <div className="relative h-48 w-full bg-muted">
+                <Image
+                  src={formatImageUrl(collection.image) || "/placeholder.svg"}
+                  alt={collection.name}
+                  fill
+                  className="object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    // Prevent infinite loops by checking if we're already using the placeholder
+                    if (!target.src.includes("placeholder.svg")) {
+                      target.src = "/placeholder.svg";
+                    }
+                    // Stop further error handling to prevent loops
+                    e.currentTarget.onerror = null;
+                  }}
+                />
               </div>
-            </div>
+
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-xl">{collection.name}</CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    Collection
+                  </Badge>
+                </div>
+                <CardDescription className="line-clamp-2">
+                  {collection.description || "No description provided"}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="flex-grow">
+                <div className="text-xs text-muted-foreground mb-2 flex items-center">
+                  <span className="font-medium mr-1">Address:</span>
+                  <span className="font-mono">
+                    {truncateAddress(collection.address)}
+                  </span>
+                </div>
+              </CardContent>
+
+              <CardFooter className="pt-0">
+                {collection.externalLink && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() =>
+                      window.open(collection.externalLink, "_blank")
+                    }
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View External Link
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
           ))}
         </div>
       )}
     </div>
   );
-};
-
-export default Page;
+}
