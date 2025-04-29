@@ -18,6 +18,7 @@ import {
   CardTitle,
   Skeleton,
 } from "@/components/ui";
+import { useRouter } from "next/navigation";
 
 interface CollectionDetail {
   address: string;
@@ -28,6 +29,7 @@ interface CollectionDetail {
 }
 
 export default function CollectionsPage() {
+  const router = useRouter();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
 
@@ -112,6 +114,10 @@ export default function CollectionsPage() {
     window.location.href = "/Create/Collection";
   };
 
+  const navigateToMint = (collectionAddress: string) => {
+    router.push(`/Create/Mint/${collectionAddress}`);
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 min-h-[calc(100vh-120px)] flex flex-col">
       <div className="flex justify-between items-center mb-8">
@@ -166,7 +172,10 @@ export default function CollectionsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {collectionDetails.map((collection, index) => (
-            <Card key={index} className="overflow-hidden flex flex-col h-full">
+            <Card
+              key={index}
+              className="overflow-hidden flex flex-col h-full group relative"
+            >
               <div className="relative h-48 w-full bg-muted">
                 <Image
                   src={formatImageUrl(collection.image) || "/placeholder.svg"}
@@ -175,14 +184,30 @@ export default function CollectionsPage() {
                   className="object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    // Prevent infinite loops by checking if we're already using the placeholder
                     if (!target.src.includes("placeholder.svg")) {
                       target.src = "/placeholder.svg";
                     }
-                    // Stop further error handling to prevent loops
                     e.currentTarget.onerror = null;
                   }}
                 />
+
+                <div
+                  className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center cursor-pointer"
+                  onClick={() => navigateToMint(collection.address)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Add NFT to ${collection.name} collection`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      navigateToMint(collection.address);
+                    }
+                  }}
+                >
+                  <div className="bg-primary rounded-full p-3 mb-2">
+                    <Plus className="h-6 w-6 text-primary-foreground" />
+                  </div>
+                  <p className="text-white font-medium">Add NFT</p>
+                </div>
               </div>
 
               <CardHeader className="pb-2">
