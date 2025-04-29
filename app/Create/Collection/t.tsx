@@ -347,7 +347,6 @@ export default function CreateNFT() {
         <NFTMintingUI
           status={stagingStatus}
           txHash={txHash}
-          walletAddress={walletAddress}
           onRetry={() => {
             reset({
               contractName: "",
