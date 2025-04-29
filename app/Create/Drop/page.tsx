@@ -225,7 +225,6 @@ export default function DropNFT() {
         <NFTMintingUI
           status={stagingStatus}
           txHash={txHash}
-          walletAddress={walletAddress}
           onRetry={() => {
             reset();
             setStagingStatus("idle");

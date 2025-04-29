@@ -38,18 +38,18 @@ export default function CreatePage() {
         <div className="space-y-6">
           {[
             {
-              href: "/Create/Drop",
-              title: "Drop",
+              href: "/Create/Collection",
+              title: "Create Collection",
               description:
-                "A drop is the release of a new project. This usually happens on a specified date and time. Items will be revealed after they have been purchased.",
-              icon: <Grid className="w-6 h-6" />,
+                "Create a new NFT collection to group your NFTs. Collections help organize your digital assets under a shared theme or project.",
+              icon: <Package className="w-6 h-6" />,
             },
             {
-              href: "/Create/Collection",
-              title: "Collection or item",
+              href: "/Create/Mint",
+              title: "Mint NFTs into Collection",
               description:
-                "Create a new NFT collection or add an NFT to an existing one. Your items will display immediately. List for sale when you're ready.",
-              icon: <Package className="w-6 h-6" />,
+                "Select an existing collection and mint one or multiple NFTs into it. Ideal for expanding your project with new items.",
+              icon: <Grid className="w-6 h-6" />,
             },
           ].map(({ href, title, description, icon }, index) => (
             <motion.div

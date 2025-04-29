@@ -200,7 +200,6 @@ export default function DeployCollectionForm({
         <NFTMintingUI
           status={stagingStatus}
           txHash={txHash}
-          walletAddress={walletAddress}
           onRetry={() => {
             reset({
               collectionName: "",
