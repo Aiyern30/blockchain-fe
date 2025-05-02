@@ -16,7 +16,6 @@ import { useDeviceType } from "@/utils/useDeviceType";
 import { CarouselSkeleton } from "@/components/page/Explore/CarouselSkeleton";
 import { TableSkeleton } from "@/components/page/Explore/TableSkeleton";
 import DrawingCarousel from "./DrawingCarousel";
-import HeroCarousel from "@/components/page/Explore/HeroCarousel";
 // import CryptoTable from "@/components/page/Explore/CryptoTable";
 import { fetchAllCollections } from "@/utils/fetchAllCollections";
 
@@ -47,14 +46,7 @@ export default function NFTCarousel() {
 
   return (
     <>
-      {loading ? (
-        <CarouselSkeleton />
-      ) : (
-        <HeroCarousel
-          categories={collections.map((col) => col.name)}
-          items={collections}
-        />
-      )}
+      {loading ? <CarouselSkeleton /> : <div>hi</div>}
 
       <div
         className={cn(
