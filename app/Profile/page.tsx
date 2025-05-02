@@ -14,7 +14,7 @@ import {
 import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { useToast } from "@/hooks/use-toast";
-import { formatAddress } from "@/utils/function";
+import { truncateAddress } from "@/utils/function";
 
 export default function ProfilePage() {
   const tabs = [
@@ -42,11 +42,11 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const [walletAddress, setWalletAddress] = useState<string | undefined>();
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   useEffect(() => {
     setWalletAddress(
-      isConnected ? rainbowKitAddress : web3AuthAddress ?? undefined
+      isConnected ? rainbowKitAddress ?? null : web3AuthAddress ?? null
     );
   }, [isConnected, rainbowKitAddress, web3AuthAddress]);
 
@@ -138,7 +138,7 @@ export default function ProfilePage() {
                   className="cursor-pointer flex items-center gap-2"
                   onClick={handleCopy}
                 >
-                  {formatAddress(walletAddress)}
+                  {truncateAddress(walletAddress ?? "")}
                   {isConnected && walletAddress && (
                     <Copy className="w-4 h-4 text-muted-foreground" />
                   )}
