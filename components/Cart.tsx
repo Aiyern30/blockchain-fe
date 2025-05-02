@@ -9,11 +9,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  Input,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -23,107 +18,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
+  ScrollArea,
+  Separator,
 } from "@/components/ui";
-import { BsCart4 } from "react-icons/bs";
-import { ChevronDown, Trash } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ShoppingCart, Trash2 } from "lucide-react";
+import { formatImageUrl } from "@/utils/function";
+import { useCart } from "@/hooks/use-cart";
 
-interface CartItem {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  creatorEarnings: number;
-}
-
-export function Cart() {
-  const router = useRouter();
-  const [items, setItems] = useState<CartItem[]>([
-    {
-      id: "1",
-      name: "Human Paladin IV #10",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.043,
-      creatorEarnings: 75,
-    },
-    {
-      id: "2",
-      name: "Elf Warrior III #8",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.059,
-      creatorEarnings: 50,
-    },
-    {
-      id: "3",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.031,
-      creatorEarnings: 60,
-    },
-    {
-      id: "4",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.031,
-      creatorEarnings: 60,
-    },
-    {
-      id: "5",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.031,
-      creatorEarnings: 60,
-    },
-    {
-      id: "6",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.031,
-      creatorEarnings: 60,
-    },
-    {
-      id: "7",
-      name: "Dwarf Mage II #6 with a Very Long Name That Should Be Truncated",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVmPR5Cs0DWWtwY520inl3yAzqnPm7.png",
-      price: 0.028,
-      creatorEarnings: 20,
-    },
-  ]);
-
-  // const [items, setItems] = useState<CartItem[]>([]);
-  const cardLimits = 5;
+export function CartSheet() {
+  const { cartItems, removeFromCart, clearCart, cartCount, totalPrice } =
+    useCart();
   const [isOpen, setIsOpen] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
   const [hoverIndex, setHoverIndex] = useState<string | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
 
-  const totalPrice = items
-    .slice(0, cardLimits)
-    .reduce((sum, item) => sum + item.price, 0);
-  // const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
-  const usdPrice = totalPrice * 2760;
-
-  const clearCart = () => setItems([]);
-  const removeItem = (id: string) =>
-    setItems(items.filter((item) => item.id !== id));
+  // Estimate USD price (assuming 1 ETH = 3000 USD)
+  const usdPrice = totalPrice * 3000;
 
   return (
-    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <div className="relative">
           <Button variant="outline" size="icon">
-            <BsCart4 className="h-5 w-5" />
+            <ShoppingCart className="h-5 w-5" />
           </Button>
-          {items.length > 0 && (
+          {cartCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-              {items.length}
+              {cartCount}
             </span>
           )}
         </div>
@@ -137,11 +57,11 @@ export function Cart() {
         </div>
 
         <div className="flex-1 overflow-auto">
-          {items.length > 0 ? (
+          {cartItems.length > 0 ? (
             <>
               <div className="px-6 pt-0 pb-4 border-b flex items-center justify-between">
                 <span>
-                  {items.length} item{items.length !== 1 && "s"}
+                  {cartItems.length} item{cartItems.length !== 1 && "s"}
                 </span>
 
                 <AlertDialog>
@@ -166,143 +86,97 @@ export function Cart() {
                 </AlertDialog>
               </div>
 
-              <div className="px-6 py-4 space-y-4">
-                {items.map((item, index) => (
-                  <div key={item.id}>
-                    {index === cardLimits && (
-                      <p className="text-red-500 text-sm font-medium text-center my-2">
-                        ⚠️ Maximum limit is {cardLimits} items. Items below will
-                        not be included in payment.
-                      </p>
-                    )}
-
+              <ScrollArea className="h-[calc(100vh-300px)]">
+                <div className="px-6 py-4 space-y-4">
+                  {cartItems.map((item) => (
                     <div
-                      className={`flex items-center justify-between gap-3 p-2 rounded-lg transition relative 
-          ${
-            index >= 5
-              ? "border border-red-500"
-              : "hover:bg-[#7b3fe4] dark:hover:bg-blue-900 hover:text-white"
-          }
-        `}
-                      onMouseEnter={() => setHoverIndex(item.id)}
+                      key={`${item.tokenId}-${item.owner}`}
+                      className="flex items-center justify-between gap-3 p-2 rounded-lg transition relative hover:bg-muted"
+                      onMouseEnter={() =>
+                        setHoverIndex(`${item.tokenId}-${item.owner}`)
+                      }
                       onMouseLeave={() => setHoverIndex(null)}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-16 h-16 relative">
+                        <div className="relative h-16 w-16 rounded-md overflow-hidden border">
                           <Image
-                            src={item.image || "/placeholder.svg"}
-                            alt={item.name}
+                            src={
+                              formatImageUrl(item.metadata?.image || "") ||
+                              "/placeholder.svg"
+                            }
+                            alt={item.metadata?.name || `NFT #${item.tokenId}`}
                             fill
-                            className="rounded-lg object-cover"
+                            className="object-cover"
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <h3 className="font-medium truncate max-w-[150px]">
-                                  {item.name}
-                                </h3>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{item.name}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <p className="text-sm text-gray-400">
-                            Creator earnings: {item.creatorEarnings}%
+                          <h3 className="font-medium truncate max-w-[150px]">
+                            {item.metadata?.name || `NFT #${item.tokenId}`}
+                          </h3>
+                          <p className="text-xs text-muted-foreground">
+                            Token ID: {item.tokenId}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 mx-auto">
-                        {hoverIndex === item.id ? (
+                      <div className="flex items-center gap-2">
+                        {hoverIndex === `${item.tokenId}-${item.owner}` ? (
                           <Button
-                            variant={"default"}
-                            className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"
-                            onClick={() => removeItem(item.id)}
+                            variant="destructive"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => removeFromCart(item)}
                           >
-                            <Trash className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         ) : (
-                          <p className="font-medium">{item.price} ETH</p>
+                          <p className="font-medium">
+                            {item.metadata?.price || "0.00"} ETH
+                          </p>
                         )}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="relative w-[300px] h-[200px] mx-auto">
+            <div className="flex flex-col items-center justify-center h-[400px] text-center">
+              <div className="relative w-[200px] h-[200px]">
                 <Image
-                  src="/Cart.svg"
+                  src="/placeholder.svg"
                   alt="Empty Cart"
                   fill
                   className="object-contain"
-                  priority
                 />
               </div>
               <h3 className="text-lg font-semibold mb-2">
                 Your cart is empty!
               </h3>
-              <p className="text-gray-500 mb-4">
-                Add some awesome items to your cart!
+              <p className="text-muted-foreground mb-4">
+                Add some awesome NFTs to your cart!
               </p>
-              <Button
-                variant="default"
-                onClick={() => {
-                  setSheetOpen(false);
-                  router.push("/");
-                }}
-              >
-                Start Shopping
+              <Button variant="default" onClick={() => setIsOpen(false)}>
+                Explore NFTs
               </Button>
             </div>
           )}
         </div>
 
-        {items.length > 0 && (
+        {cartItems.length > 0 && (
           <div className="border-t px-6 py-4">
             <div className="flex justify-between mb-4">
               <span className="text-lg">Total price</span>
               <div className="text-right">
                 <div className="text-lg">{totalPrice.toFixed(3)} ETH</div>
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   ${usdPrice.toFixed(2)}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsOpen(!isOpen)}
-                  className="w-full justify-between"
-                >
-                  <span className="text-gray-400">
-                    {walletAddress || "Send to a different wallet"}
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </Button>
-                {isOpen && (
-                  <Input
-                    type="text"
-                    placeholder="Enter wallet address"
-                    value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
-                    className="bg-transparent mt-2"
-                  />
-                )}
-              </div>
+            <Separator className="my-4" />
 
-              <Button className="w-full">Complete purchase</Button>
-            </div>
+            <Button className="w-full">Complete purchase</Button>
           </div>
         )}
       </SheetContent>
