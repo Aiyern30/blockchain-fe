@@ -49,6 +49,7 @@ import { useWalletClient } from "wagmi";
 import { z } from "zod";
 import { useParams } from "next/navigation";
 import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
+import { handleCopy } from "@/utils/helper";
 
 const attributeSchema = z.object({
   trait_type: z.string().min(1, { message: "Trait type is required" }),
@@ -898,16 +899,7 @@ export default function CollectionNFTsPage() {
                       <p>
                         <span className="font-medium">Owner:</span>{" "}
                         <span
-                          onClick={() => {
-                            navigator.clipboard
-                              .writeText(selectedNFT.owner)
-                              .then(() => {
-                                alert("Owner address copied to clipboard!");
-                              })
-                              .catch((err) => {
-                                console.error("Failed to copy:", err);
-                              });
-                          }}
+                          onClick={() => handleCopy(selectedNFT.owner)}
                           className="cursor-pointer text-blue-600 underline"
                           title="Click to copy"
                         >

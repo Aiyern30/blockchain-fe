@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/";
 import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
-import { useToast } from "@/hooks/use-toast";
 import { truncateAddress } from "@/utils/function";
+import { handleCopy, handleShare } from "@/utils/helper";
 
 export default function ProfilePage() {
   const tabs = [
@@ -29,7 +29,6 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [gridView, setGridView] = useState<GridView>("medium");
   const { address: rainbowKitAddress, isConnected } = useAccount();
-  const { toast } = useToast();
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
 
@@ -82,49 +81,6 @@ export default function ProfilePage() {
     fetchFirstTransactionDate();
   }, [walletAddress]);
 
-  const handleCopy = () => {
-    if (walletAddress) {
-      navigator.clipboard
-        .writeText(walletAddress)
-        .then(() => {
-          toast({
-            title: "Copied!",
-            description: "Wallet address copied to clipboard.",
-          });
-        })
-        .catch((err) => {
-          console.error("Failed to copy: ", err);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to copy wallet address.",
-          });
-        });
-    }
-  };
-
-  const handleShare = () => {
-    if (walletAddress) {
-      const profileUrl = `${window.location.origin}/Profile/${walletAddress}`;
-      navigator.clipboard
-        .writeText(profileUrl)
-        .then(() => {
-          toast({
-            title: "Profile Link Copied!",
-            description: "Share your profile link with others.",
-          });
-        })
-        .catch((err) => {
-          console.error("Failed to copy: ", err);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to copy profile link.",
-          });
-        });
-    }
-  };
-
   return (
     <div className="h-[calc(100vh-128px)] bg-background text-foreground">
       <div className="px-4 py-6">
@@ -136,7 +92,7 @@ export default function ProfilePage() {
               <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 text-sm text-muted-foreground">
                 <code
                   className="cursor-pointer flex items-center gap-2"
-                  onClick={handleCopy}
+                  onClick={() => handleCopy(walletAddress ?? "")}
                 >
                   {truncateAddress(walletAddress ?? "")}
                   {isConnected && walletAddress && (
@@ -150,7 +106,11 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex gap-2 flex-row mx-auto sm:mx-0">
-            <Button variant="outline" size="icon" onClick={handleShare}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handleShare(walletAddress ?? "")}
+            >
               <Share2 className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="icon">
