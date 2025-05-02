@@ -81,7 +81,7 @@ type AttributeFormValues = z.infer<typeof attributeSchema>;
 
 export default function MintIntoCollection() {
   const params = useParams();
-  const collectionId = params.id as string;
+  const collectionAddress = params.id as string;
   const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
   const { data: walletClient } = useWalletClient();
@@ -102,14 +102,14 @@ export default function MintIntoCollection() {
   // Fetch collection details
   useEffect(() => {
     const fetchCollectionDetails = async () => {
-      if (!walletClient || !collectionId) return;
+      if (!walletClient || !collectionAddress) return;
 
       try {
         const provider = new ethers.BrowserProvider(walletClient);
         const signer = await provider.getSigner();
         const nftContract = getERC721Contract(signer);
 
-        const details = await nftContract.collectionDetails(collectionId);
+        const details = await nftContract.collectionDetails(collectionAddress);
         setCollectionName(details.name);
       } catch (error) {
         console.error("Failed to fetch collection details:", error);
@@ -118,7 +118,7 @@ export default function MintIntoCollection() {
     };
 
     fetchCollectionDetails();
-  }, [walletClient, collectionId]);
+  }, [walletClient, collectionAddress]);
 
   const form = useForm<NFTFormValues>({
     resolver: zodResolver(NFTFormSchema),
@@ -225,7 +225,7 @@ export default function MintIntoCollection() {
     setMintingStatus("checking");
     await delay(STATUS_STAGES.checking.duration);
 
-    if (!walletClient || !collectionId) {
+    if (!walletClient || !collectionAddress) {
       toast.warning("Please connect your wallet and select a collection!", {
         style: { backgroundColor: "#f59e0b", color: "white" },
       });
@@ -280,7 +280,10 @@ export default function MintIntoCollection() {
       const nftContract = getERC721Contract(signer);
 
       try {
-        const tx = await nftContract.mintNFT(collectionId, metadataUrl);
+        const tx = await nftContract.mintIntoCollection(
+          collectionAddress,
+          metadataUrl
+        );
 
         const receipt = await tx.wait();
         console.log("🎯 NFT minted:", receipt);
