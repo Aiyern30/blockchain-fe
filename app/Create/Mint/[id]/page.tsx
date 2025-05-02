@@ -33,6 +33,7 @@ import {
   SelectValue,
   Alert,
   AlertDescription,
+  AlertTitle,
 } from "@/components/ui";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { cn } from "@/lib/utils";
@@ -50,6 +51,8 @@ import {
   Tag,
   Flame,
   AlertTriangle,
+  ShieldAlert,
+  Eye,
 } from "lucide-react";
 import type React from "react";
 import { useState, useEffect } from "react";
@@ -58,8 +61,8 @@ import { toast } from "sonner";
 import { useWalletClient } from "wagmi";
 import { z } from "zod";
 import { useParams } from "next/navigation";
-import { CollectionNFT } from "@/type/CollectionNFT";
-import { NFTMetadata } from "@/type/NFT";
+import type { CollectionNFT } from "@/type/CollectionNFT";
+import type { NFTMetadata } from "@/type/NFT";
 import { STATUS_STAGES } from "@/type/StatusStages";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
 import { handleCopy } from "@/utils/helper";
@@ -120,9 +123,12 @@ export default function CollectionNFTsPage() {
   const [txHash, setTxHash] = useState<string[] | null>(null);
   const [showMintingUI, setShowMintingUI] = useState(false);
   const [collectionName, setCollectionName] = useState<string>("");
+  const [collectionOwner, setCollectionOwner] = useState<string>("");
+  const [isOwner, setIsOwner] = useState<boolean>(false);
   const [collectionNFTs, setCollectionNFTs] = useState<CollectionNFT[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNFTForm, setShowNFTForm] = useState(false);
+  const [userAddress, setUserAddress] = useState<string>("");
 
   // State for NFT details dialog
   const [selectedNFT, setSelectedNFT] = useState<CollectionNFT | null>(null);
@@ -203,11 +209,21 @@ export default function CollectionNFTsPage() {
       try {
         const provider = new ethers.BrowserProvider(walletClient);
         const signer = await provider.getSigner();
+        const signerAddress = await signer.getAddress();
+        setUserAddress(signerAddress);
+
         const nftContract = getERC721Contract(signer);
 
         // Fetch collection details
         const details = await nftContract.collectionDetails(collectionAddress);
         setCollectionName(details.name);
+
+        // Fetch collection owner
+        const owner = await nftContract.collectionOwner(collectionAddress);
+        setCollectionOwner(owner);
+
+        // Check if current user is the owner
+        setIsOwner(owner.toLowerCase() === signerAddress.toLowerCase());
 
         // Fetch NFTs in the collection
         const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
@@ -294,6 +310,11 @@ export default function CollectionNFTsPage() {
   };
 
   const onSubmit = async (data: NFTFormValues) => {
+    if (!isOwner) {
+      toast.error("Only the collection owner can mint NFTs");
+      return;
+    }
+
     setIsSubmitting(true);
     setShowMintingUI(true);
 
@@ -407,6 +428,11 @@ export default function CollectionNFTsPage() {
     setShowNFTDetails(true);
   };
 
+  // Check if user is the NFT owner
+  const isNFTOwner = (nft: CollectionNFT) => {
+    return nft.owner.toLowerCase() === userAddress.toLowerCase();
+  };
+
   // Calculate price in different units
   const calculatePrice = (price: string, unit: string) => {
     try {
@@ -453,6 +479,12 @@ export default function CollectionNFTsPage() {
 
   const openListingForm = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (!isNFTOwner(nft)) {
+      toast.error("Only the NFT owner can list this NFT");
+      return;
+    }
+
     setListingNFT(nft);
     setShowListingForm(true);
     listingForm.reset({
@@ -464,6 +496,12 @@ export default function CollectionNFTsPage() {
 
   const openBurnConfirmation = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (!isNFTOwner(nft)) {
+      toast.error("Only the NFT owner can burn this NFT");
+      return;
+    }
+
     setListingNFT(nft);
     setShowBurnConfirmation(true);
   };
@@ -481,6 +519,12 @@ export default function CollectionNFTsPage() {
     const listingFee = SERVICE_FEE_ETH;
 
     try {
+      // Check if user is the NFT owner
+      const signerAddress = await signer.getAddress();
+      if (listingNFT.owner.toLowerCase() !== signerAddress.toLowerCase()) {
+        throw new Error("You are not the owner of this NFT");
+      }
+
       // Convert listing fee and price based on unit
       let parsedPrice;
       switch (unit) {
@@ -505,14 +549,24 @@ export default function CollectionNFTsPage() {
       // Step 1: Approve the marketplace contract to handle the NFT transfer
       const nftTokenContract = new ethers.Contract(
         collectionAddress,
-        ["function approve(address to, uint256 tokenId) external"],
+        [
+          "function ownerOf(uint256 tokenId) view returns (address)",
+          "function approve(address to, uint256 tokenId) external",
+          "function getApproved(uint256 tokenId) view returns (address)",
+        ],
         signer
       );
 
-      const tx = await nftTokenContract.approve(marketplaceAddress, tokenId);
-      await tx.wait();
-
-      setListingStatus("NFT approved for listing...");
+      // Check if the marketplace is already approved
+      const approvedAddress = await nftTokenContract.getApproved(tokenId);
+      if (approvedAddress.toLowerCase() !== marketplaceAddress.toLowerCase()) {
+        setListingStatus("Approving marketplace to transfer your NFT...");
+        const tx = await nftTokenContract.approve(marketplaceAddress, tokenId);
+        await tx.wait();
+        setListingStatus("NFT approved for listing...");
+      } else {
+        setListingStatus("Marketplace already approved for this NFT...");
+      }
 
       // Step 2: List the NFT on the marketplace
       const marketplaceContract = new ethers.Contract(
@@ -523,6 +577,7 @@ export default function CollectionNFTsPage() {
         signer
       );
 
+      setListingStatus("Listing NFT on marketplace...");
       const txList = await marketplaceContract.listNFT(
         collectionAddress,
         tokenId,
@@ -585,6 +640,13 @@ export default function CollectionNFTsPage() {
     try {
       const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
+      const signerAddress = await signer.getAddress();
+
+      // Check if user is the NFT owner
+      if (listingNFT.owner.toLowerCase() !== signerAddress.toLowerCase()) {
+        throw new Error("You are not the owner of this NFT");
+      }
+
       const nftContract = getERC721Contract(signer);
 
       // Call the burn function (assuming your contract has a burn function)
@@ -634,9 +696,49 @@ export default function CollectionNFTsPage() {
           </h1>
           <p className="text-muted-foreground mt-1">
             View and manage your NFTs in this collection
+            {collectionOwner && (
+              <span className="ml-1 text-xs">
+                • Owner:{" "}
+                <span className="font-mono">
+                  {truncateAddress(collectionOwner)}
+                </span>
+              </span>
+            )}
           </p>
         </div>
+
+        {!isLoading && (
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={isOwner ? "default" : "outline"}
+              className="px-3 py-1"
+            >
+              {isOwner ? (
+                <>
+                  <ShieldAlert className="h-3.5 w-3.5 mr-1" />
+                  Collection Owner
+                </>
+              ) : (
+                <>
+                  <Eye className="h-3.5 w-3.5 mr-1" />
+                  View Only
+                </>
+              )}
+            </Badge>
+          </div>
+        )}
       </div>
+
+      {!isLoading && !isOwner && (
+        <Alert className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>View-only mode</AlertTitle>
+          <AlertDescription>
+            You are not the owner of this collection. You can view the NFTs but
+            cannot mint, list, or burn them.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -652,18 +754,20 @@ export default function CollectionNFTsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {/* Add New NFT Card */}
-          <Card
-            className="overflow-hidden cursor-pointer group relative h-[240px]"
-            onClick={() => setShowNFTForm(true)}
-          >
-            <div className="flex flex-col items-center justify-center h-full bg-muted/20 hover:bg-muted/40 transition-colors">
-              <div className="rounded-full bg-primary/10 p-4 mb-3">
-                <Plus className="h-8 w-8 text-primary" />
+          {/* Add New NFT Card - Only visible to collection owner */}
+          {isOwner && (
+            <Card
+              className="overflow-hidden cursor-pointer group relative h-[240px]"
+              onClick={() => setShowNFTForm(true)}
+            >
+              <div className="flex flex-col items-center justify-center h-full bg-muted/20 hover:bg-muted/40 transition-colors">
+                <div className="rounded-full bg-primary/10 p-4 mb-3">
+                  <Plus className="h-8 w-8 text-primary" />
+                </div>
+                <p className="font-medium">Add New NFT</p>
               </div>
-              <p className="font-medium">Add New NFT</p>
-            </div>
-          </Card>
+            </Card>
+          )}
 
           {/* NFT Cards */}
           {collectionNFTs.map((nft, index) => (
@@ -695,27 +799,29 @@ export default function CollectionNFTsPage() {
                   </div>
                 )}
 
-                {/* Hover Actions Overlay */}
-                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                    onClick={(e) => openListingForm(nft, e)}
-                  >
-                    <Tag className="h-4 w-4" />
-                    List
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="flex items-center gap-1"
-                    onClick={(e) => openBurnConfirmation(nft, e)}
-                  >
-                    <Flame className="h-4 w-4" />
-                    Burn
-                  </Button>
-                </div>
+                {/* Hover Actions Overlay - Only visible to NFT owner */}
+                {isNFTOwner(nft) && (
+                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                      onClick={(e) => openListingForm(nft, e)}
+                    >
+                      <Tag className="h-4 w-4" />
+                      List
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="flex items-center gap-1"
+                      onClick={(e) => openBurnConfirmation(nft, e)}
+                    >
+                      <Flame className="h-4 w-4" />
+                      Burn
+                    </Button>
+                  </div>
+                )}
               </div>
               <CardContent className="p-3 flex-grow">
                 <h3 className="font-medium truncate">
@@ -1080,6 +1186,7 @@ export default function CollectionNFTsPage() {
                     <Image
                       src={
                         formatImageUrl(selectedNFT.metadata.image) ||
+                        "/placeholder.svg" ||
                         "/placeholder.svg"
                       }
                       alt={
@@ -1098,32 +1205,35 @@ export default function CollectionNFTsPage() {
                     />
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowNFTDetails(false);
-                        openListingForm(selectedNFT, e as any);
-                      }}
-                    >
-                      <Tag className="h-4 w-4 mr-2" />
-                      List NFT
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowNFTDetails(false);
-                        openBurnConfirmation(selectedNFT, e as any);
-                      }}
-                    >
-                      <Flame className="h-4 w-4 mr-2" />
-                      Burn NFT
-                    </Button>
-                  </div>
+                  {/* Only show action buttons to NFT owner */}
+                  {isNFTOwner(selectedNFT) && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        className="flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowNFTDetails(false);
+                          openListingForm(selectedNFT, e as any);
+                        }}
+                      >
+                        <Tag className="h-4 w-4 mr-2" />
+                        List NFT
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowNFTDetails(false);
+                          openBurnConfirmation(selectedNFT, e as any);
+                        }}
+                      >
+                        <Flame className="h-4 w-4 mr-2" />
+                        Burn NFT
+                      </Button>
+                    </div>
+                  )}
 
                   {selectedNFT.metadata.external_url && (
                     <Button
