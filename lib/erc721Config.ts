@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0x84Ff282C88Ba7CfEE5F170c52cFC34dA797b8d84";
+const NFT_CONTRACT_ADDRESS = "0x10Fe685dBce6329D9899d426F6c5383DeF2B00e2";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
@@ -292,6 +292,24 @@ const nftABI = [
       { internalType: "address payable", name: "owner", type: "address" },
       { internalType: "uint256", name: "price", type: "uint256" },
       { internalType: "bool", name: "sold", type: "bool" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "collection", type: "address" }],
+    name: "viewCollectionNFTs",
+    outputs: [
+      {
+        components: [
+          { internalType: "uint256", name: "tokenId", type: "uint256" },
+          { internalType: "string", name: "tokenURI", type: "string" },
+          { internalType: "address", name: "owner", type: "address" },
+        ],
+        internalType: "struct NFTMarketplaceFactory.CollectionNFT[]",
+        name: "",
+        type: "tuple[]",
+      },
     ],
     stateMutability: "view",
     type: "function",
