@@ -19,6 +19,7 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { useRouter } from "next/navigation";
+import { formatImageUrl, truncateAddress } from "@/utils/function";
 
 interface CollectionDetail {
   address: string;
@@ -90,25 +91,6 @@ export default function CollectionsPage() {
 
     fetchCollections();
   }, [address, isConnected, walletClient]);
-
-  const formatImageUrl = (imageUrl: string) => {
-    if (!imageUrl) return "/placeholder.svg";
-
-    if (imageUrl.startsWith("ipfs://")) {
-      return `https://ipfs.io/ipfs/${imageUrl.replace("ipfs://", "")}`;
-    }
-
-    if (imageUrl.includes("gateway.pinata.cloud/ipfs/")) {
-      return imageUrl;
-    }
-
-    return imageUrl;
-  };
-
-  const truncateAddress = (address: string) => {
-    if (!address) return "";
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
 
   const navigateToCreate = () => {
     window.location.href = "/Create/Collection";
