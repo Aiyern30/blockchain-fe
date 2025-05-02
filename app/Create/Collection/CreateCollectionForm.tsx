@@ -199,7 +199,6 @@ export function CreateCollectionForm() {
     setTxHash(null);
   };
 
-  // Show minting UI when submitting
   if (showMintingUI) {
     return (
       <NFTMintingUI
