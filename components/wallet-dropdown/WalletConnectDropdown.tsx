@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import MotionButton from "@/components/wallet-dropdown/MotionButton";
 import Image from "next/image";
-import { formatAddress } from "@/utils/function";
+import { truncateAddress } from "@/utils/function";
 
 const Web3AuthIcon = () => (
   <svg
@@ -133,7 +133,7 @@ export default function WalletConnectDropdown() {
             <ConnectButton />
           ) : isWeb3AuthConnected ? (
             <div className="bg-gray-800 text-white px-4 py-2 rounded flex items-center space-x-2">
-              <span>{formatAddress(walletAddress)}</span>
+              <span>{truncateAddress(walletAddress)}</span>
 
               <Button
                 onClick={logoutWeb3Auth}
