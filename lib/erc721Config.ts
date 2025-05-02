@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0x10Fe685dBce6329D9899d426F6c5383DeF2B00e2";
+const NFT_CONTRACT_ADDRESS = "0xb84c96316E471d2b41682230034682E270AA4646";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
@@ -182,6 +182,15 @@ const nftABI = [
         type: "tuple[]",
       },
     ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "collectionAddress", type: "address" },
+    ],
+    name: "getCollectionOwner",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
     stateMutability: "view",
     type: "function",
   },
