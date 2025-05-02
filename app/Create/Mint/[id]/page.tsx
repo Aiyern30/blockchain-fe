@@ -51,6 +51,9 @@ import { useParams } from "next/navigation";
 import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
 import { handleCopy } from "@/utils/helper";
 import { STATUS_STAGES } from "@/type/StatusStages";
+import { formatImageUrl, truncateAddress } from "@/utils/function";
+import { CollectionNFT } from "@/type/CollectionNFT";
+import { NFTMetadata } from "@/type/NFT";
 
 const attributeSchema = z.object({
   trait_type: z.string().min(1, { message: "Trait type is required" }),
@@ -81,21 +84,6 @@ const NFTFormSchema = z.object({
 
 type NFTFormValues = z.infer<typeof NFTFormSchema>;
 type AttributeFormValues = z.infer<typeof attributeSchema>;
-
-interface NFTMetadata {
-  name: string;
-  description: string;
-  image: string;
-  external_url?: string;
-  attributes?: { trait_type: string; value: string }[];
-}
-
-interface CollectionNFT {
-  tokenId: number;
-  metadataUrl: string;
-  owner: string;
-  metadata?: NFTMetadata;
-}
 
 export default function CollectionNFTsPage() {
   const params = useParams();
@@ -344,24 +332,9 @@ export default function CollectionNFTsPage() {
     setTxHash(null);
   };
 
-  const formatImageUrl = (imageUrl: string) => {
-    if (!imageUrl) return "/placeholder.svg";
-
-    if (imageUrl.startsWith("ipfs://")) {
-      return `https://ipfs.io/ipfs/${imageUrl.replace("ipfs://", "")}`;
-    }
-
-    return imageUrl;
-  };
-
   const openNFTDetails = (nft: CollectionNFT) => {
     setSelectedNFT(nft);
     setShowNFTDetails(true);
-  };
-
-  const truncateAddress = (address: string) => {
-    if (!address) return "";
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   if (showMintingUI) {
@@ -461,7 +434,7 @@ export default function CollectionNFTsPage() {
                     size="sm"
                     className="w-full text-xs h-8"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent opening the NFT details dialog
+                      e.stopPropagation();
                       window.open(nft.metadata?.external_url, "_blank");
                     }}
                   >

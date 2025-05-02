@@ -4,11 +4,11 @@ export interface NFTAttribute {
 }
 
 export interface NFTMetadata {
-  name?: string;
-  image?: string;
-  attributes?: NFTAttribute[];
-  id?: number;
-  collection?: string;
+  name: string;
+  description: string;
+  image: string;
+  external_url?: string;
+  attributes?: { trait_type: string; value: string }[];
 }
 
 export interface FetchedNFT {
