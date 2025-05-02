@@ -50,6 +50,7 @@ import { z } from "zod";
 import { useParams } from "next/navigation";
 import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
 import { handleCopy } from "@/utils/helper";
+import { STATUS_STAGES } from "@/type/StatusStages";
 
 const attributeSchema = z.object({
   trait_type: z.string().min(1, { message: "Trait type is required" }),
@@ -213,17 +214,6 @@ export default function CollectionNFTsPage() {
   };
 
   const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
-
-  const STATUS_STAGES = {
-    idle: { label: "Idle", duration: 0 },
-    checking: { label: "Checking Wallet", duration: 1500 },
-    uploading: { label: "Uploading to IPFS", duration: 2000 },
-    minting: { label: "Minting on Blockchain", duration: 2500 },
-    exists: { label: "NFT Already Exists", duration: 0 },
-    done: { label: "Minting Complete", duration: 0 },
-    cancelled: { label: "Transaction Cancelled", duration: 0 },
-    error: { label: "Error Occurred", duration: 0 },
-  };
 
   const addAttribute = () => {
     if (!newAttribute.trait_type || !newAttribute.value) {
