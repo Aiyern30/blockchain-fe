@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui";
 import Image from "next/image";
 import Link from "next/link";
-import { Bot, Menu, User, X } from "lucide-react";
+import { Menu, User, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Cart } from "./Cart";
 import WalletConnectDropdown from "./wallet-dropdown/WalletConnectDropdown";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import WishlistSheet from "./Wishlist";
+import { CartSheet } from "./Cart";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -51,13 +51,13 @@ export default function Navbar() {
           <User className="w-6 h-6" />
         </Button>
         <WishlistSheet />
-        <Cart />
+        <CartSheet />
         <ThemeToggle />
       </div>
 
       <div className="flex items-center space-x-3 md:hidden">
         <WishlistSheet />
-        <Cart />
+        <CartSheet />
         <ThemeToggle />
 
         <Button
