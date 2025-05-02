@@ -897,11 +897,34 @@ export default function CollectionNFTsPage() {
                       </p>
                       <p>
                         <span className="font-medium">Owner:</span>{" "}
-                        {selectedNFT.owner}
+                        <span
+                          onClick={() => {
+                            navigator.clipboard
+                              .writeText(selectedNFT.owner)
+                              .then(() => {
+                                alert("Owner address copied to clipboard!");
+                              })
+                              .catch((err) => {
+                                console.error("Failed to copy:", err);
+                              });
+                          }}
+                          className="cursor-pointer text-blue-600 underline"
+                          title="Click to copy"
+                        >
+                          {selectedNFT.owner}
+                        </span>
                       </p>
+
                       <p className="break-all">
                         <span className="font-medium">Metadata URL:</span>{" "}
-                        {selectedNFT.metadataUrl}
+                        <a
+                          href={selectedNFT.metadataUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline break-all"
+                        >
+                          {selectedNFT.metadataUrl}
+                        </a>
                       </p>
                     </div>
                   </div>
