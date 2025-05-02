@@ -26,6 +26,13 @@ import {
   Badge,
   Separator,
   Skeleton,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Alert,
+  AlertDescription,
 } from "@/components/ui";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { cn } from "@/lib/utils";
@@ -40,6 +47,9 @@ import {
   Trash2,
   ExternalLink,
   Info,
+  Tag,
+  Flame,
+  AlertTriangle,
 } from "lucide-react";
 import type React from "react";
 import { useState, useEffect } from "react";
@@ -48,12 +58,15 @@ import { toast } from "sonner";
 import { useWalletClient } from "wagmi";
 import { z } from "zod";
 import { useParams } from "next/navigation";
-import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
-import { handleCopy } from "@/utils/helper";
-import { STATUS_STAGES } from "@/type/StatusStages";
-import { formatImageUrl, truncateAddress } from "@/utils/function";
 import { CollectionNFT } from "@/type/CollectionNFT";
 import { NFTMetadata } from "@/type/NFT";
+import { STATUS_STAGES } from "@/type/StatusStages";
+import { formatImageUrl, truncateAddress } from "@/utils/function";
+import { handleCopy } from "@/utils/helper";
+
+const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
+const SERVICE_FEE_ETH = "0.0015";
+const CREATOR_FEE_PERCENT = 0;
 
 const attributeSchema = z.object({
   trait_type: z.string().min(1, { message: "Trait type is required" }),
@@ -82,8 +95,18 @@ const NFTFormSchema = z.object({
   attributes: z.array(attributeSchema).default([]),
 });
 
+const ListingFormSchema = z.object({
+  price: z.string().min(1, { message: "Price is required" }),
+  unit: z.string().min(1, { message: "Unit is required" }),
+});
+
 type NFTFormValues = z.infer<typeof NFTFormSchema>;
 type AttributeFormValues = z.infer<typeof attributeSchema>;
+type ListingFormValues = z.infer<typeof ListingFormSchema>;
+
+interface CurrencyRate {
+  [key: string]: number;
+}
 
 export default function CollectionNFTsPage() {
   const params = useParams();
@@ -105,12 +128,71 @@ export default function CollectionNFTsPage() {
   const [selectedNFT, setSelectedNFT] = useState<CollectionNFT | null>(null);
   const [showNFTDetails, setShowNFTDetails] = useState(false);
 
+  // State for listing dialog
+  const [showListingForm, setShowListingForm] = useState(false);
+  const [listingNFT, setListingNFT] = useState<CollectionNFT | null>(null);
+  const [isListing, setIsListing] = useState(false);
+  const [listingStatus, setListingStatus] = useState("");
+  const [currencyRates, setCurrencyRates] = useState<CurrencyRate>({
+    USD: 0,
+    MYR: 0,
+  });
+
+  // State for burn confirmation
+  const [showBurnConfirmation, setShowBurnConfirmation] = useState(false);
+  const [isBurning, setIsBurning] = useState(false);
+
   // State for attribute dialog
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newAttribute, setNewAttribute] = useState<AttributeFormValues>({
     trait_type: "",
     value: "",
   });
+
+  // Forms
+  const form = useForm<NFTFormValues>({
+    resolver: zodResolver(NFTFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      image: "",
+      external_url: "",
+      attributes: [],
+    },
+    mode: "onChange",
+  });
+
+  const listingForm = useForm<ListingFormValues>({
+    resolver: zodResolver(ListingFormSchema),
+    defaultValues: {
+      price: "",
+      unit: "ETH",
+    },
+    mode: "onChange",
+  });
+
+  useEffect(() => {
+    const fetchEthPrice = async () => {
+      try {
+        const response = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd,myr"
+        );
+        const data = await response.json();
+        setCurrencyRates({
+          USD: data.ethereum.usd,
+          MYR: data.ethereum.myr,
+        });
+      } catch (error) {
+        console.error("Failed to fetch ETH price:", error);
+        setCurrencyRates({
+          USD: 3000,
+          MYR: 14000,
+        });
+      }
+    };
+
+    fetchEthPrice();
+  }, []);
 
   // Fetch collection details and NFTs
   useEffect(() => {
@@ -174,18 +256,6 @@ export default function CollectionNFTsPage() {
     fetchCollectionData();
   }, [walletClient, collectionAddress, mintingStatus]);
 
-  const form = useForm<NFTFormValues>({
-    resolver: zodResolver(NFTFormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      image: "",
-      external_url: "",
-      attributes: [],
-    },
-    mode: "onChange",
-  });
-
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
@@ -221,6 +291,42 @@ export default function CollectionNFTsPage() {
     const currentAttributes = [...form.getValues("attributes")];
     currentAttributes.splice(index, 1);
     form.setValue("attributes", currentAttributes);
+  };
+
+  const uploadToIPFS = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(
+      "https://api.pinata.cloud/pinning/pinFileToIPFS",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${PINATA_JWT}` },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) throw new Error("❌ File upload failed");
+    const data = await response.json();
+    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
+  };
+
+  const uploadMetadataToIPFS = async (metadata: any): Promise<string> => {
+    const response = await fetch(
+      "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${PINATA_JWT}`,
+        },
+        body: JSON.stringify(metadata),
+      }
+    );
+
+    if (!response.ok) throw new Error("❌ Metadata upload failed");
+    const data = await response.json();
+    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
   };
 
   const onSubmit = async (data: NFTFormValues) => {
@@ -337,6 +443,213 @@ export default function CollectionNFTsPage() {
     setShowNFTDetails(true);
   };
 
+  // Calculate price in different units
+  const calculatePrice = (price: string, unit: string) => {
+    try {
+      let priceInEth = 0;
+
+      switch (unit) {
+        case "ETH":
+          priceInEth = Number.parseFloat(price);
+          break;
+        case "GWEI":
+          priceInEth = Number.parseFloat(price) / 1e9;
+          break;
+        case "WEI":
+          priceInEth = Number.parseFloat(price) / 1e18;
+          break;
+        default:
+          priceInEth = Number.parseFloat(price);
+      }
+
+      const serviceFeeEth = Number.parseFloat(SERVICE_FEE_ETH);
+      const creatorFeeEth = (priceInEth * CREATOR_FEE_PERCENT) / 100;
+      const totalEth = priceInEth - serviceFeeEth - creatorFeeEth;
+
+      return {
+        priceInEth,
+        serviceFeeEth,
+        creatorFeeEth,
+        totalEth,
+        priceInUSD: priceInEth * currencyRates.USD,
+        priceInMYR: priceInEth * currencyRates.MYR,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        priceInEth: 0,
+        serviceFeeEth: 0,
+        creatorFeeEth: 0,
+        totalEth: 0,
+        priceInUSD: 0,
+        priceInMYR: 0,
+      };
+    }
+  };
+
+  const openListingForm = (nft: CollectionNFT, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setListingNFT(nft);
+    setShowListingForm(true);
+    listingForm.reset({
+      price: "",
+      unit: "ETH",
+    });
+    setListingStatus("");
+  };
+
+  const openBurnConfirmation = (nft: CollectionNFT, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setListingNFT(nft);
+    setShowBurnConfirmation(true);
+  };
+
+  const listNFT = async (signer: ethers.Signer) => {
+    if (!listingNFT || !listingForm.getValues("price")) {
+      setListingStatus("Please provide all required fields.");
+      return;
+    }
+
+    const tokenId = listingNFT.tokenId;
+    const price = listingForm.getValues("price");
+    const unit = listingForm.getValues("unit");
+    const listingFee = SERVICE_FEE_ETH;
+
+    try {
+      // Convert listing fee and price based on unit
+      let parsedPrice;
+      switch (unit) {
+        case "ETH":
+          parsedPrice = ethers.parseEther(price);
+          break;
+        case "GWEI":
+          parsedPrice = ethers.parseUnits(price, "gwei");
+          break;
+        case "WEI":
+          parsedPrice = ethers.parseUnits(price, "wei");
+          break;
+        default:
+          parsedPrice = ethers.parseEther(price);
+      }
+
+      const parsedListingFee = ethers.parseEther(listingFee);
+
+      // Get contract instance using the helper function
+      const marketplaceAddress = "0x10Fe685dBce6329D9899d426F6c5383DeF2B00e2"; // your deployed marketplace address
+
+      // Step 1: Approve the marketplace contract to handle the NFT transfer
+      const nftTokenContract = new ethers.Contract(
+        collectionAddress,
+        ["function approve(address to, uint256 tokenId) external"],
+        signer
+      );
+
+      const tx = await nftTokenContract.approve(marketplaceAddress, tokenId);
+      await tx.wait();
+
+      setListingStatus("NFT approved for listing...");
+
+      // Step 2: List the NFT on the marketplace
+      const marketplaceContract = new ethers.Contract(
+        marketplaceAddress,
+        [
+          "function listNFT(address collection, uint256 tokenId, uint256 price) external payable",
+        ],
+        signer
+      );
+
+      const txList = await marketplaceContract.listNFT(
+        collectionAddress,
+        tokenId,
+        parsedPrice,
+        {
+          value: parsedListingFee,
+        }
+      );
+
+      await txList.wait();
+
+      setListingStatus("✅ NFT listed successfully!");
+      toast.success("NFT listed successfully!");
+      setShowListingForm(false);
+
+      // Refresh NFT data
+      // This would typically update the UI to show the NFT is now listed
+    } catch (err: any) {
+      console.error("Error listing NFT:", err);
+      setListingStatus(`❌ Error: ${err.message}`);
+      toast.error(`Failed to list NFT: ${err.message}`);
+    }
+  };
+
+  const handleListNFT = async () => {
+    if (!listingForm.formState.isValid) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setIsListing(true);
+    setListingStatus("Preparing to list NFT...");
+
+    try {
+      if (!walletClient) {
+        throw new Error("Wallet not connected");
+      }
+
+      const provider = new ethers.BrowserProvider(walletClient);
+      const signer = await provider.getSigner();
+
+      await listNFT(signer);
+    } catch (err: any) {
+      console.error("Error in handleListNFT:", err);
+      setListingStatus(`❌ Error: ${err.message}`);
+      toast.error(`Failed to list NFT: ${err.message}`);
+    } finally {
+      setIsListing(false);
+    }
+  };
+
+  const burnNFT = async () => {
+    if (!listingNFT || !walletClient) {
+      toast.error("Missing NFT information or wallet connection");
+      return;
+    }
+
+    setIsBurning(true);
+
+    try {
+      const provider = new ethers.BrowserProvider(walletClient);
+      const signer = await provider.getSigner();
+      const nftContract = getERC721Contract(signer);
+
+      // Call the burn function (assuming your contract has a burn function)
+      const tx = await nftContract.burnNFT(
+        collectionAddress,
+        listingNFT.tokenId
+      );
+      await tx.wait();
+
+      toast.success("NFT burned successfully");
+      setShowBurnConfirmation(false);
+
+      // Remove the burned NFT from the list
+      setCollectionNFTs((prev) =>
+        prev.filter(
+          (nft) =>
+            !(
+              nft.tokenId === listingNFT.tokenId &&
+              nft.owner === listingNFT.owner
+            )
+        )
+      );
+    } catch (error: any) {
+      console.error("Error burning NFT:", error);
+      toast.error(`Failed to burn NFT: ${error.message}`);
+    } finally {
+      setIsBurning(false);
+    }
+  };
+
   if (showMintingUI) {
     return (
       <NFTMintingUI
@@ -391,7 +704,7 @@ export default function CollectionNFTsPage() {
           {collectionNFTs.map((nft, index) => (
             <Card
               key={index}
-              className="overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow"
+              className="overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow group relative"
               onClick={() => openNFTDetails(nft)}
             >
               <div className="relative h-40 bg-muted overflow-hidden">
@@ -402,7 +715,7 @@ export default function CollectionNFTsPage() {
                     }
                     alt={nft.metadata.name || `NFT #${nft.tokenId}`}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-110 hover:scale-110"
+                    className="object-cover transition-transform duration-300 group-hover:scale-110"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       if (!target.src.includes("placeholder.svg")) {
@@ -416,6 +729,28 @@ export default function CollectionNFTsPage() {
                     <p className="text-muted-foreground">No image</p>
                   </div>
                 )}
+
+                {/* Hover Actions Overlay */}
+                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                    onClick={(e) => openListingForm(nft, e)}
+                  >
+                    <Tag className="h-4 w-4" />
+                    List
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="flex items-center gap-1"
+                    onClick={(e) => openBurnConfirmation(nft, e)}
+                  >
+                    <Flame className="h-4 w-4" />
+                    Burn
+                  </Button>
+                </div>
               </div>
               <CardContent className="p-3 flex-grow">
                 <h3 className="font-medium truncate">
@@ -798,6 +1133,33 @@ export default function CollectionNFTsPage() {
                     />
                   </div>
 
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowNFTDetails(false);
+                        openListingForm(selectedNFT, e as any);
+                      }}
+                    >
+                      <Tag className="h-4 w-4 mr-2" />
+                      List NFT
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowNFTDetails(false);
+                        openBurnConfirmation(selectedNFT, e as any);
+                      }}
+                    >
+                      <Flame className="h-4 w-4 mr-2" />
+                      Burn NFT
+                    </Button>
+                  </div>
+
                   {selectedNFT.metadata.external_url && (
                     <Button
                       variant="outline"
@@ -869,7 +1231,6 @@ export default function CollectionNFTsPage() {
                           {selectedNFT.owner}
                         </span>
                       </p>
-
                       <p className="break-all">
                         <span className="font-medium">Metadata URL:</span>{" "}
                         <a
@@ -896,6 +1257,256 @@ export default function CollectionNFTsPage() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* NFT Listing Dialog */}
+      <Dialog open={showListingForm} onOpenChange={setShowListingForm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>List NFT for Sale</DialogTitle>
+            <DialogDescription>
+              Set your price and list your NFT on the marketplace
+            </DialogDescription>
+          </DialogHeader>
+
+          {listingNFT && (
+            <div className="flex items-center gap-4 mb-4">
+              <div className="relative h-16 w-16 rounded-md overflow-hidden border">
+                <Image
+                  src={
+                    formatImageUrl(listingNFT.metadata?.image || "") ||
+                    "/placeholder.svg"
+                  }
+                  alt={
+                    listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`
+                  }
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="font-medium">
+                  {listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Token ID: {listingNFT.tokenId}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <Form {...listingForm}>
+            <form className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={listingForm.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Price</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.000001"
+                          min="0"
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={listingForm.control}
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="ETH" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ETH">ETH</SelectItem>
+                          <SelectItem value="GWEI">GWEI</SelectItem>
+                          <SelectItem value="WEI">WEI</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {listingForm.watch("price") && (
+                <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Listing price</span>
+                    <span className="font-medium">
+                      {listingForm.watch("price")} {listingForm.watch("unit")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Service Fees</span>
+                    <span className="font-medium">{SERVICE_FEE_ETH} ETH</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Creator Fees</span>
+                    <span className="font-medium">{CREATOR_FEE_PERCENT}%</span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between font-medium">
+                    <span>Total potential earnings</span>
+                    <span>
+                      {calculatePrice(
+                        listingForm.watch("price") || "0",
+                        listingForm.watch("unit") || "ETH"
+                      ).totalEth.toFixed(6)}{" "}
+                      ETH
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground flex justify-between">
+                    <span>Estimated value</span>
+                    <div className="text-right">
+                      <div>
+                        $
+                        {calculatePrice(
+                          listingForm.watch("price") || "0",
+                          listingForm.watch("unit") || "ETH"
+                        ).priceInUSD.toFixed(2)}{" "}
+                        USD
+                      </div>
+                      <div>
+                        RM
+                        {calculatePrice(
+                          listingForm.watch("price") || "0",
+                          listingForm.watch("unit") || "ETH"
+                        ).priceInMYR.toFixed(2)}{" "}
+                        MYR
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {listingStatus && (
+                <Alert
+                  variant={
+                    listingStatus.includes("✅") ? "default" : "destructive"
+                  }
+                >
+                  <AlertDescription>{listingStatus}</AlertDescription>
+                </Alert>
+              )}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowListingForm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleListNFT}
+                  disabled={!listingForm.formState.isValid || isListing}
+                >
+                  {isListing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Listing...
+                    </>
+                  ) : (
+                    "List NFT"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Burn NFT Confirmation Dialog */}
+      <Dialog
+        open={showBurnConfirmation}
+        onOpenChange={setShowBurnConfirmation}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Burn NFT</DialogTitle>
+            <DialogDescription>
+              This action is irreversible. The NFT will be permanently
+              destroyed.
+            </DialogDescription>
+          </DialogHeader>
+
+          {listingNFT && (
+            <div className="flex items-center gap-4 mb-4">
+              <div className="relative h-16 w-16 rounded-md overflow-hidden border">
+                <Image
+                  src={
+                    formatImageUrl(listingNFT.metadata?.image || "") ||
+                    "/placeholder.svg"
+                  }
+                  alt={
+                    listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`
+                  }
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="font-medium">
+                  {listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Token ID: {listingNFT.tokenId}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Burning an NFT will permanently remove it from the blockchain.
+              This action cannot be undone.
+            </AlertDescription>
+          </Alert>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowBurnConfirmation(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={burnNFT}
+              disabled={isBurning}
+            >
+              {isBurning ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Burning...
+                </>
+              ) : (
+                "Burn NFT"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
