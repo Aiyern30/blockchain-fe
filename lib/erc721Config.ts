@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0xd637898a14E20211BFD466f1b3f8A67cbDBf748E";
+const NFT_CONTRACT_ADDRESS = "0x84Ff282C88Ba7CfEE5F170c52cFC34dA797b8d84";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
@@ -20,6 +20,12 @@ const nftABI = [
   {
     anonymous: false,
     inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "itemId",
+        type: "uint256",
+      },
       {
         indexed: true,
         internalType: "address",
@@ -53,6 +59,25 @@ const nftABI = [
       { indexed: false, internalType: "bool", name: "sold", type: "bool" },
     ],
     name: "MarketItemCreated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "itemId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "buyer",
+        type: "address",
+      },
+    ],
+    name: "MarketSaleCompleted",
     type: "event",
   },
   {
@@ -100,6 +125,7 @@ const nftABI = [
     outputs: [
       {
         components: [
+          { internalType: "uint256", name: "itemId", type: "uint256" },
           { internalType: "address", name: "collection", type: "address" },
           { internalType: "uint256", name: "tokenId", type: "uint256" },
           { internalType: "address payable", name: "seller", type: "address" },
@@ -121,6 +147,7 @@ const nftABI = [
     outputs: [
       {
         components: [
+          { internalType: "uint256", name: "itemId", type: "uint256" },
           { internalType: "address", name: "collection", type: "address" },
           { internalType: "uint256", name: "tokenId", type: "uint256" },
           { internalType: "address payable", name: "seller", type: "address" },
@@ -142,6 +169,7 @@ const nftABI = [
     outputs: [
       {
         components: [
+          { internalType: "uint256", name: "itemId", type: "uint256" },
           { internalType: "address", name: "collection", type: "address" },
           { internalType: "uint256", name: "tokenId", type: "uint256" },
           { internalType: "address payable", name: "seller", type: "address" },
@@ -165,6 +193,28 @@ const nftABI = [
     type: "function",
   },
   {
+    inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    name: "idToMarketItem",
+    outputs: [
+      { internalType: "uint256", name: "itemId", type: "uint256" },
+      { internalType: "address", name: "collection", type: "address" },
+      { internalType: "uint256", name: "tokenId", type: "uint256" },
+      { internalType: "address payable", name: "seller", type: "address" },
+      { internalType: "address payable", name: "owner", type: "address" },
+      { internalType: "uint256", name: "price", type: "uint256" },
+      { internalType: "bool", name: "sold", type: "bool" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "itemCount",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       { internalType: "address", name: "collection", type: "address" },
       { internalType: "uint256", name: "tokenId", type: "uint256" },
@@ -179,20 +229,6 @@ const nftABI = [
     inputs: [],
     name: "listingPrice",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    name: "marketItems",
-    outputs: [
-      { internalType: "address", name: "collection", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
-      { internalType: "address payable", name: "seller", type: "address" },
-      { internalType: "address payable", name: "owner", type: "address" },
-      { internalType: "uint256", name: "price", type: "uint256" },
-      { internalType: "bool", name: "sold", type: "bool" },
-    ],
     stateMutability: "view",
     type: "function",
   },
@@ -249,6 +285,7 @@ const nftABI = [
     ],
     name: "userListedItems",
     outputs: [
+      { internalType: "uint256", name: "itemId", type: "uint256" },
       { internalType: "address", name: "collection", type: "address" },
       { internalType: "uint256", name: "tokenId", type: "uint256" },
       { internalType: "address payable", name: "seller", type: "address" },
