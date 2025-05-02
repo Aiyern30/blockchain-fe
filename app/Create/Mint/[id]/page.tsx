@@ -1,14 +1,12 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import NFTMintingUI from "@/components/page/Explore/Create/Drop/NFTMintingUI";
 import Image from "next/image";
 import {
   Button,
   Input,
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
   Form,
   FormField,
@@ -25,13 +23,16 @@ import {
   DialogFooter,
   Badge,
   Separator,
+  Skeleton,
+  DialogDescription,
+  CardFooter,
 } from "@/components/ui";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { cn } from "@/lib/utils";
 import type { StagingStatus } from "@/type/stagingStatus";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ethers } from "ethers";
-import { Upload, Loader2, X, Plus, Trash2 } from "lucide-react";
+import { Upload, Loader2, X, Plus, Trash2, ExternalLink } from "lucide-react";
 import type React from "react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -79,7 +80,23 @@ const NFTFormSchema = z.object({
 type NFTFormValues = z.infer<typeof NFTFormSchema>;
 type AttributeFormValues = z.infer<typeof attributeSchema>;
 
-export default function MintIntoCollection() {
+interface NFTMetadata {
+  name: string;
+  description: string;
+  image: string;
+  external_url?: string;
+  background_color?: string;
+  attributes?: { trait_type: string; value: string }[];
+}
+
+interface CollectionNFT {
+  tokenId: number;
+  metadataUrl: string;
+  owner: string;
+  metadata?: NFTMetadata;
+}
+
+export default function CollectionNFTsPage() {
   const params = useParams();
   const collectionAddress = params.id as string;
   const MAX_FILE_SIZE = 50 * 1024 * 1024;
@@ -91,6 +108,9 @@ export default function MintIntoCollection() {
   const [txHash, setTxHash] = useState<string[] | null>(null);
   const [showMintingUI, setShowMintingUI] = useState(false);
   const [collectionName, setCollectionName] = useState<string>("");
+  const [collectionNFTs, setCollectionNFTs] = useState<CollectionNFT[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showNFTForm, setShowNFTForm] = useState(false);
 
   // State for attribute dialog
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -99,26 +119,67 @@ export default function MintIntoCollection() {
     value: "",
   });
 
-  // Fetch collection details
+  // Fetch collection details and NFTs
   useEffect(() => {
-    const fetchCollectionDetails = async () => {
+    const fetchCollectionData = async () => {
       if (!walletClient || !collectionAddress) return;
 
+      setIsLoading(true);
       try {
         const provider = new ethers.BrowserProvider(walletClient);
         const signer = await provider.getSigner();
         const nftContract = getERC721Contract(signer);
 
+        // Fetch collection details
         const details = await nftContract.collectionDetails(collectionAddress);
         setCollectionName(details.name);
+
+        // Fetch NFTs in the collection
+        const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
+
+        // Process NFTs data
+        const processedNFTs = await Promise.all(
+          nfts.map(async (nft: any) => {
+            const tokenId = Number(nft[0]);
+            const metadataUrl = nft[1];
+            const owner = nft[2];
+
+            // Fetch metadata if available
+            let metadata: NFTMetadata | undefined;
+            try {
+              if (metadataUrl) {
+                const response = await fetch(metadataUrl);
+                if (response.ok) {
+                  metadata = await response.json();
+                }
+              }
+            } catch (error) {
+              console.error(
+                `Failed to fetch metadata for token ${tokenId}:`,
+                error
+              );
+            }
+
+            return {
+              tokenId,
+              metadataUrl,
+              owner,
+              metadata,
+            };
+          })
+        );
+
+        setCollectionNFTs(processedNFTs);
       } catch (error) {
-        console.error("Failed to fetch collection details:", error);
-        toast.error("Failed to load collection details");
+        console.error("Failed to fetch collection data:", error);
+        toast.error("Failed to load collection data");
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchCollectionDetails();
-  }, [walletClient, collectionAddress]);
+    fetchCollectionData();
+  }, [walletClient, collectionAddress, mintingStatus]);
 
   const form = useForm<NFTFormValues>({
     resolver: zodResolver(NFTFormSchema),
@@ -295,6 +356,7 @@ export default function MintIntoCollection() {
         toast.success("NFT Minted Successfully!", {});
         form.reset();
         setImageUrl(null);
+        setShowNFTForm(false);
       } catch (error: any) {
         console.error("❌ Error minting NFT:", error);
 
@@ -326,6 +388,16 @@ export default function MintIntoCollection() {
     setTxHash(null);
   };
 
+  const formatImageUrl = (imageUrl: string) => {
+    if (!imageUrl) return "/placeholder.svg";
+
+    if (imageUrl.startsWith("ipfs://")) {
+      return `https://ipfs.io/ipfs/${imageUrl.replace("ipfs://", "")}`;
+    }
+
+    return imageUrl;
+  };
+
   if (showMintingUI) {
     return (
       <NFTMintingUI
@@ -336,350 +408,457 @@ export default function MintIntoCollection() {
     );
   }
 
-  return (
-    <>
-      <Card className="max-w-6xl mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle>Create NFT in {collectionName || "Collection"}</CardTitle>
-          <CardDescription>Add a new NFT to your collection</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>NFT Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="My Awesome NFT" {...field} />
-                        </FormControl>
-                        <FormDescription>The name of your NFT</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+  // NFT Form Dialog
+  const NFTFormDialog = () => (
+    <Dialog open={showNFTForm} onOpenChange={setShowNFTForm}>
+      <DialogContent className="max-w-6xl">
+        <DialogHeader>
+          <DialogTitle>
+            Create NFT in {collectionName || "Collection"}
+          </DialogTitle>
+          <DialogDescription>
+            Add a new NFT to your collection
+          </DialogDescription>
+        </DialogHeader>
 
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe your NFT..."
-                            className="resize-none min-h-[120px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Detailed description of your NFT
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NFT Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="My Awesome NFT" {...field} />
+                      </FormControl>
+                      <FormDescription>The name of your NFT</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="external_url"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>External Link (Optional)</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="https://your-website.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Link to your website or social media
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe your NFT..."
+                          className="resize-none min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Detailed description of your NFT
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="background_color"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Background Color</FormLabel>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-10 h-10 rounded-md border"
-                            style={{ backgroundColor: field.value }}
-                          />
-                          <FormControl>
-                            <div className="flex-1 flex items-center">
-                              <Input
-                                type="color"
-                                {...field}
-                                className="w-12 h-10 p-1 cursor-pointer"
-                              />
-                              <Input
-                                type="text"
-                                value={field.value}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (
-                                    value.startsWith("#") &&
-                                    value.length <= 7
-                                  ) {
-                                    field.onChange(value);
-                                  }
-                                }}
-                                placeholder="#FFFFFF"
-                                className="ml-2 w-28"
-                              />
-                            </div>
-                          </FormControl>
-                        </div>
-                        <FormDescription>
-                          Background color for your NFT (HEX)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="external_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>External Link (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://your-website.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Link to your website or social media
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <div className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="image"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel
-                          className={cn(
-                            form.formState.errors.image && "text-red-500"
-                          )}
-                        >
-                          NFT Image
-                        </FormLabel>
+                <FormField
+                  control={form.control}
+                  name="background_color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Background Color</FormLabel>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-md border"
+                          style={{ backgroundColor: field.value }}
+                        />
                         <FormControl>
-                          <div
-                            className={cn(
-                              "border border-dashed border-zinc-700 rounded-lg w-full h-[240px] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden mx-auto",
-                              "hover:bg-muted/50 transition-colors"
-                            )}
-                            onClick={() =>
-                              document.getElementById("file-input")?.click()
-                            }
-                          >
-                            <input
-                              id="file-input"
-                              type="file"
-                              className="hidden"
-                              accept="image/*"
+                          <div className="flex-1 flex items-center">
+                            <Input
+                              type="color"
+                              {...field}
+                              className="w-12 h-10 p-1 cursor-pointer"
+                            />
+                            <Input
+                              type="text"
+                              value={field.value}
                               onChange={(e) => {
-                                handleFileInput(e);
-                                if (e.target.files?.[0]) {
-                                  const fileUrl = URL.createObjectURL(
-                                    e.target.files[0]
-                                  );
-                                  field.onChange(fileUrl);
+                                const value = e.target.value;
+                                if (
+                                  value.startsWith("#") &&
+                                  value.length <= 7
+                                ) {
+                                  field.onChange(value);
                                 }
                               }}
+                              placeholder="#FFFFFF"
+                              className="ml-2 w-28"
                             />
-                            {imageUrl ? (
-                              <div className="relative w-full h-full">
-                                <Image
-                                  src={imageUrl || "/placeholder.svg"}
-                                  alt="Uploaded NFT image"
-                                  fill
-                                  className="object-contain p-2"
-                                  unoptimized
-                                />
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="icon"
-                                  className="absolute top-2 right-2 rounded-full"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setImageUrl(null);
-                                    field.onChange("");
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center justify-center text-center p-4">
-                                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                                <p className="text-sm font-medium">
-                                  Drag and drop media
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  Browse files
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Max size: 50MB
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  JPG, PNG, GIF, SVG, MP4
-                                </p>
-                              </div>
-                            )}
                           </div>
                         </FormControl>
-                        <FormDescription className="text-center">
-                          Upload an image for your NFT
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </div>
+                      <FormDescription>
+                        Background color for your NFT (HEX)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-                  <FormField
-                    control={form.control}
-                    name="attributes"
-                    render={() => (
-                      <FormItem className="border rounded-lg p-4">
-                        <FormLabel>Attributes</FormLabel>
-                        <FormDescription>
-                          Add traits and properties to your NFT
-                        </FormDescription>
-
-                        <div className="mt-3">
-                          {form.watch("attributes")?.length > 0 ? (
-                            <div className="grid grid-cols-2 gap-2 mb-4">
-                              {form.watch("attributes").map((attr, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between border rounded-md p-2 bg-muted/30"
-                                >
-                                  <div className="flex flex-col">
-                                    <Badge
-                                      variant="outline"
-                                      className="mb-1 w-fit"
-                                    >
-                                      {attr.trait_type}
-                                    </Badge>
-                                    <span className="text-sm">
-                                      {attr.value}
-                                    </span>
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removeAttribute(index)}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                                  </Button>
-                                </div>
-                              ))}
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel
+                        className={cn(
+                          form.formState.errors.image && "text-red-500"
+                        )}
+                      >
+                        NFT Image
+                      </FormLabel>
+                      <FormControl>
+                        <div
+                          className={cn(
+                            "border border-dashed border-zinc-700 rounded-lg w-full h-[240px] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden mx-auto",
+                            "hover:bg-muted/50 transition-colors"
+                          )}
+                          onClick={() =>
+                            document.getElementById("file-input")?.click()
+                          }
+                        >
+                          <input
+                            id="file-input"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => {
+                              handleFileInput(e);
+                              if (e.target.files?.[0]) {
+                                const fileUrl = URL.createObjectURL(
+                                  e.target.files[0]
+                                );
+                                field.onChange(fileUrl);
+                              }
+                            }}
+                          />
+                          {imageUrl ? (
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={imageUrl || "/placeholder.svg"}
+                                alt="Uploaded NFT image"
+                                fill
+                                className="object-contain p-2"
+                                unoptimized
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-2 right-2 rounded-full"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setImageUrl(null);
+                                  field.onChange("");
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
                           ) : (
-                            <div className="text-center py-6 bg-muted/20 rounded-md mb-4">
-                              <p className="text-sm text-muted-foreground">
-                                No attributes added yet
+                            <div className="flex flex-col items-center justify-center text-center p-4">
+                              <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                              <p className="text-sm font-medium">
+                                Drag and drop media
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Browse files
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Max size: 50MB
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                JPG, PNG, GIF, SVG, MP4
                               </p>
                             </div>
                           )}
-
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full"
-                            onClick={() => setDialogOpen(true)}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Attribute
-                          </Button>
                         </div>
+                      </FormControl>
+                      <FormDescription className="text-center">
+                        Upload an image for your NFT
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                          <DialogContent className="sm:max-w-md">
-                            <DialogHeader>
-                              <DialogTitle>Add NFT Attribute</DialogTitle>
-                            </DialogHeader>
+                <FormField
+                  control={form.control}
+                  name="attributes"
+                  render={() => (
+                    <FormItem className="border rounded-lg p-4">
+                      <FormLabel>Attributes</FormLabel>
+                      <FormDescription>
+                        Add traits and properties to your NFT
+                      </FormDescription>
 
-                            <div className="grid gap-4 py-4">
-                              <div className="grid gap-2">
-                                <FormLabel htmlFor="trait-type">
-                                  Trait Type
-                                </FormLabel>
-                                <Input
-                                  id="trait-type"
-                                  placeholder="e.g. Color, Size, Rarity"
-                                  value={newAttribute.trait_type}
-                                  onChange={(e) =>
-                                    setNewAttribute({
-                                      ...newAttribute,
-                                      trait_type: e.target.value,
-                                    })
-                                  }
-                                />
+                      <div className="mt-3">
+                        {form.watch("attributes")?.length > 0 ? (
+                          <div className="grid grid-cols-2 gap-2 mb-4">
+                            {form.watch("attributes").map((attr, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between border rounded-md p-2 bg-muted/30"
+                              >
+                                <div className="flex flex-col">
+                                  <Badge
+                                    variant="outline"
+                                    className="mb-1 w-fit"
+                                  >
+                                    {attr.trait_type}
+                                  </Badge>
+                                  <span className="text-sm">{attr.value}</span>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeAttribute(index)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                </Button>
                               </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 bg-muted/20 rounded-md mb-4">
+                            <p className="text-sm text-muted-foreground">
+                              No attributes added yet
+                            </p>
+                          </div>
+                        )}
 
-                              <div className="grid gap-2">
-                                <FormLabel htmlFor="trait-value">
-                                  Value
-                                </FormLabel>
-                                <Input
-                                  id="trait-value"
-                                  placeholder="e.g. Blue, Large, Legendary"
-                                  value={newAttribute.value}
-                                  onChange={(e) =>
-                                    setNewAttribute({
-                                      ...newAttribute,
-                                      value: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => setDialogOpen(true)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Attribute
+                        </Button>
+                      </div>
+
+                      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Add NFT Attribute</DialogTitle>
+                          </DialogHeader>
+
+                          <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                              <FormLabel htmlFor="trait-type">
+                                Trait Type
+                              </FormLabel>
+                              <Input
+                                id="trait-type"
+                                placeholder="e.g. Color, Size, Rarity"
+                                value={newAttribute.trait_type}
+                                onChange={(e) =>
+                                  setNewAttribute({
+                                    ...newAttribute,
+                                    trait_type: e.target.value,
+                                  })
+                                }
+                              />
                             </div>
 
-                            <DialogFooter>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => setDialogOpen(false)}
-                              >
-                                Cancel
-                              </Button>
-                              <Button type="button" onClick={addAttribute}>
-                                Add Attribute
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
+                            <div className="grid gap-2">
+                              <FormLabel htmlFor="trait-value">Value</FormLabel>
+                              <Input
+                                id="trait-value"
+                                placeholder="e.g. Blue, Large, Legendary"
+                                value={newAttribute.value}
+                                onChange={(e) =>
+                                  setNewAttribute({
+                                    ...newAttribute,
+                                    value: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                          </div>
 
-              <Separator />
-
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={!form.formState.isValid || isSubmitting}
-                  className="w-full md:w-auto"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating NFT...
-                    </>
-                  ) : (
-                    "Create NFT"
+                          <DialogFooter>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => setDialogOpen(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button type="button" onClick={addAttribute}>
+                              Add Attribute
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </FormItem>
                   )}
-                </Button>
+                />
               </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </>
+            </div>
+
+            <Separator />
+
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowNFTForm(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={!form.formState.isValid || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating NFT...
+                  </>
+                ) : (
+                  "Create NFT"
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">
+            {collectionName || "Collection"}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            View and manage your NFTs in this collection
+          </p>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="h-40 w-full" />
+              <CardContent className="p-4">
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-3 w-1/2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {/* Add New NFT Card */}
+          <Card
+            className="overflow-hidden cursor-pointer group relative h-[240px]"
+            onClick={() => setShowNFTForm(true)}
+          >
+            <div className="flex flex-col items-center justify-center h-full bg-muted/20 hover:bg-muted/40 transition-colors">
+              <div className="rounded-full bg-primary/10 p-4 mb-3">
+                <Plus className="h-8 w-8 text-primary" />
+              </div>
+              <p className="font-medium">Add New NFT</p>
+            </div>
+          </Card>
+
+          {/* NFT Cards */}
+          {collectionNFTs.map((nft, index) => (
+            <Card key={index} className="overflow-hidden flex flex-col">
+              <div className="relative h-40 bg-muted">
+                {nft.metadata?.image ? (
+                  <Image
+                    src={
+                      formatImageUrl(nft.metadata.image) || "/placeholder.svg"
+                    }
+                    alt={nft.metadata.name || `NFT #${nft.tokenId}`}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.src.includes("placeholder.svg")) {
+                        target.src = "/placeholder.svg";
+                      }
+                      e.currentTarget.onerror = null;
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No image</p>
+                  </div>
+                )}
+              </div>
+              <CardContent className="p-3 flex-grow">
+                <h3 className="font-medium truncate">
+                  {nft.metadata?.name || `NFT #${nft.tokenId}`}
+                </h3>
+                {nft.metadata?.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                    {nft.metadata.description}
+                  </p>
+                )}
+              </CardContent>
+              <CardFooter className="p-3 pt-0">
+                {nft.metadata?.external_url && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs h-8"
+                    onClick={() =>
+                      window.open(nft.metadata?.external_url, "_blank")
+                    }
+                  >
+                    <ExternalLink className="h-3 w-3 mr-1" />
+                    View External Link
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* NFT Form Dialog */}
+      <NFTFormDialog />
+    </div>
   );
 }
