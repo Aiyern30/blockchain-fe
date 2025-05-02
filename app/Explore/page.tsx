@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -13,41 +12,16 @@ import {
   TabsTrigger,
 } from "@/components/ui";
 import { useDeviceType } from "@/utils/useDeviceType";
-import { CarouselSkeleton } from "@/components/page/Explore/CarouselSkeleton";
-import { TableSkeleton } from "@/components/page/Explore/TableSkeleton";
 import DrawingCarousel from "./DrawingCarousel";
 // import CryptoTable from "@/components/page/Explore/CryptoTable";
-import { fetchAllCollections } from "@/utils/fetchAllCollections";
 
 const timeFrames = ["1h", "6h", "24h", "7d"];
 
-interface CollectionData {
-  name: string;
-  description: string;
-  image: string;
-  collectionUrl: string;
-}
-
 export default function NFTCarousel() {
   const { isMobile } = useDeviceType();
-  const [collections, setCollections] = useState<CollectionData[]>([]);
-  console.log("collections", collections);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadCollections() {
-      setLoading(true);
-      const collections = await fetchAllCollections();
-      setCollections(collections);
-      setLoading(false);
-    }
-    loadCollections();
-  }, []);
 
   return (
     <>
-      {loading ? <CarouselSkeleton /> : <div>hi</div>}
-
       <div
         className={cn(
           "mt-5 space-y-4",
@@ -90,7 +64,6 @@ export default function NFTCarousel() {
         </div>
       </div>
 
-      <TableSkeleton isMobile={isMobile} shouldSplit={collections.length > 5} />
       {/* <CryptoTable collections={collections} shouldSplit={collections.length > 5} /> */}
       <DrawingCarousel />
     </>
