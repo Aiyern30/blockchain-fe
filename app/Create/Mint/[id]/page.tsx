@@ -63,8 +63,8 @@ import { NFTMetadata } from "@/type/NFT";
 import { STATUS_STAGES } from "@/type/StatusStages";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
 import { handleCopy } from "@/utils/helper";
+import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
 
-const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 const SERVICE_FEE_ETH = "0.0015";
 const CREATOR_FEE_PERCENT = 0;
 
@@ -293,42 +293,6 @@ export default function CollectionNFTsPage() {
     form.setValue("attributes", currentAttributes);
   };
 
-  const uploadToIPFS = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch(
-      "https://api.pinata.cloud/pinning/pinFileToIPFS",
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${PINATA_JWT}` },
-        body: formData,
-      }
-    );
-
-    if (!response.ok) throw new Error("❌ File upload failed");
-    const data = await response.json();
-    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
-  };
-
-  const uploadMetadataToIPFS = async (metadata: any): Promise<string> => {
-    const response = await fetch(
-      "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${PINATA_JWT}`,
-        },
-        body: JSON.stringify(metadata),
-      }
-    );
-
-    if (!response.ok) throw new Error("❌ Metadata upload failed");
-    const data = await response.json();
-    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
-  };
-
   const onSubmit = async (data: NFTFormValues) => {
     setIsSubmitting(true);
     setShowMintingUI(true);
@@ -511,6 +475,7 @@ export default function CollectionNFTsPage() {
     }
 
     const tokenId = listingNFT.tokenId;
+    console.log("Token ID:", tokenId);
     const price = listingForm.getValues("price");
     const unit = listingForm.getValues("unit");
     const listingFee = SERVICE_FEE_ETH;
