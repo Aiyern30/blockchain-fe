@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Button,
@@ -26,13 +26,26 @@ import { formatImageUrl } from "@/utils/function";
 import { useCart } from "@/hooks/use-cart";
 
 export function CartSheet() {
-  const { cartItems, removeFromCart, clearCart, cartCount, totalPrice } =
-    useCart();
+  const {
+    cartItems,
+    removeFromCart,
+    clearCart,
+    cartCount,
+    totalPrice,
+    getTotalPriceInCurrency,
+  } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [hoverIndex, setHoverIndex] = useState<string | null>(null);
+  const [localCartCount, setLocalCartCount] = useState(0);
 
-  // Estimate USD price (assuming 1 ETH = 3000 USD)
-  const usdPrice = totalPrice * 3000;
+  // Update local cart count whenever the cartCount changes
+  useEffect(() => {
+    setLocalCartCount(cartCount);
+  }, [cartCount]);
+
+  // Calculate USD and MYR prices using currency context
+  const usdPrice = getTotalPriceInCurrency("USD");
+  const myrPrice = getTotalPriceInCurrency("MYR");
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -41,9 +54,9 @@ export function CartSheet() {
           <Button variant="outline" size="icon">
             <ShoppingCart className="h-5 w-5" />
           </Button>
-          {cartCount > 0 && (
+          {localCartCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-              {cartCount}
+              {localCartCount}
             </span>
           )}
         </div>
@@ -169,7 +182,10 @@ export function CartSheet() {
               <div className="text-right">
                 <div className="text-lg">{totalPrice.toFixed(3)} ETH</div>
                 <div className="text-sm text-muted-foreground">
-                  ${usdPrice.toFixed(2)}
+                  ${usdPrice.toFixed(2)} USD
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  RM {myrPrice.toFixed(2)} MYR
                 </div>
               </div>
             </div>
