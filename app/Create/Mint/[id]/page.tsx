@@ -74,6 +74,7 @@ import { CartSheet } from "@/components/Cart";
 import { NFTActionButtons } from "@/components/NftActionButton";
 import { BuyNFTDialog } from "@/components/page/BuyNFTDialog";
 import WishlistSheet from "@/components/Wishlist";
+import { useCurrency } from "@/contexts/currency-context";
 
 const SERVICE_FEE_ETH = "0.0015";
 const CREATOR_FEE_PERCENT = 0;
@@ -114,10 +115,6 @@ type NFTFormValues = z.infer<typeof NFTFormSchema>;
 type AttributeFormValues = z.infer<typeof attributeSchema>;
 type ListingFormValues = z.infer<typeof ListingFormSchema>;
 
-interface CurrencyRate {
-  [key: string]: number;
-}
-
 export default function CollectionNFTsPage() {
   const params = useParams();
   const collectionAddress = params.id as string;
@@ -149,10 +146,6 @@ export default function CollectionNFTsPage() {
   const [listingNFT, setListingNFT] = useState<CollectionNFT | null>(null);
   const [isListing, setIsListing] = useState(false);
   const [listingStatus, setListingStatus] = useState("");
-  const [currencyRates, setCurrencyRates] = useState<CurrencyRate>({
-    USD: 0,
-    MYR: 0,
-  });
 
   // State for burn confirmation
   const [showBurnConfirmation, setShowBurnConfirmation] = useState(false);
@@ -168,6 +161,9 @@ export default function CollectionNFTsPage() {
   // State for buy NFT dialog
   const [showBuyDialog, setShowBuyDialog] = useState(false);
   const [buyNFT, setBuyNFT] = useState<CollectionNFT | null>(null);
+
+  // Use currency context
+  const { currencyRates, error: currencyError } = useCurrency();
 
   // Use wishlist and cart hooks
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -194,29 +190,6 @@ export default function CollectionNFTsPage() {
     },
     mode: "onChange",
   });
-
-  useEffect(() => {
-    const fetchEthPrice = async () => {
-      try {
-        const response = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd,myr"
-        );
-        const data = await response.json();
-        setCurrencyRates({
-          USD: data.ethereum.usd,
-          MYR: data.ethereum.myr,
-        });
-      } catch (error) {
-        console.error("Failed to fetch ETH price:", error);
-        setCurrencyRates({
-          USD: 3000,
-          MYR: 14000,
-        });
-      }
-    };
-
-    fetchEthPrice();
-  }, []);
 
   // Fetch collection details and NFTs
   useEffect(() => {
@@ -538,23 +511,18 @@ export default function CollectionNFTsPage() {
   // Add this function to force a UI update after cart/wishlist changes
   const handleAddToCart = (nft: CollectionNFT) => {
     addToCart(nft);
-    // Force a re-render by creating a shallow copy of the NFTs array
-    setCollectionNFTs([...collectionNFTs]);
   };
 
   const handleRemoveFromCart = (nft: CollectionNFT) => {
     removeFromCart(nft);
-    setCollectionNFTs([...collectionNFTs]);
   };
 
   const handleAddToWishlist = (nft: CollectionNFT) => {
     addToWishlist(nft);
-    setCollectionNFTs([...collectionNFTs]);
   };
 
   const handleRemoveFromWishlist = (nft: CollectionNFT) => {
     removeFromWishlist(nft);
-    setCollectionNFTs([...collectionNFTs]);
   };
 
   // Add this function to refresh NFT data
@@ -845,6 +813,17 @@ export default function CollectionNFTsPage() {
       </CardHeader>
 
       <CardContent>
+        {currencyError && (
+          <Alert className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Currency Rate Warning</AlertTitle>
+            <AlertDescription>
+              Unable to fetch the latest ETH exchange rates. Using fallback
+              rates for price calculations.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {!isLoading && !isOwner && (
           <Alert className="mb-6">
             <AlertTriangle className="h-4 w-4" />
@@ -1340,6 +1319,7 @@ export default function CollectionNFTsPage() {
                       <Image
                         src={
                           formatImageUrl(selectedNFT.metadata.image) ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                         alt={
@@ -1448,6 +1428,14 @@ export default function CollectionNFTsPage() {
                             ).toFixed(2)}{" "}
                             USD)
                           </span>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          ≈ RM{" "}
+                          {(
+                            Number(selectedNFT.metadata.price) *
+                            currencyRates.MYR
+                          ).toFixed(2)}{" "}
+                          MYR
                         </div>
                       </div>
                     )}
