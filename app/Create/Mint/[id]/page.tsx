@@ -68,13 +68,12 @@ import { STATUS_STAGES } from "@/type/StatusStages";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
 import { handleCopy } from "@/utils/helper";
 import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
-
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useCart } from "@/hooks/use-cart";
-import WishlistSheet from "@/components/Wishlist";
 import { CartSheet } from "@/components/Cart";
-import { BuyNFTDialog } from "@/components/page/BuyNFTDialog";
 import { NFTActionButtons } from "@/components/NftActionButton";
+import { BuyNFTDialog } from "@/components/page/BuyNFTDialog";
+import WishlistSheet from "@/components/Wishlist";
 
 const SERVICE_FEE_ETH = "0.0015";
 const CREATOR_FEE_PERCENT = 0;
@@ -263,14 +262,7 @@ export default function CollectionNFTsPage() {
                 const response = await fetch(metadataUrl);
                 if (response.ok) {
                   metadata = await response.json();
-                  // Add a mock price if not present
-                  if (!metadata?.price) {
-                    if (metadata) {
-                      metadata.price = parseFloat(
-                        (0.01 + Math.random() * 0.1).toFixed(3)
-                      );
-                    }
-                  }
+                  // Don't add random prices anymore
                 }
               }
             } catch (error) {
@@ -536,10 +528,87 @@ export default function CollectionNFTsPage() {
     setShowBurnConfirmation(true);
   };
 
+  // Replace the handleBuyNowClick function with this updated version
   const handleBuyNowClick = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
     setBuyNFT(nft);
     setShowBuyDialog(true);
+  };
+
+  // Add this function to force a UI update after cart/wishlist changes
+  const handleAddToCart = (nft: CollectionNFT) => {
+    addToCart(nft);
+    // Force a re-render by creating a shallow copy of the NFTs array
+    setCollectionNFTs([...collectionNFTs]);
+  };
+
+  const handleRemoveFromCart = (nft: CollectionNFT) => {
+    removeFromCart(nft);
+    setCollectionNFTs([...collectionNFTs]);
+  };
+
+  const handleAddToWishlist = (nft: CollectionNFT) => {
+    addToWishlist(nft);
+    setCollectionNFTs([...collectionNFTs]);
+  };
+
+  const handleRemoveFromWishlist = (nft: CollectionNFT) => {
+    removeFromWishlist(nft);
+    setCollectionNFTs([...collectionNFTs]);
+  };
+
+  // Add this function to refresh NFT data
+  const refreshNFTData = async () => {
+    if (!walletClient || !collectionAddress) return;
+
+    setIsLoading(true);
+    try {
+      const provider = new ethers.BrowserProvider(walletClient);
+      const signer = await provider.getSigner();
+      const nftContract = getERC721Contract(signer);
+
+      // Fetch NFTs in the collection
+      const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
+
+      // Process NFTs data
+      const processedNFTs = await Promise.all(
+        nfts.map(async (nft: any) => {
+          const tokenId = Number(nft[0]);
+          const metadataUrl = nft[1];
+          const owner = nft[2];
+
+          // Fetch metadata if available
+          let metadata: NFTMetadata | undefined;
+          try {
+            if (metadataUrl) {
+              const response = await fetch(metadataUrl);
+              if (response.ok) {
+                metadata = await response.json();
+              }
+            }
+          } catch (error) {
+            console.error(
+              `Failed to fetch metadata for token ${tokenId}:`,
+              error
+            );
+          }
+
+          return {
+            tokenId,
+            metadataUrl,
+            owner,
+            metadata,
+          };
+        })
+      );
+
+      setCollectionNFTs(processedNFTs);
+    } catch (error) {
+      console.error("Failed to refresh NFT data:", error);
+      toast.error("Failed to refresh NFT data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const listNFT = async (signer: ethers.Signer) => {
@@ -625,12 +694,13 @@ export default function CollectionNFTsPage() {
 
       await txList.wait();
 
+      // Update the success part in the listNFT function
       setListingStatus("✅ NFT listed successfully!");
       toast.success("NFT listed successfully!");
       setShowListingForm(false);
 
-      // Refresh NFT data
-      // This would typically update the UI to show the NFT is now listed
+      // Refresh NFT data to show updated listing status
+      refreshNFTData();
     } catch (err: any) {
       console.error("Error listing NFT:", err);
       setListingStatus(`❌ Error: ${err.message}`);
@@ -875,28 +945,37 @@ export default function CollectionNFTsPage() {
                         nft={nft}
                         isInWishlist={isInWishlist(nft)}
                         isInCart={isInCart(nft)}
-                        onAddToWishlist={() => addToWishlist(nft)}
-                        onRemoveFromWishlist={() => removeFromWishlist(nft)}
-                        onAddToCart={() => addToCart(nft)}
-                        onRemoveFromCart={() => removeFromCart(nft)}
+                        onAddToWishlist={() => handleAddToWishlist(nft)}
+                        onRemoveFromWishlist={() =>
+                          handleRemoveFromWishlist(nft)
+                        }
+                        onAddToCart={() => handleAddToCart(nft)}
+                        onRemoveFromCart={() => handleRemoveFromCart(nft)}
                         onBuyNow={(e) => handleBuyNowClick(nft, e)}
                         size="sm"
                       />
                     )}
                   </div>
                 </div>
+                {/* Replace the NFT card content section with this updated version */}
                 <CardContent className="p-3 flex-grow">
-                  <h3 className="font-medium truncate">
-                    {nft.metadata?.name || `NFT #${nft.tokenId}`}
-                  </h3>
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-medium truncate">
+                      {nft.metadata?.name || `NFT #${nft.tokenId}`}
+                    </h3>
+                    {nft.metadata?.price ? (
+                      <Badge variant="outline" className="text-xs">
+                        {nft.metadata.price} ETH
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        Not Listed
+                      </Badge>
+                    )}
+                  </div>
                   {nft.metadata?.description && (
                     <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                       {nft.metadata.description}
-                    </p>
-                  )}
-                  {nft.metadata?.price && (
-                    <p className="text-sm font-medium mt-1">
-                      {nft.metadata.price} ETH
                     </p>
                   )}
                 </CardContent>
@@ -1312,12 +1391,14 @@ export default function CollectionNFTsPage() {
                         nft={selectedNFT}
                         isInWishlist={isInWishlist(selectedNFT)}
                         isInCart={isInCart(selectedNFT)}
-                        onAddToWishlist={() => addToWishlist(selectedNFT)}
+                        onAddToWishlist={() => handleAddToWishlist(selectedNFT)}
                         onRemoveFromWishlist={() =>
-                          removeFromWishlist(selectedNFT)
+                          handleRemoveFromWishlist(selectedNFT)
                         }
-                        onAddToCart={() => addToCart(selectedNFT)}
-                        onRemoveFromCart={() => removeFromCart(selectedNFT)}
+                        onAddToCart={() => handleAddToCart(selectedNFT)}
+                        onRemoveFromCart={() =>
+                          handleRemoveFromCart(selectedNFT)
+                        }
                         onBuyNow={(e) => {
                           setShowNFTDetails(false);
                           handleBuyNowClick(selectedNFT, e);
