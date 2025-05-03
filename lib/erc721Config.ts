@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 
-const NFT_CONTRACT_ADDRESS = "0xb84c96316E471d2b41682230034682E270AA4646";
+export const NFT_CONTRACT_ADDRESS =
+  "0xb84c96316E471d2b41682230034682E270AA4646";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
@@ -332,7 +333,9 @@ export function getERC721Contract(signer: ethers.Signer) {
 
 const ERC721_ABI = [
   "function approve(address to, uint256 tokenId) external",
-  "function tokenURI(uint256 tokenId) view returns (string memory)", // ADD THIS
+  "function tokenURI(uint256 tokenId) view returns (string memory)",
+  "function getApproved(uint256 tokenId) view returns (address)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
 ];
 
 export function getERC721TokenContract(
