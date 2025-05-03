@@ -6,35 +6,32 @@ import type { CollectionNFT } from "@/type/CollectionNFT";
 import { useCurrency } from "@/contexts/currency-context";
 import { WishlistItem } from "@/type/cart-wishlist";
 
-// Create a custom event for wishlist updates
-const WISHLIST_UPDATE_EVENT = "wishlist-update";
+// Define a proper type for the listener function
+type WishlistUpdateListener = (items: WishlistItem[]) => void;
+
+// Create a simple global state for wishlist count
+let globalWishlistItems: WishlistItem[] = [];
+let globalWishlistListeners: WishlistUpdateListener[] = [];
+
+// Function to notify all listeners of wishlist changes
+const notifyWishlistListeners = () => {
+  globalWishlistListeners.forEach((listener) => listener(globalWishlistItems));
+};
 
 export function useWishlist() {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
   const { currencyRates } = useCurrency();
 
-  // Load wishlist from localStorage on mount
+  // Load wishlist from localStorage on mount and subscribe to changes
   useEffect(() => {
-    const storedWishlist = localStorage.getItem("nft-wishlist");
-    if (storedWishlist) {
-      try {
-        const items = JSON.parse(storedWishlist);
-        setWishlistItems(items);
-        setWishlistCount(items.length);
-      } catch (error) {
-        console.error("Failed to parse wishlist from localStorage:", error);
-      }
-    }
-    setIsLoaded(true);
-
-    // Listen for wishlist updates from other components
-    const handleWishlistUpdate = () => {
+    // Initial load from localStorage
+    const loadFromStorage = () => {
       const storedWishlist = localStorage.getItem("nft-wishlist");
       if (storedWishlist) {
         try {
           const items = JSON.parse(storedWishlist);
+          globalWishlistItems = items;
           setWishlistItems(items);
           setWishlistCount(items.length);
         } catch (error) {
@@ -43,96 +40,90 @@ export function useWishlist() {
       }
     };
 
-    window.addEventListener(WISHLIST_UPDATE_EVENT, handleWishlistUpdate);
+    // Load initial data
+    loadFromStorage();
+
+    // Add listener for updates
+    const handleWishlistUpdate: WishlistUpdateListener = (items) => {
+      setWishlistItems([...items]);
+      setWishlistCount(items.length);
+    };
+
+    globalWishlistListeners.push(handleWishlistUpdate);
+
+    // Clean up listener on unmount
     return () => {
-      window.removeEventListener(WISHLIST_UPDATE_EVENT, handleWishlistUpdate);
+      globalWishlistListeners = globalWishlistListeners.filter(
+        (listener) => listener !== handleWishlistUpdate
+      );
     };
   }, []);
 
-  // Save wishlist to localStorage whenever it changes
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("nft-wishlist", JSON.stringify(wishlistItems));
-      setWishlistCount(wishlistItems.length);
-
-      // Dispatch event to notify other components
-      window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
-    }
-  }, [wishlistItems, isLoaded]);
-
   const addToWishlist = useCallback((nft: CollectionNFT) => {
-    setWishlistItems((prev) => {
-      const exists = prev.some(
-        (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
-      );
+    const exists = globalWishlistItems.some(
+      (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
+    );
 
-      if (exists) {
-        toast.info("NFT is already in your wishlist");
-        return prev;
-      }
+    if (exists) {
+      toast.info("NFT is already in your wishlist");
+      return;
+    }
 
-      const wishlistItem: WishlistItem = {
-        ...nft,
-        addedAt: Date.now(),
-      };
+    const wishlistItem: WishlistItem = {
+      ...nft,
+      addedAt: Date.now(),
+    };
 
-      toast.success("Added to wishlist", {
-        description: `${
-          nft.metadata?.name || `NFT #${nft.tokenId}`
-        } has been added to your wishlist`,
-      });
+    // Update global state
+    globalWishlistItems = [...globalWishlistItems, wishlistItem];
 
-      const newItems = [...prev, wishlistItem];
+    // Update localStorage
+    localStorage.setItem("nft-wishlist", JSON.stringify(globalWishlistItems));
 
-      // Update localStorage directly to ensure immediate updates across components
-      localStorage.setItem("nft-wishlist", JSON.stringify(newItems));
+    // Notify all listeners
+    notifyWishlistListeners();
 
-      // Dispatch event to notify other components
-      window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
-
-      return newItems;
+    toast.success("Added to wishlist", {
+      description: `${
+        nft.metadata?.name || `NFT #${nft.tokenId}`
+      } has been added to your wishlist`,
     });
   }, []);
 
   const removeFromWishlist = useCallback((nft: CollectionNFT) => {
-    setWishlistItems((prev) => {
-      const newItems = prev.filter(
-        (item) => !(item.tokenId === nft.tokenId && item.owner === nft.owner)
-      );
+    // Update global state
+    globalWishlistItems = globalWishlistItems.filter(
+      (item) => !(item.tokenId === nft.tokenId && item.owner === nft.owner)
+    );
 
-      toast.success("Removed from wishlist", {
-        description: `${
-          nft.metadata?.name || `NFT #${nft.tokenId}`
-        } has been removed from your wishlist`,
-      });
+    // Update localStorage
+    localStorage.setItem("nft-wishlist", JSON.stringify(globalWishlistItems));
 
-      // Update localStorage directly to ensure immediate updates across components
-      localStorage.setItem("nft-wishlist", JSON.stringify(newItems));
+    // Notify all listeners
+    notifyWishlistListeners();
 
-      // Dispatch event to notify other components
-      window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
-
-      return newItems;
+    toast.success("Removed from wishlist", {
+      description: `${
+        nft.metadata?.name || `NFT #${nft.tokenId}`
+      } has been removed from your wishlist`,
     });
   }, []);
 
-  const isInWishlist = useCallback(
-    (nft: CollectionNFT) => {
-      return wishlistItems.some(
-        (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
-      );
-    },
-    [wishlistItems]
-  );
+  const isInWishlist = useCallback((nft: CollectionNFT) => {
+    return globalWishlistItems.some(
+      (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
+    );
+  }, []);
 
   const clearWishlist = useCallback(() => {
-    setWishlistItems([]);
+    // Update global state
+    globalWishlistItems = [];
 
-    // Update localStorage directly to ensure immediate updates across components
+    // Update localStorage
     localStorage.setItem("nft-wishlist", JSON.stringify([]));
 
-    // Dispatch event to notify other components
-    window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
+    // Notify all listeners
+    notifyWishlistListeners();
 
     toast.success("Wishlist cleared");
   }, []);
