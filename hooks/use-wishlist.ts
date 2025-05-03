@@ -6,6 +6,9 @@ import type { CollectionNFT } from "@/type/CollectionNFT";
 import { useCurrency } from "@/contexts/currency-context";
 import { WishlistItem } from "@/type/cart-wishlist";
 
+// Create a custom event for wishlist updates
+const WISHLIST_UPDATE_EVENT = "wishlist-update";
+
 export function useWishlist() {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -25,6 +28,25 @@ export function useWishlist() {
       }
     }
     setIsLoaded(true);
+
+    // Listen for wishlist updates from other components
+    const handleWishlistUpdate = () => {
+      const storedWishlist = localStorage.getItem("nft-wishlist");
+      if (storedWishlist) {
+        try {
+          const items = JSON.parse(storedWishlist);
+          setWishlistItems(items);
+          setWishlistCount(items.length);
+        } catch (error) {
+          console.error("Failed to parse wishlist from localStorage:", error);
+        }
+      }
+    };
+
+    window.addEventListener(WISHLIST_UPDATE_EVENT, handleWishlistUpdate);
+    return () => {
+      window.removeEventListener(WISHLIST_UPDATE_EVENT, handleWishlistUpdate);
+    };
   }, []);
 
   // Save wishlist to localStorage whenever it changes
@@ -32,6 +54,9 @@ export function useWishlist() {
     if (isLoaded) {
       localStorage.setItem("nft-wishlist", JSON.stringify(wishlistItems));
       setWishlistCount(wishlistItems.length);
+
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
     }
   }, [wishlistItems, isLoaded]);
 
@@ -57,7 +82,15 @@ export function useWishlist() {
         } has been added to your wishlist`,
       });
 
-      return [...prev, wishlistItem];
+      const newItems = [...prev, wishlistItem];
+
+      // Update localStorage directly to ensure immediate updates across components
+      localStorage.setItem("nft-wishlist", JSON.stringify(newItems));
+
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
+
+      return newItems;
     });
   }, []);
 
@@ -72,6 +105,12 @@ export function useWishlist() {
           nft.metadata?.name || `NFT #${nft.tokenId}`
         } has been removed from your wishlist`,
       });
+
+      // Update localStorage directly to ensure immediate updates across components
+      localStorage.setItem("nft-wishlist", JSON.stringify(newItems));
+
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
 
       return newItems;
     });
@@ -88,6 +127,13 @@ export function useWishlist() {
 
   const clearWishlist = useCallback(() => {
     setWishlistItems([]);
+
+    // Update localStorage directly to ensure immediate updates across components
+    localStorage.setItem("nft-wishlist", JSON.stringify([]));
+
+    // Dispatch event to notify other components
+    window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
+
     toast.success("Wishlist cleared");
   }, []);
 

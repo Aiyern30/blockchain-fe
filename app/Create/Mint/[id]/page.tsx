@@ -70,10 +70,8 @@ import { handleCopy } from "@/utils/helper";
 import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useCart } from "@/hooks/use-cart";
-import { CartSheet } from "@/components/Cart";
 import { NFTActionButtons } from "@/components/NftActionButton";
 import { BuyNFTDialog } from "@/components/page/BuyNFTDialog";
-import WishlistSheet from "@/components/Wishlist";
 import { useCurrency } from "@/contexts/currency-context";
 
 const SERVICE_FEE_ETH = "0.0015";
@@ -802,12 +800,6 @@ export default function CollectionNFTsPage() {
                 </>
               )}
             </Badge>
-
-            {/* Wishlist and Cart buttons */}
-            <div className="flex items-center gap-2">
-              <WishlistSheet />
-              <CartSheet />
-            </div>
           </div>
         )}
       </CardHeader>
