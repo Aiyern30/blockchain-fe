@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { Heart, Trash2 } from "lucide-react";
 import {
@@ -28,12 +28,6 @@ export function WishlistSheet() {
   const { wishlistItems, removeFromWishlist, clearWishlist, wishlistCount } =
     useWishlist();
   const [isOpen, setIsOpen] = useState(false);
-  const [localWishlistCount, setLocalWishlistCount] = useState(0);
-
-  // Update local wishlist count whenever the wishlistCount changes
-  useEffect(() => {
-    setLocalWishlistCount(wishlistCount);
-  }, [wishlistCount]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -42,9 +36,9 @@ export function WishlistSheet() {
           <Button variant="outline" size="icon">
             <Heart className="h-5 w-5" />
           </Button>
-          {localWishlistCount > 0 && (
+          {wishlistCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-              {localWishlistCount}
+              {wishlistCount}
             </span>
           )}
         </div>

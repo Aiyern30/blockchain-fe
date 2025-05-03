@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import {
   Button,
@@ -36,12 +36,6 @@ export function CartSheet() {
   } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [hoverIndex, setHoverIndex] = useState<string | null>(null);
-  const [localCartCount, setLocalCartCount] = useState(0);
-
-  // Update local cart count whenever the cartCount changes
-  useEffect(() => {
-    setLocalCartCount(cartCount);
-  }, [cartCount]);
 
   // Calculate USD and MYR prices using currency context
   const usdPrice = getTotalPriceInCurrency("USD");
@@ -54,9 +48,9 @@ export function CartSheet() {
           <Button variant="outline" size="icon">
             <ShoppingCart className="h-5 w-5" />
           </Button>
-          {localCartCount > 0 && (
+          {cartCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-              {localCartCount}
+              {cartCount}
             </span>
           )}
         </div>
