@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { CollectionNFT } from "@/type/CollectionNFT";
 import { useCurrency } from "@/contexts/currency-context";
@@ -35,69 +35,78 @@ export function useCart() {
     }
   }, [cartItems, isLoaded]);
 
-  const addToCart = (nft: CollectionNFT) => {
+  const addToCart = useCallback((nft: CollectionNFT) => {
     // Check if NFT is already in cart
-    const exists = cartItems.some(
-      (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
-    );
+    setCartItems((prev) => {
+      const exists = prev.some(
+        (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
+      );
 
-    if (exists) {
-      toast.info("NFT is already in your cart");
-      return;
-    }
+      if (exists) {
+        toast.info("NFT is already in your cart");
+        return prev;
+      }
 
-    const cartItem: CartItem = {
-      ...nft,
-      addedAt: Date.now(),
-    };
+      const cartItem: CartItem = {
+        ...nft,
+        addedAt: Date.now(),
+      };
 
-    setCartItems((prev) => [...prev, cartItem]);
-    setCartCount((prev) => prev + 1);
-    toast.success("Added to cart", {
-      description: `${
-        nft.metadata?.name || `NFT #${nft.tokenId}`
-      } has been added to your cart`,
+      toast.success("Added to cart", {
+        description: `${
+          nft.metadata?.name || `NFT #${nft.tokenId}`
+        } has been added to your cart`,
+      });
+
+      return [...prev, cartItem];
     });
-  };
+  }, []);
 
-  const removeFromCart = (nft: CollectionNFT) => {
-    setCartItems((prev) =>
-      prev.filter(
+  const removeFromCart = useCallback((nft: CollectionNFT) => {
+    setCartItems((prev) => {
+      const newItems = prev.filter(
         (item) => !(item.tokenId === nft.tokenId && item.owner === nft.owner)
-      )
-    );
-    setCartCount((prev) => prev - 1);
-    toast.success("Removed from cart", {
-      description: `${
-        nft.metadata?.name || `NFT #${nft.tokenId}`
-      } has been removed from your cart`,
+      );
+
+      toast.success("Removed from cart", {
+        description: `${
+          nft.metadata?.name || `NFT #${nft.tokenId}`
+        } has been removed from your cart`,
+      });
+
+      return newItems;
     });
-  };
+  }, []);
 
-  const isInCart = (nft: CollectionNFT) => {
-    return cartItems.some(
-      (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
-    );
-  };
+  const isInCart = useCallback(
+    (nft: CollectionNFT) => {
+      return cartItems.some(
+        (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
+      );
+    },
+    [cartItems]
+  );
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCartItems([]);
-    setCartCount(0);
     toast.success("Cart cleared");
-  };
+  }, []);
 
-  const getTotalPrice = () => {
+  const getTotalPrice = useCallback(() => {
     return cartItems.reduce((total, item) => {
       // If the NFT has a price, use it, otherwise default to 0
       const price = item.metadata?.price ? item.metadata.price : 0;
       return total + price;
     }, 0);
-  };
+  }, [cartItems]);
 
-  const getTotalPriceInCurrency = (currency: string) => {
-    const totalEth = getTotalPrice();
-    return totalEth * (currencyRates[currency] || 0);
-  };
+  const getTotalPriceInCurrency = useCallback(
+    (currency: string) => {
+      const totalEth = getTotalPrice();
+      return totalEth * (currencyRates[currency] || 0);
+    },
+    [getTotalPrice, currencyRates]
+  );
 
   return {
     cartItems,

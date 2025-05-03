@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Heart, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 import {
   Button,
   Sheet,
@@ -21,57 +19,21 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "@/components/ui/";
+  ScrollArea,
+} from "@/components/ui";
+import { useWishlist } from "@/hooks/use-wishlist";
+import { formatImageUrl } from "@/utils/function";
 
-interface WishlistItem {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-}
-
-export default function WishlistSheet() {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([
-    {
-      id: 1,
-      name: "Modern Wooden Dining Table",
-      price: 499,
-      image: "/images/dining-table.jpg",
-    },
-    {
-      id: 2,
-      name: "Luxury Leather Sofa",
-      price: 899,
-      image: "/images/leather-sofa.jpg",
-    },
-    {
-      id: 3,
-      name: "Minimalist Bookshelf",
-      price: 199,
-      image: "/images/bookshelf.jpg",
-    },
-  ]);
-
-  const [selectedItem, setSelectedItem] = useState<WishlistItem | null>(null);
+export function WishlistSheet() {
+  const { wishlistItems, removeFromWishlist, clearWishlist, wishlistCount } =
+    useWishlist();
   const [isOpen, setIsOpen] = useState(false);
+  const [localWishlistCount, setLocalWishlistCount] = useState(0);
 
-  const removeItem = (id: number) => {
-    setWishlistItems((items) => items.filter((item) => item.id !== id));
-    toast.success("Item removed from wishlist!", {
-      description: "You can explore more products to add back.",
-      duration: 3000,
-      style: { background: "#16a34a", color: "#fff" },
-    });
-  };
-
-  const clearWishlist = () => {
-    setWishlistItems([]);
-    toast.success("Wishlist cleared!", {
-      description: "Your wishlist has been emptied.",
-      duration: 3000,
-      style: { background: "#16a34a", color: "#fff" },
-    });
-  };
+  // Update local wishlist count whenever the wishlistCount changes
+  useEffect(() => {
+    setLocalWishlistCount(wishlistCount);
+  }, [wishlistCount]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -80,9 +42,9 @@ export default function WishlistSheet() {
           <Button variant="outline" size="icon">
             <Heart className="h-5 w-5" />
           </Button>
-          {wishlistItems.length > 0 && (
+          {localWishlistCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-              {wishlistItems.length}
+              {localWishlistCount}
             </span>
           )}
         </div>
@@ -125,106 +87,96 @@ export default function WishlistSheet() {
                 </AlertDialog>
               </div>
 
-              <div className="px-6 py-4 space-y-4">
-                {wishlistItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-4 border-b pb-3"
-                  >
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      width={50}
-                      height={50}
-                      className="rounded"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{item.name}</p>
-                      <p className="text-sm text-gray-500">${item.price}</p>
-                    </div>
+              <ScrollArea className="h-[calc(100vh-200px)]">
+                <div className="px-6 py-4 space-y-4">
+                  {wishlistItems.map((item) => (
+                    <div
+                      key={`${item.tokenId}-${item.owner}`}
+                      className="flex items-center gap-4 border-b pb-3"
+                    >
+                      <div className="relative h-16 w-16 rounded-md overflow-hidden border">
+                        <Image
+                          src={
+                            formatImageUrl(item.metadata?.image || "") ||
+                            "/placeholder.svg"
+                          }
+                          alt={item.metadata?.name || `NFT #${item.tokenId}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium truncate">
+                          {item.metadata?.name || `NFT #${item.tokenId}`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Token ID: {item.tokenId}
+                        </p>
+                        {item.metadata?.price && (
+                          <p className="text-xs font-medium">
+                            {item.metadata.price} ETH
+                          </p>
+                        )}
+                      </div>
 
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <button
-                          onClick={() => setSelectedItem(item)}
-                          className="text-red-500 hover:text-red-600 cursor-pointer"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </AlertDialogTrigger>
-                      {selectedItem && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Remove Item</AlertDialogTitle>
                             <AlertDialogDescription>
                               Are you sure you want to remove{" "}
                               <span className="font-semibold">
-                                {selectedItem.name}
+                                {item.metadata?.name || `NFT #${item.tokenId}`}
                               </span>{" "}
                               from your wishlist?
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          <div className="flex items-center gap-4">
-                            <Image
-                              src={selectedItem.image}
-                              alt={selectedItem.name}
-                              width={60}
-                              height={60}
-                              className="rounded"
-                            />
-                            <div>
-                              <p className="text-sm font-medium">
-                                {selectedItem.name}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                ${selectedItem.price}
-                              </p>
-                            </div>
-                          </div>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => removeItem(selectedItem.id)}
+                              onClick={() => removeFromWishlist(item)}
                             >
                               Confirm
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
-                      )}
-                    </AlertDialog>
-                  </div>
-                ))}
-              </div>
+                      </AlertDialog>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center h-full">
-              <Image
-                src="/shopping-cart.svg"
-                alt="Empty Wishlist"
-                width={300}
-                height={300}
-                className="mb-4"
-              />
-              <p className="text-gray-500 text-xl">Your wishlist is empty.</p>
-              <Link href="/Product">
-                <Button className="mt-4" onClick={() => setIsOpen(false)}>
-                  Explore Products
-                </Button>
-              </Link>
+            <div className="flex flex-col items-center justify-center text-center h-[400px]">
+              <div className="relative w-[200px] h-[200px]">
+                <Image
+                  src="/placeholder.svg"
+                  alt="Empty Wishlist"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <p className="text-gray-500 text-xl mt-4">
+                Your wishlist is empty.
+              </p>
+              <Button className="mt-4" onClick={() => setIsOpen(false)}>
+                Explore NFTs
+              </Button>
             </div>
           )}
         </div>
-
-        {wishlistItems.length > 0 && (
-          <div className="border-t py-4 px-6">
-            <Link href="/Wishlist">
-              <Button className="w-full mt-4" onClick={() => setIsOpen(false)}>
-                View Wishlist
-              </Button>
-            </Link>
-          </div>
-        )}
       </SheetContent>
     </Sheet>
   );
 }
+
+export default WishlistSheet;
