@@ -69,6 +69,13 @@ import { formatImageUrl, truncateAddress } from "@/utils/function";
 import { handleCopy } from "@/utils/helper";
 import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
 
+import { useWishlist } from "@/hooks/use-wishlist";
+import { useCart } from "@/hooks/use-cart";
+import WishlistSheet from "@/components/Wishlist";
+import { CartSheet } from "@/components/Cart";
+import { BuyNFTDialog } from "@/components/page/BuyNFTDialog";
+import { NFTActionButtons } from "@/components/NftActionButton";
+
 const SERVICE_FEE_ETH = "0.0015";
 const CREATOR_FEE_PERCENT = 0;
 
@@ -159,6 +166,14 @@ export default function CollectionNFTsPage() {
     value: "",
   });
 
+  // State for buy NFT dialog
+  const [showBuyDialog, setShowBuyDialog] = useState(false);
+  const [buyNFT, setBuyNFT] = useState<CollectionNFT | null>(null);
+
+  // Use wishlist and cart hooks
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToCart, removeFromCart, isInCart } = useCart();
+
   // Forms
   const form = useForm<NFTFormValues>({
     resolver: zodResolver(NFTFormSchema),
@@ -248,6 +263,14 @@ export default function CollectionNFTsPage() {
                 const response = await fetch(metadataUrl);
                 if (response.ok) {
                   metadata = await response.json();
+                  // Add a mock price if not present
+                  if (!metadata?.price) {
+                    if (metadata) {
+                      metadata.price = parseFloat(
+                        (0.01 + Math.random() * 0.1).toFixed(3)
+                      );
+                    }
+                  }
                 }
               }
             } catch (error) {
@@ -366,6 +389,7 @@ export default function CollectionNFTsPage() {
         image: imageUrl,
         external_url: data.external_url || undefined,
         attributes: data.attributes,
+        price: (0.01 + Math.random() * 0.1).toFixed(3), // Add a random price for demo purposes
       };
 
       console.log("📤 Uploading metadata to IPFS...");
@@ -510,6 +534,12 @@ export default function CollectionNFTsPage() {
 
     setListingNFT(nft);
     setShowBurnConfirmation(true);
+  };
+
+  const handleBuyNowClick = (nft: CollectionNFT, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBuyNFT(nft);
+    setShowBuyDialog(true);
   };
 
   const listNFT = async (signer: ethers.Signer) => {
@@ -703,17 +733,15 @@ export default function CollectionNFTsPage() {
           <p className="text-muted-foreground mt-1 text-sm">
             {collectionDetails.description || "Description"}
           </p>
-          {isOwner && (
+          {collectionOwner && (
             <p className="text-muted-foreground mt-1">
               View and manage your NFTs in this collection
-              {collectionOwner && (
-                <span className="ml-1 text-xs">
-                  • Owner:{" "}
-                  <span className="font-mono">
-                    {truncateAddress(collectionOwner)}
-                  </span>
+              <span className="ml-1 text-xs">
+                • Owner:{" "}
+                <span className="font-mono">
+                  {truncateAddress(collectionOwner)}
                 </span>
-              )}
+              </span>
             </p>
           )}
         </div>
@@ -736,6 +764,12 @@ export default function CollectionNFTsPage() {
                 </>
               )}
             </Badge>
+
+            {/* Wishlist and Cart buttons */}
+            <div className="flex items-center gap-2">
+              <WishlistSheet />
+              <CartSheet />
+            </div>
           </div>
         )}
       </CardHeader>
@@ -747,7 +781,7 @@ export default function CollectionNFTsPage() {
             <AlertTitle>View-only mode</AlertTitle>
             <AlertDescription>
               You are not the owner of this collection. You can view the NFTs
-              but cannot mint, list, or burn them.
+              but cannot mint new ones.
             </AlertDescription>
           </Alert>
         )}
@@ -811,29 +845,45 @@ export default function CollectionNFTsPage() {
                     </div>
                   )}
 
-                  {/* Hover Actions Overlay - Only visible to NFT owner */}
-                  {isNFTOwner(nft) && (
-                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
-                      <Button
+                  {/* Hover Actions Overlay */}
+                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    {isNFTOwner(nft) ? (
+                      /* Owner Actions */
+                      <div className="flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                          onClick={(e) => openListingForm(nft, e)}
+                        >
+                          <Tag className="h-4 w-4" />
+                          List
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="flex items-center gap-1"
+                          onClick={(e) => openBurnConfirmation(nft, e)}
+                        >
+                          <Flame className="h-4 w-4" />
+                          Burn
+                        </Button>
+                      </div>
+                    ) : (
+                      /* Non-owner Actions */
+                      <NFTActionButtons
+                        nft={nft}
+                        isInWishlist={isInWishlist(nft)}
+                        isInCart={isInCart(nft)}
+                        onAddToWishlist={() => addToWishlist(nft)}
+                        onRemoveFromWishlist={() => removeFromWishlist(nft)}
+                        onAddToCart={() => addToCart(nft)}
+                        onRemoveFromCart={() => removeFromCart(nft)}
+                        onBuyNow={(e) => handleBuyNowClick(nft, e)}
                         size="sm"
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                        onClick={(e) => openListingForm(nft, e)}
-                      >
-                        <Tag className="h-4 w-4" />
-                        List
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="flex items-center gap-1"
-                        onClick={(e) => openBurnConfirmation(nft, e)}
-                      >
-                        <Flame className="h-4 w-4" />
-                        Burn
-                      </Button>
-                    </div>
-                  )}
+                      />
+                    )}
+                  </div>
                 </div>
                 <CardContent className="p-3 flex-grow">
                   <h3 className="font-medium truncate">
@@ -842,6 +892,11 @@ export default function CollectionNFTsPage() {
                   {nft.metadata?.description && (
                     <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                       {nft.metadata.description}
+                    </p>
+                  )}
+                  {nft.metadata?.price && (
+                    <p className="text-sm font-medium mt-1">
+                      {nft.metadata.price} ETH
                     </p>
                   )}
                 </CardContent>
@@ -1206,7 +1261,6 @@ export default function CollectionNFTsPage() {
                       <Image
                         src={
                           formatImageUrl(selectedNFT.metadata.image) ||
-                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                         alt={
@@ -1225,8 +1279,8 @@ export default function CollectionNFTsPage() {
                       />
                     </div>
 
-                    {/* Only show action buttons to NFT owner */}
-                    {isNFTOwner(selectedNFT) && (
+                    {/* Action buttons based on ownership */}
+                    {isNFTOwner(selectedNFT) ? (
                       <div className="flex gap-2">
                         <Button
                           variant="secondary"
@@ -1253,6 +1307,23 @@ export default function CollectionNFTsPage() {
                           Burn NFT
                         </Button>
                       </div>
+                    ) : (
+                      <NFTActionButtons
+                        nft={selectedNFT}
+                        isInWishlist={isInWishlist(selectedNFT)}
+                        isInCart={isInCart(selectedNFT)}
+                        onAddToWishlist={() => addToWishlist(selectedNFT)}
+                        onRemoveFromWishlist={() =>
+                          removeFromWishlist(selectedNFT)
+                        }
+                        onAddToCart={() => addToCart(selectedNFT)}
+                        onRemoveFromCart={() => removeFromCart(selectedNFT)}
+                        onBuyNow={(e) => {
+                          setShowNFTDetails(false);
+                          handleBuyNowClick(selectedNFT, e);
+                        }}
+                        className="w-full justify-center"
+                      />
                     )}
 
                     {selectedNFT.metadata.external_url && (
@@ -1280,6 +1351,25 @@ export default function CollectionNFTsPage() {
                           "No description provided"}
                       </p>
                     </div>
+
+                    {selectedNFT.metadata.price && (
+                      <div>
+                        <h3 className="text-lg font-medium mb-2">Price</h3>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xl font-bold">
+                            {selectedNFT.metadata.price} ETH
+                          </p>
+                          <span className="text-sm text-muted-foreground">
+                            (≈ $
+                            {(
+                              Number(selectedNFT.metadata.price) *
+                              currencyRates.USD
+                            ).toFixed(2)}{" "}
+                            USD)
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     <div>
                       <h3 className="text-lg font-medium mb-2 flex items-center">
@@ -1608,6 +1698,14 @@ export default function CollectionNFTsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Buy NFT Dialog */}
+        <BuyNFTDialog
+          nft={buyNFT}
+          open={showBuyDialog}
+          onOpenChange={setShowBuyDialog}
+          walletClient={walletClient}
+        />
       </CardContent>
     </Card>
   );
