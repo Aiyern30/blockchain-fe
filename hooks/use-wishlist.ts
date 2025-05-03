@@ -3,18 +3,23 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import type { CollectionNFT } from "@/type/CollectionNFT";
+import { useCurrency } from "@/contexts/currency-context";
 import { WishlistItem } from "@/type/cart-wishlist";
 
 export function useWishlist() {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const { currencyRates } = useCurrency();
 
   // Load wishlist from localStorage on mount
   useEffect(() => {
     const storedWishlist = localStorage.getItem("nft-wishlist");
     if (storedWishlist) {
       try {
-        setWishlistItems(JSON.parse(storedWishlist));
+        const items = JSON.parse(storedWishlist);
+        setWishlistItems(items);
+        setWishlistCount(items.length);
       } catch (error) {
         console.error("Failed to parse wishlist from localStorage:", error);
       }
@@ -26,6 +31,7 @@ export function useWishlist() {
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("nft-wishlist", JSON.stringify(wishlistItems));
+      setWishlistCount(wishlistItems.length);
     }
   }, [wishlistItems, isLoaded]);
 
@@ -46,6 +52,7 @@ export function useWishlist() {
     };
 
     setWishlistItems((prev) => [...prev, wishlistItem]);
+    setWishlistCount((prev) => prev + 1);
     toast.success("Added to wishlist", {
       description: `${
         nft.metadata?.name || `NFT #${nft.tokenId}`
@@ -59,6 +66,7 @@ export function useWishlist() {
         (item) => !(item.tokenId === nft.tokenId && item.owner === nft.owner)
       )
     );
+    setWishlistCount((prev) => prev - 1);
     toast.success("Removed from wishlist", {
       description: `${
         nft.metadata?.name || `NFT #${nft.tokenId}`
@@ -74,7 +82,21 @@ export function useWishlist() {
 
   const clearWishlist = () => {
     setWishlistItems([]);
+    setWishlistCount(0);
     toast.success("Wishlist cleared");
+  };
+
+  const getTotalPrice = () => {
+    return wishlistItems.reduce((total, item) => {
+      // If the NFT has a price, use it, otherwise default to 0
+      const price = item.metadata?.price ? item.metadata.price : 0;
+      return total + price;
+    }, 0);
+  };
+
+  const getTotalPriceInCurrency = (currency: string) => {
+    const totalEth = getTotalPrice();
+    return totalEth * (currencyRates[currency] || 0);
   };
 
   return {
@@ -83,6 +105,8 @@ export function useWishlist() {
     removeFromWishlist,
     isInWishlist,
     clearWishlist,
-    wishlistCount: wishlistItems.length,
+    wishlistCount,
+    totalPrice: getTotalPrice(),
+    getTotalPriceInCurrency,
   };
 }
