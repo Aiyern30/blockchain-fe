@@ -36,7 +36,11 @@ import {
   AlertTitle,
   CardHeader,
 } from "@/components/ui";
-import { getERC721Contract } from "@/lib/erc721Config";
+import {
+  getERC721Contract,
+  getERC721TokenContract,
+  NFT_CONTRACT_ADDRESS,
+} from "@/lib/erc721Config";
 import { cn } from "@/lib/utils";
 import type { StagingStatus } from "@/type/stagingStatus";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -352,7 +356,6 @@ export default function CollectionNFTsPage() {
         image: imageUrl,
         external_url: data.external_url || undefined,
         attributes: data.attributes,
-        price: (0.01 + Math.random() * 0.1).toFixed(3), // Add a random price for demo purposes
       };
 
       console.log("📤 Uploading metadata to IPFS...");
@@ -613,23 +616,16 @@ export default function CollectionNFTsPage() {
       }
 
       const parsedListingFee = ethers.parseEther(listingFee);
-
-      // Get contract instance using the helper function
-      const marketplaceAddress = "0x10Fe685dBce6329D9899d426F6c5383DeF2B00e2"; // your deployed marketplace address
-
-      // Step 1: Approve the marketplace contract to handle the NFT transfer
-      const nftTokenContract = new ethers.Contract(
-        collectionAddress,
-        [
-          "function ownerOf(uint256 tokenId) view returns (address)",
-          "function approve(address to, uint256 tokenId) external",
-          "function getApproved(uint256 tokenId) view returns (address)",
-        ],
-        signer
+      const nftMarketplaceContract = getERC721Contract(signer);
+      const nftTokenContract = getERC721TokenContract(
+        signer,
+        collectionAddress
       );
 
-      // Check if the marketplace is already approved
+      const marketplaceAddress = NFT_CONTRACT_ADDRESS;
+
       const approvedAddress = await nftTokenContract.getApproved(tokenId);
+
       if (approvedAddress.toLowerCase() !== marketplaceAddress.toLowerCase()) {
         setListingStatus("Approving marketplace to transfer your NFT...");
         const tx = await nftTokenContract.approve(marketplaceAddress, tokenId);
@@ -640,16 +636,8 @@ export default function CollectionNFTsPage() {
       }
 
       // Step 2: List the NFT on the marketplace
-      const marketplaceContract = new ethers.Contract(
-        marketplaceAddress,
-        [
-          "function listNFT(address collection, uint256 tokenId, uint256 price) external payable",
-        ],
-        signer
-      );
-
       setListingStatus("Listing NFT on marketplace...");
-      const txList = await marketplaceContract.listNFT(
+      const txList = await nftMarketplaceContract.listNFT(
         collectionAddress,
         tokenId,
         parsedPrice,
@@ -659,7 +647,6 @@ export default function CollectionNFTsPage() {
       );
 
       await txList.wait();
-
       // Update the success part in the listNFT function
       setListingStatus("✅ NFT listed successfully!");
       toast.success("NFT listed successfully!");
