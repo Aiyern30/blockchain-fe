@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui";
 import Providers from "./Providers";
 import LayoutProvider from "./LayoutProvider";
+import { CurrencyProvider } from "@/contexts/currency-context";
 
 export const metadata: Metadata = {
   title: "GamerTokenHub",
@@ -27,10 +28,12 @@ export default function RootLayout({
 
       <body>
         <Providers>
-          <LayoutProvider>
-            {children}
-            <Toaster />
-          </LayoutProvider>
+          <CurrencyProvider>
+            <LayoutProvider>
+              {children}
+              <Toaster />
+            </LayoutProvider>
+          </CurrencyProvider>
         </Providers>
       </body>
     </html>
