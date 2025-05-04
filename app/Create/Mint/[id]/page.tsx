@@ -35,6 +35,10 @@ import {
   AlertDescription,
   AlertTitle,
   CardHeader,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui";
 import { getERC721Contract, NFT_CONTRACT_ADDRESS } from "@/lib/erc721Config";
 import { cn } from "@/lib/utils";
@@ -537,12 +541,22 @@ export default function CollectionNFTsPage() {
   // Replace the handleBuyNowClick function with this updated version
   const handleBuyNowClick = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (!nft.metadata?.isListed) {
+      toast.error("This NFT is not listed for sale");
+      return;
+    }
+
     setBuyNFT(nft);
     setShowBuyDialog(true);
   };
 
   // Add this function to force a UI update after cart/wishlist changes
   const handleAddToCart = (nft: CollectionNFT) => {
+    if (!nft.metadata?.isListed) {
+      toast.error("You can only add listed NFTs to your cart");
+      return;
+    }
     addToCart(nft);
   };
 
@@ -551,6 +565,10 @@ export default function CollectionNFTsPage() {
   };
 
   const handleAddToWishlist = (nft: CollectionNFT) => {
+    if (!nft.metadata?.isListed) {
+      toast.error("You can only add listed NFTs to your wishlist");
+      return;
+    }
     addToWishlist(nft);
   };
 
@@ -864,8 +882,6 @@ export default function CollectionNFTsPage() {
                 </>
               )}
             </Badge>
-
-            {/* Wishlist and Cart buttons */}
           </div>
         )}
       </CardHeader>
@@ -926,7 +942,7 @@ export default function CollectionNFTsPage() {
             {collectionNFTs.map((nft, index) => (
               <Card
                 key={index}
-                className="overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow group relative"
+                className="overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow group relative h-[280px]"
                 onClick={() => openNFTDetails(nft)}
               >
                 <div className="relative h-40 bg-muted overflow-hidden">
@@ -994,44 +1010,62 @@ export default function CollectionNFTsPage() {
                     )}
                   </div>
                 </div>
-                {/* Replace the NFT card content section with this updated version */}
-                <CardContent className="p-3 flex-grow">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-medium truncate">
-                      {nft.metadata?.name || `NFT #${nft.tokenId}`}
-                    </h3>
-                    {nft.metadata?.isListed ? (
-                      <Badge variant="default" className="text-xs bg-green-500">
-                        {nft.metadata.price} ETH
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        Not Listed
-                      </Badge>
+                {/* NFT card content with consistent height */}
+                <div className="flex flex-col flex-grow">
+                  <CardContent className="p-3 flex-grow">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-medium truncate">
+                        {nft.metadata?.name || `NFT #${nft.tokenId}`}
+                      </h3>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant={
+                                nft.metadata?.isListed ? "default" : "secondary"
+                              }
+                              className={`text-xs ${
+                                nft.metadata?.isListed ? "bg-green-500" : ""
+                              }`}
+                            >
+                              {nft.metadata?.isListed
+                                ? `${nft.metadata.price} ETH`
+                                : "Not Listed"}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {nft.metadata?.isListed
+                              ? `Listed for ${nft.metadata.price} ETH`
+                              : "This NFT is not listed for sale"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    {nft.metadata?.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                        {nft.metadata.description}
+                      </p>
                     )}
-                  </div>
-                  {nft.metadata?.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                      {nft.metadata.description}
-                    </p>
-                  )}
-                </CardContent>
-                <CardFooter className="p-3 pt-0">
-                  {nft.metadata?.external_url && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full text-xs h-8"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(nft.metadata?.external_url, "_blank");
-                      }}
-                    >
-                      <ExternalLink className="h-3 w-3 mr-1" />
-                      View External Link
-                    </Button>
-                  )}
-                </CardFooter>
+                  </CardContent>
+                  <CardFooter className="p-3 pt-0 mt-auto">
+                    {nft.metadata?.external_url ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs h-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(nft.metadata?.external_url, "_blank");
+                        }}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View External Link
+                      </Button>
+                    ) : (
+                      <div className="w-full h-8"></div> // Empty div to maintain consistent height
+                    )}
+                  </CardFooter>
+                </div>
               </Card>
             ))}
           </div>
@@ -1356,6 +1390,7 @@ export default function CollectionNFTsPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Other dialogs remain unchanged */}
         {/* NFT Details Dialog */}
         <Dialog open={showNFTDetails} onOpenChange={setShowNFTDetails}>
           <DialogContent className="max-w-3xl">
