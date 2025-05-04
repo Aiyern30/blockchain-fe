@@ -60,6 +60,14 @@ export function useCart() {
   }, []);
 
   const addToCart = useCallback((nft: CollectionNFT) => {
+    // Check if the NFT is listed before adding to cart
+    if (!nft.metadata?.isListed) {
+      toast.error("Cannot add to cart", {
+        description: "Only listed NFTs can be added to cart",
+      });
+      return;
+    }
+
     const exists = globalCartItems.some(
       (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
     );
