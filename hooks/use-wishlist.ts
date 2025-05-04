@@ -60,6 +60,14 @@ export function useWishlist() {
   }, []);
 
   const addToWishlist = useCallback((nft: CollectionNFT) => {
+    // Check if the NFT is listed before adding to wishlist
+    if (!nft.metadata?.isListed) {
+      toast.error("Cannot add to wishlist", {
+        description: "Only listed NFTs can be added to wishlist",
+      });
+      return;
+    }
+
     const exists = globalWishlistItems.some(
       (item) => item.tokenId === nft.tokenId && item.owner === nft.owner
     );
@@ -131,7 +139,9 @@ export function useWishlist() {
   const getTotalPrice = useCallback(() => {
     return wishlistItems.reduce((total, item) => {
       // If the NFT has a price, use it, otherwise default to 0
-      const price = item.metadata?.price ? item.metadata.price : 0;
+      const price = item.metadata?.price
+        ? Number.parseFloat(item.metadata.price)
+        : 0;
       return total + price;
     }, 0);
   }, [wishlistItems]);
