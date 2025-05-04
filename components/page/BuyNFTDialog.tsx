@@ -17,6 +17,7 @@ import {
 } from "@/components/ui";
 import type { CollectionNFT } from "@/type/CollectionNFT";
 import { formatImageUrl } from "@/utils/function";
+import { useCurrency } from "@/contexts/currency-context";
 
 interface BuyNFTDialogProps {
   nft: CollectionNFT | null;
@@ -32,6 +33,7 @@ export function BuyNFTDialog({
   walletClient,
 }: BuyNFTDialogProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const { currencyRates } = useCurrency();
 
   // Default price if not specified in metadata
   const price = nft?.metadata?.price
@@ -40,8 +42,9 @@ export function BuyNFTDialog({
   const serviceFee = price * 0.025; // 2.5% service fee
   const totalPrice = price + serviceFee;
 
-  // Estimate USD price (assuming 1 ETH = 3000 USD)
-  const usdPrice = totalPrice * 3000;
+  // Calculate USD and MYR prices using currency rates from provider
+  const usdPrice = totalPrice * (currencyRates.USD || 0);
+  const myrPrice = totalPrice * (currencyRates.MYR || 0);
 
   const handleBuyNFT = async () => {
     if (!nft || !walletClient) {
@@ -118,8 +121,15 @@ export function BuyNFTDialog({
               <span>Total</span>
               <span>{totalPrice.toFixed(3)} ETH</span>
             </div>
-            <div className="text-xs text-muted-foreground text-right">
-              ${usdPrice.toFixed(2)} USD
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div className="flex justify-between">
+                <span>USD Equivalent:</span>
+                <span>${usdPrice.toFixed(2)} USD</span>
+              </div>
+              <div className="flex justify-between">
+                <span>MYR Equivalent:</span>
+                <span>RM {myrPrice.toFixed(2)}</span>
+              </div>
             </div>
           </div>
         </div>
