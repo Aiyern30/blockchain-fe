@@ -174,7 +174,12 @@ export function CartSheet() {
             <div className="flex justify-between mb-4">
               <span className="text-lg">Total price</span>
               <div className="text-right">
-                <div className="text-lg">{totalPrice.toFixed(3)} ETH</div>
+                <div className="text-lg">
+                  {typeof totalPrice === "number"
+                    ? totalPrice.toFixed(3)
+                    : "0.000"}{" "}
+                  ETH
+                </div>
                 <div className="text-sm text-muted-foreground">
                   ${usdPrice.toFixed(2)} USD
                 </div>

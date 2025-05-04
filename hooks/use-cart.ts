@@ -131,7 +131,9 @@ export function useCart() {
   const getTotalPrice = useCallback(() => {
     return cartItems.reduce((total, item) => {
       // If the NFT has a price, use it, otherwise default to 0
-      const price = item.metadata?.price ? item.metadata.price : 0;
+      const price = item.metadata?.price
+        ? Number.parseFloat(item.metadata.price)
+        : 0;
       return total + price;
     }, 0);
   }, [cartItems]);
@@ -144,6 +146,7 @@ export function useCart() {
     [getTotalPrice, currencyRates]
   );
 
+  const calculatedTotalPrice = getTotalPrice();
   return {
     cartItems,
     addToCart,
@@ -151,7 +154,8 @@ export function useCart() {
     isInCart,
     clearCart,
     cartCount,
-    totalPrice: getTotalPrice(),
+    totalPrice:
+      typeof calculatedTotalPrice === "number" ? calculatedTotalPrice : 0,
     getTotalPriceInCurrency,
   };
 }
