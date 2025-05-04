@@ -34,7 +34,9 @@ export function BuyNFTDialog({
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Default price if not specified in metadata
-  const price = nft?.metadata?.price ? nft.metadata.price : 0.05;
+  const price = nft?.metadata?.price
+    ? Number.parseFloat(nft.metadata.price)
+    : 0.05;
   const serviceFee = price * 0.025; // 2.5% service fee
   const totalPrice = price + serviceFee;
 
