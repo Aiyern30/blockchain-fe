@@ -910,7 +910,7 @@ export default function CollectionNFTsPage() {
         )}
 
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <Card key={i} className="overflow-hidden">
                 <Skeleton className="h-40 w-full" />
@@ -922,23 +922,29 @@ export default function CollectionNFTsPage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {/* Add New NFT Card - Only visible to collection owner */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {isOwner && (
               <Card
-                className="overflow-hidden cursor-pointer group relative h-[240px]"
+                className="overflow-hidden flex flex-col hover:bg-muted/40 cursor-pointer group relative h-[280px]"
                 onClick={() => setShowNFTForm(true)}
               >
-                <div className="flex flex-col items-center justify-center h-full bg-muted/20 hover:bg-muted/40 transition-colors">
-                  <div className="rounded-full bg-primary/10 p-4 mb-3">
+                <div className="relative h-40 flex items-center justify-center transition-colors">
+                  <div className="rounded-full bg-primary/10 p-4">
                     <Plus className="h-8 w-8 text-primary" />
                   </div>
-                  <p className="font-medium">Add New NFT</p>
+                </div>
+
+                <div className="flex flex-col flex-grow">
+                  <CardContent className="p-3 flex-grow flex items-center justify-center">
+                    <p className="font-medium text-center">Add New NFT</p>
+                  </CardContent>
+                  <CardFooter className="p-3 pt-0 mt-auto">
+                    <div className="w-full h-8"></div>
+                  </CardFooter>
                 </div>
               </Card>
             )}
 
-            {/* NFT Cards */}
             {collectionNFTs.map((nft, index) => (
               <Card
                 key={index}
@@ -971,7 +977,6 @@ export default function CollectionNFTsPage() {
                   {/* Hover Actions Overlay */}
                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                     {isNFTOwner(nft) ? (
-                      /* Owner Actions */
                       <div className="flex items-center gap-3">
                         <Button
                           size="sm"
@@ -993,7 +998,6 @@ export default function CollectionNFTsPage() {
                         </Button>
                       </div>
                     ) : (
-                      /* Non-owner Actions */
                       <NFTActionButtons
                         nft={nft}
                         isInWishlist={isInWishlist(nft)}
@@ -1010,7 +1014,7 @@ export default function CollectionNFTsPage() {
                     )}
                   </div>
                 </div>
-                {/* NFT card content with consistent height */}
+
                 <div className="flex flex-col flex-grow">
                   <CardContent className="p-3 flex-grow">
                     <div className="flex justify-between items-start">
@@ -1050,7 +1054,7 @@ export default function CollectionNFTsPage() {
                   <CardFooter className="p-3 pt-0 mt-auto">
                     {nft.metadata?.external_url ? (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         className="w-full text-xs h-8"
                         onClick={(e) => {
@@ -1062,7 +1066,7 @@ export default function CollectionNFTsPage() {
                         View External Link
                       </Button>
                     ) : (
-                      <div className="w-full h-8"></div> // Empty div to maintain consistent height
+                      <div className="w-full h-8"></div>
                     )}
                   </CardFooter>
                 </div>
