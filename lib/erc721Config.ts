@@ -1,4 +1,13 @@
 import { ethers } from "ethers";
+export interface MarketItem {
+  itemId: number
+  collection: string
+  tokenId: number
+  seller: string
+  owner: string
+  price: string
+  sold: boolean
+}
 
 export const NFT_CONTRACT_ADDRESS =
   "0xb84c96316E471d2b41682230034682E270AA4646";

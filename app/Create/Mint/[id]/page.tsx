@@ -36,11 +36,7 @@ import {
   AlertTitle,
   CardHeader,
 } from "@/components/ui";
-import {
-  getERC721Contract,
-  getERC721TokenContract,
-  NFT_CONTRACT_ADDRESS,
-} from "@/lib/erc721Config";
+import { getERC721Contract, NFT_CONTRACT_ADDRESS } from "@/lib/erc721Config";
 import { cn } from "@/lib/utils";
 import type { StagingStatus } from "@/type/stagingStatus";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -68,6 +64,7 @@ import { z } from "zod";
 import { useParams } from "next/navigation";
 import type { CollectionNFT } from "@/type/CollectionNFT";
 import type { NFTMetadata } from "@/type/NFT";
+import type { MarketItem } from "@/lib/erc721Config";
 import { STATUS_STAGES } from "@/type/StatusStages";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
 import { handleCopy } from "@/utils/helper";
@@ -213,6 +210,7 @@ export default function CollectionNFTsPage() {
           name: details.name,
           description: details.description,
         });
+
         // Fetch collection owner
         const owner = await nftContract.getCollectionOwner(collectionAddress);
         setCollectionOwner(owner);
@@ -223,12 +221,38 @@ export default function CollectionNFTsPage() {
         // Fetch NFTs in the collection
         const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
 
+        // Fetch all market items
+        const listedItems = await nftContract.fetchItemsListed();
+
+        // Convert to proper format and filter for this collection
+        const marketItemsForCollection = listedItems
+          .filter(
+            (item: any) =>
+              item[1].toLowerCase() === collectionAddress.toLowerCase()
+          )
+          .map((item: any) => ({
+            itemId: Number(item[0]),
+            collection: item[1],
+            tokenId: Number(item[2]),
+            seller: item[3],
+            owner: item[4],
+            price: ethers.formatEther(item[5]),
+            sold: item[6],
+          }));
+
+        console.log("Market items for collection:", marketItemsForCollection);
+
         // Process NFTs data
         const processedNFTs = await Promise.all(
           nfts.map(async (nft: any) => {
             const tokenId = Number(nft[0]);
             const metadataUrl = nft[1];
             const owner = nft[2];
+
+            // Check if this NFT is listed in the marketplace
+            const marketItem = marketItemsForCollection.find(
+              (item: MarketItem) => item.tokenId === tokenId && !item.sold
+            );
 
             // Fetch metadata if available
             let metadata: NFTMetadata | undefined;
@@ -237,7 +261,13 @@ export default function CollectionNFTsPage() {
                 const response = await fetch(metadataUrl);
                 if (response.ok) {
                   metadata = await response.json();
-                  // Don't add random prices anymore
+
+                  if (marketItem && metadata) {
+                    metadata.price = marketItem.price;
+                    metadata.isListed = true;
+                  } else if (metadata) {
+                    metadata.isListed = false;
+                  }
                 }
               }
             } catch (error) {
@@ -252,6 +282,7 @@ export default function CollectionNFTsPage() {
               metadataUrl,
               owner,
               metadata,
+              marketItem: marketItem || null,
             };
           })
         );
@@ -356,6 +387,7 @@ export default function CollectionNFTsPage() {
         image: imageUrl,
         external_url: data.external_url || undefined,
         attributes: data.attributes,
+        price: (0.01 + Math.random() * 0.1).toFixed(3), // Add a random price for demo purposes
       };
 
       console.log("📤 Uploading metadata to IPFS...");
@@ -539,12 +571,36 @@ export default function CollectionNFTsPage() {
       // Fetch NFTs in the collection
       const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
 
+      // Fetch all market items
+      const listedItems = await nftContract.fetchItemsListed();
+
+      // Convert to proper format and filter for this collection
+      const marketItemsForCollection = listedItems
+        .filter(
+          (item: any) =>
+            item[1].toLowerCase() === collectionAddress.toLowerCase()
+        )
+        .map((item: any) => ({
+          itemId: Number(item[0]),
+          collection: item[1],
+          tokenId: Number(item[2]),
+          seller: item[3],
+          owner: item[4],
+          price: ethers.formatEther(item[5]),
+          sold: item[6],
+        }));
+
       // Process NFTs data
       const processedNFTs = await Promise.all(
         nfts.map(async (nft: any) => {
           const tokenId = Number(nft[0]);
           const metadataUrl = nft[1];
           const owner = nft[2];
+
+          // Check if this NFT is listed in the marketplace
+          const marketItem = marketItemsForCollection.find(
+            (item: MarketItem) => item.tokenId === tokenId && !item.sold
+          );
 
           // Fetch metadata if available
           let metadata: NFTMetadata | undefined;
@@ -553,6 +609,13 @@ export default function CollectionNFTsPage() {
               const response = await fetch(metadataUrl);
               if (response.ok) {
                 metadata = await response.json();
+
+                if (marketItem && metadata) {
+                  metadata.price = marketItem.price;
+                  metadata.isListed = true;
+                } else if (metadata) {
+                  metadata.isListed = false;
+                }
               }
             }
           } catch (error) {
@@ -567,6 +630,7 @@ export default function CollectionNFTsPage() {
             metadataUrl,
             owner,
             metadata,
+            marketItem: marketItem || null,
           };
         })
       );
@@ -590,7 +654,6 @@ export default function CollectionNFTsPage() {
     console.log("Token ID:", tokenId);
     const price = listingForm.getValues("price");
     const unit = listingForm.getValues("unit");
-    const listingFee = SERVICE_FEE_ETH;
 
     try {
       // Check if user is the NFT owner
@@ -615,20 +678,33 @@ export default function CollectionNFTsPage() {
           parsedPrice = ethers.parseEther(price);
       }
 
-      const parsedListingFee = ethers.parseEther(listingFee);
-      const nftMarketplaceContract = getERC721Contract(signer);
-      const nftTokenContract = getERC721TokenContract(
-        signer,
-        collectionAddress
+      // Get the NFT contract
+      const nftContract = getERC721Contract(signer);
+
+      // Get the listing price
+      const listingPriceWei = await nftContract.listingPrice();
+
+      // Step 1: Approve the marketplace contract to handle the NFT transfer
+      const nftTokenContract = new ethers.Contract(
+        collectionAddress,
+        [
+          "function ownerOf(uint256 tokenId) view returns (address)",
+          "function approve(address to, uint256 tokenId) external",
+          "function getApproved(uint256 tokenId) view returns (address)",
+        ],
+        signer
       );
 
-      const marketplaceAddress = NFT_CONTRACT_ADDRESS;
-
+      // Check if the marketplace is already approved
       const approvedAddress = await nftTokenContract.getApproved(tokenId);
-
-      if (approvedAddress.toLowerCase() !== marketplaceAddress.toLowerCase()) {
+      if (
+        approvedAddress.toLowerCase() !== NFT_CONTRACT_ADDRESS.toLowerCase()
+      ) {
         setListingStatus("Approving marketplace to transfer your NFT...");
-        const tx = await nftTokenContract.approve(marketplaceAddress, tokenId);
+        const tx = await nftTokenContract.approve(
+          NFT_CONTRACT_ADDRESS,
+          tokenId
+        );
         await tx.wait();
         setListingStatus("NFT approved for listing...");
       } else {
@@ -637,16 +713,17 @@ export default function CollectionNFTsPage() {
 
       // Step 2: List the NFT on the marketplace
       setListingStatus("Listing NFT on marketplace...");
-      const txList = await nftMarketplaceContract.listNFT(
+      const txList = await nftContract.listNFT(
         collectionAddress,
         tokenId,
         parsedPrice,
         {
-          value: parsedListingFee,
+          value: listingPriceWei,
         }
       );
 
       await txList.wait();
+
       // Update the success part in the listNFT function
       setListingStatus("✅ NFT listed successfully!");
       toast.success("NFT listed successfully!");
@@ -787,13 +864,15 @@ export default function CollectionNFTsPage() {
                 </>
               )}
             </Badge>
+
+            {/* Wishlist and Cart buttons */}
           </div>
         )}
       </CardHeader>
 
       <CardContent>
         {currencyError && (
-          <Alert className="mb-4">
+          <Alert className="mb-4" variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Currency Rate Warning</AlertTitle>
             <AlertDescription>
@@ -921,8 +1000,8 @@ export default function CollectionNFTsPage() {
                     <h3 className="font-medium truncate">
                       {nft.metadata?.name || `NFT #${nft.tokenId}`}
                     </h3>
-                    {nft.metadata?.price ? (
-                      <Badge variant="outline" className="text-xs">
+                    {nft.metadata?.isListed ? (
+                      <Badge variant="default" className="text-xs bg-green-500">
                         {nft.metadata.price} ETH
                       </Badge>
                     ) : (
