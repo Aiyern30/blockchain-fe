@@ -12,6 +12,7 @@ import {
 } from "@/components/ui";
 import type { CollectionNFT } from "@/type/CollectionNFT";
 import { toast } from "sonner";
+import { isNFTListed } from "@/utils/nft-status";
 
 interface NFTActionButtonsProps {
   nft: CollectionNFT;
@@ -38,12 +39,13 @@ export function NFTActionButtons({
   size = "default",
   className = "",
 }: NFTActionButtonsProps) {
-  const isListed = nft.metadata?.isListed || false;
+  // Use the utility function to determine if the NFT is listed
+  const isListed = isNFTListed(nft);
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!isListed) {
+    if (!isListed && !isInWishlist) {
       toast.error("You can only add listed NFTs to your wishlist");
       return;
     }
@@ -58,7 +60,7 @@ export function NFTActionButtons({
   const handleCartClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!isListed) {
+    if (!isListed && !isInCart) {
       toast.error("You can only add listed NFTs to your cart");
       return;
     }
@@ -91,7 +93,7 @@ export function NFTActionButtons({
               variant={isInWishlist ? "default" : "secondary"}
               className={isInWishlist ? "bg-red-500 hover:bg-red-600" : ""}
               onClick={handleWishlistClick}
-              disabled={!isListed}
+              disabled={!isListed && !isInWishlist}
             >
               <Heart
                 className={`h-4 w-4 ${isInWishlist ? "fill-white" : ""}`}
@@ -114,7 +116,7 @@ export function NFTActionButtons({
               variant={isInCart ? "default" : "secondary"}
               className={isInCart ? "bg-blue-500 hover:bg-blue-600" : ""}
               onClick={handleCartClick}
-              disabled={!isListed}
+              disabled={!isListed && !isInCart}
             >
               <ShoppingCart className="h-4 w-4" />
             </Button>
