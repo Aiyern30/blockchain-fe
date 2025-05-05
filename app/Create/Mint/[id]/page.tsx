@@ -67,7 +67,6 @@ import { useWalletClient } from "wagmi";
 import { z } from "zod";
 import { useParams } from "next/navigation";
 import type { CollectionNFT } from "@/type/CollectionNFT";
-import type { NFTMetadata } from "@/type/NFT";
 import type { MarketItem } from "@/lib/erc721Config";
 import { STATUS_STAGES } from "@/type/StatusStages";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
@@ -75,7 +74,7 @@ import { handleCopy } from "@/utils/helper";
 import { uploadMetadataToIPFS, uploadToIPFS } from "@/utils/uploadIPFS";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useCart } from "@/hooks/use-cart";
-import { NFTActionButtons } from "@/components/NftActionButton";
+import { NFTActionButtons } from "@/components/nft-action-buttons";
 import { BuyNFTDialog } from "@/components/page/BuyNFTDialog";
 import { useCurrency } from "@/contexts/currency-context";
 
@@ -220,16 +219,60 @@ export default function CollectionNFTsPage() {
         setCollectionOwner(owner);
 
         // Check if current user is the owner
-        setIsOwner(owner.toLowerCase() === signerAddress.toLowerCase());
+        const userIsOwner = owner.toLowerCase() === signerAddress.toLowerCase();
+        setIsOwner(userIsOwner);
 
         // Fetch NFTs in the collection
         const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
 
-        // Fetch all market items
-        const listedItems = await nftContract.fetchItemsListed();
+        // IMPORTANT: Use both methods to ensure we get all market items
+        // Generate a unique cache key for this request to prevent stale data
+        const cacheKey = `${collectionAddress}-${Date.now()}`;
+
+        // Fetch market items using both methods
+        const marketItemsPromise = nftContract.fetchMarketItems({
+          from: signerAddress,
+          gasLimit: ethers.parseUnits("500000", "wei"),
+        });
+
+        const listedItemsPromise = userIsOwner
+          ? nftContract.fetchItemsListed({
+              from: signerAddress,
+              gasLimit: ethers.parseUnits("500000", "wei"),
+            })
+          : Promise.resolve([]);
+
+        // Wait for both promises to resolve
+        const [marketItems, listedItems] = await Promise.all([
+          marketItemsPromise,
+          listedItemsPromise,
+        ]);
+
+        console.log(`[${cacheKey}] Raw market items:`, marketItems);
+        if (userIsOwner) {
+          console.log(`[${cacheKey}] Raw listed items:`, listedItems);
+        }
+
+        // Combine both results to ensure we have all items
+        const combinedItems = [...marketItems];
+
+        // Only add items from listedItems that aren't already in marketItems
+        if (userIsOwner) {
+          for (const listedItem of listedItems) {
+            const itemId = Number(listedItem[0]);
+            const exists = combinedItems.some(
+              (item) => Number(item[0]) === itemId
+            );
+            if (!exists) {
+              combinedItems.push(listedItem);
+            }
+          }
+        }
+
+        console.log(`[${cacheKey}] Combined items:`, combinedItems);
 
         // Convert to proper format and filter for this collection
-        const marketItemsForCollection = listedItems
+        const marketItemsForCollection = combinedItems
           .filter(
             (item: any) =>
               item[1].toLowerCase() === collectionAddress.toLowerCase()
@@ -244,7 +287,16 @@ export default function CollectionNFTsPage() {
             sold: item[6],
           }));
 
-        console.log("Market items for collection:", marketItemsForCollection);
+        console.log(
+          `[${cacheKey}] Market items for collection:`,
+          marketItemsForCollection
+        );
+
+        // Create a lookup map for faster access
+        const listedNFTsMap: { [tokenId: number]: MarketItem } = {};
+        marketItemsForCollection.forEach((item: MarketItem) => {
+          listedNFTsMap[item.tokenId] = item;
+        });
 
         // Process NFTs data
         const processedNFTs = await Promise.all(
@@ -253,20 +305,20 @@ export default function CollectionNFTsPage() {
             const metadataUrl = nft[1];
             const owner = nft[2];
 
-            // Check if this NFT is listed in the marketplace
-            const marketItem = marketItemsForCollection.find(
-              (item: MarketItem) => item.tokenId === tokenId && !item.sold
-            );
+            // Use the lookup map instead of find() for better performance
+            const marketItem = listedNFTsMap[tokenId];
+            const isListed = !!marketItem && !marketItem.sold;
 
             // Fetch metadata if available
-            let metadata: NFTMetadata | undefined;
+            let metadata;
             try {
               if (metadataUrl) {
                 const response = await fetch(metadataUrl);
                 if (response.ok) {
                   metadata = await response.json();
 
-                  if (marketItem && metadata) {
+                  // Always determine listing status the same way for everyone
+                  if (isListed && metadata) {
                     metadata.price = marketItem.price;
                     metadata.isListed = true;
                   } else if (metadata) {
@@ -281,12 +333,21 @@ export default function CollectionNFTsPage() {
               );
             }
 
+            // Debug log for this specific NFT
+            console.log(`[${cacheKey}] NFT #${tokenId} listing status:`, {
+              hasMarketItem: !!marketItem,
+              isListed: isListed,
+              owner: owner,
+              price: marketItem?.price || "N/A",
+            });
+
             return {
               tokenId,
               metadataUrl,
               owner,
               metadata,
               marketItem: marketItem || null,
+              isListed, // Explicit isListed field
             };
           })
         );
@@ -584,21 +645,66 @@ export default function CollectionNFTsPage() {
     try {
       const provider = new ethers.BrowserProvider(walletClient);
       const signer = await provider.getSigner();
+      const signerAddress = await signer.getAddress();
       const nftContract = getERC721Contract(signer);
+
+      // Force the provider to refresh its state
+      await provider.getBlockNumber();
 
       // Fetch NFTs in the collection
       const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
 
-      // Fetch all market items
-      const listedItems = await nftContract.fetchItemsListed();
+      // IMPORTANT: Use both methods to ensure we get all market items
+      const timestamp = Date.now();
+
+      // Fetch market items using both methods
+      const marketItemsPromise = nftContract.fetchMarketItems({
+        from: signerAddress,
+        gasLimit: ethers.parseUnits("500000", "wei"),
+      });
+
+      const listedItemsPromise = isOwner
+        ? nftContract.fetchItemsListed({
+            from: signerAddress,
+            gasLimit: ethers.parseUnits("500000", "wei"),
+          })
+        : Promise.resolve([]);
+
+      // Wait for both promises to resolve
+      const [marketItems, listedItems] = await Promise.all([
+        marketItemsPromise,
+        listedItemsPromise,
+      ]);
+
+      console.log(`[Refresh ${timestamp}] Raw market items:`, marketItems);
+      if (isOwner) {
+        console.log(`[Refresh ${timestamp}] Raw listed items:`, listedItems);
+      }
+
+      // Combine both results to ensure we have all items
+      const combinedItems = [...marketItems];
+
+      // Only add items from listedItems that aren't already in marketItems
+      if (isOwner) {
+        for (const listedItem of listedItems) {
+          const itemId = Number(listedItem[0]);
+          const exists = combinedItems.some(
+            (item) => Number(item[0]) === itemId
+          );
+          if (!exists) {
+            combinedItems.push(listedItem);
+          }
+        }
+      }
+
+      console.log(`[Refresh ${timestamp}] Combined items:`, combinedItems);
 
       // Convert to proper format and filter for this collection
-      const marketItemsForCollection = listedItems
+      const marketItemsForCollection = combinedItems
         .filter(
-          (item: any) =>
-            item[1].toLowerCase() === collectionAddress.toLowerCase()
+          (item) => item[1].toLowerCase() === collectionAddress.toLowerCase()
         )
-        .map((item: any) => ({
+        .map((item) => ({
           itemId: Number(item[0]),
           collection: item[1],
           tokenId: Number(item[2]),
@@ -608,27 +714,40 @@ export default function CollectionNFTsPage() {
           sold: item[6],
         }));
 
-      // Process NFTs data
+      console.log(
+        `[Refresh ${timestamp}] Market items for collection:`,
+        marketItemsForCollection
+      );
+
+      // Create a lookup map for quick reference
+      const listedNFTsMap: { [tokenId: number]: MarketItem } = {};
+      marketItemsForCollection.forEach((item) => {
+        if (!item.sold) {
+          listedNFTsMap[item.tokenId] = item;
+        }
+      });
+
+      // Process NFTs data with the lookup map
       const processedNFTs = await Promise.all(
         nfts.map(async (nft: any) => {
           const tokenId = Number(nft[0]);
           const metadataUrl = nft[1];
           const owner = nft[2];
 
-          // Check if this NFT is listed in the marketplace
-          const marketItem = marketItemsForCollection.find(
-            (item: MarketItem) => item.tokenId === tokenId && !item.sold
-          );
+          // Use the lookup map for better performance
+          const marketItem = listedNFTsMap[tokenId];
+          const isListed = !!marketItem;
 
           // Fetch metadata if available
-          let metadata: NFTMetadata | undefined;
+          let metadata;
           try {
             if (metadataUrl) {
-              const response = await fetch(metadataUrl);
+              // Add cache-busting parameter to metadata URL fetch
+              const response = await fetch(`${metadataUrl}?_=${timestamp}`);
               if (response.ok) {
                 metadata = await response.json();
 
-                if (marketItem && metadata) {
+                if (isListed && metadata) {
                   metadata.price = marketItem.price;
                   metadata.isListed = true;
                 } else if (metadata) {
@@ -643,12 +762,24 @@ export default function CollectionNFTsPage() {
             );
           }
 
+          // Debug log for this specific NFT
+          console.log(
+            `[Refresh ${timestamp}] NFT #${tokenId} listing status:`,
+            {
+              hasMarketItem: !!marketItem,
+              isListed: isListed,
+              owner: owner,
+              price: marketItem?.price || "N/A",
+            }
+          );
+
           return {
             tokenId,
             metadataUrl,
             owner,
             metadata,
             marketItem: marketItem || null,
+            isListed, // Explicit isListed field
           };
         })
       );
@@ -910,7 +1041,7 @@ export default function CollectionNFTsPage() {
         )}
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <Card key={i} className="overflow-hidden">
                 <Skeleton className="h-40 w-full" />
@@ -922,29 +1053,23 @@ export default function CollectionNFTsPage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {/* Add New NFT Card - Only visible to collection owner */}
             {isOwner && (
               <Card
-                className="overflow-hidden flex flex-col hover:bg-muted/40 cursor-pointer group relative h-[280px]"
+                className="overflow-hidden cursor-pointer group relative h-[240px]"
                 onClick={() => setShowNFTForm(true)}
               >
-                <div className="relative h-40 flex items-center justify-center transition-colors">
-                  <div className="rounded-full bg-primary/10 p-4">
+                <div className="flex flex-col items-center justify-center h-full bg-muted/20 hover:bg-muted/40 transition-colors">
+                  <div className="rounded-full bg-primary/10 p-4 mb-3">
                     <Plus className="h-8 w-8 text-primary" />
                   </div>
-                </div>
-
-                <div className="flex flex-col flex-grow">
-                  <CardContent className="p-3 flex-grow flex items-center justify-center">
-                    <p className="font-medium text-center">Add New NFT</p>
-                  </CardContent>
-                  <CardFooter className="p-3 pt-0 mt-auto">
-                    <div className="w-full h-8"></div>
-                  </CardFooter>
+                  <p className="font-medium">Add New NFT</p>
                 </div>
               </Card>
             )}
 
+            {/* NFT Cards */}
             {collectionNFTs.map((nft, index) => (
               <Card
                 key={index}
@@ -977,6 +1102,7 @@ export default function CollectionNFTsPage() {
                   {/* Hover Actions Overlay */}
                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                     {isNFTOwner(nft) ? (
+                      /* Owner Actions */
                       <div className="flex items-center gap-3">
                         <Button
                           size="sm"
@@ -998,6 +1124,7 @@ export default function CollectionNFTsPage() {
                         </Button>
                       </div>
                     ) : (
+                      /* Non-owner Actions */
                       <NFTActionButtons
                         nft={nft}
                         isInWishlist={isInWishlist(nft)}
@@ -1014,7 +1141,7 @@ export default function CollectionNFTsPage() {
                     )}
                   </div>
                 </div>
-
+                {/* NFT card content with consistent height */}
                 <div className="flex flex-col flex-grow">
                   <CardContent className="p-3 flex-grow">
                     <div className="flex justify-between items-start">
@@ -1054,7 +1181,7 @@ export default function CollectionNFTsPage() {
                   <CardFooter className="p-3 pt-0 mt-auto">
                     {nft.metadata?.external_url ? (
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         className="w-full text-xs h-8"
                         onClick={(e) => {
@@ -1066,7 +1193,7 @@ export default function CollectionNFTsPage() {
                         View External Link
                       </Button>
                     ) : (
-                      <div className="w-full h-8"></div>
+                      <div className="w-full h-8"></div> // Empty div to maintain consistent height
                     )}
                   </CardFooter>
                 </div>
