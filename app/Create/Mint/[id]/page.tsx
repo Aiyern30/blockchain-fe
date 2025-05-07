@@ -193,7 +193,6 @@ export default function CollectionNFTsPage() {
     mode: "onChange",
   });
 
-  // Fetch collection details and NFTs
   useEffect(() => {
     const fetchCollectionData = async () => {
       if (!walletClient || !collectionAddress) return;
@@ -218,61 +217,20 @@ export default function CollectionNFTsPage() {
         const owner = await nftContract.getCollectionOwner(collectionAddress);
         setCollectionOwner(owner);
 
-        // Check if current user is the owner
         const userIsOwner = owner.toLowerCase() === signerAddress.toLowerCase();
         setIsOwner(userIsOwner);
 
-        // Fetch NFTs in the collection
+        // Get all NFTs in this collection
         const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
 
-        // IMPORTANT: Use both methods to ensure we get all market items
-        // Generate a unique cache key for this request to prevent stale data
-        const cacheKey = `${collectionAddress}-${Date.now()}`;
-
-        // Fetch market items using both methods
-        const marketItemsPromise = nftContract.fetchMarketItems({
+        // Get all listed items in the marketplace
+        const marketItems = await nftContract.fetchMarketItems({
           from: signerAddress,
           gasLimit: ethers.parseUnits("500000", "wei"),
         });
 
-        const listedItemsPromise = userIsOwner
-          ? nftContract.fetchItemsListed({
-              from: signerAddress,
-              gasLimit: ethers.parseUnits("500000", "wei"),
-            })
-          : Promise.resolve([]);
-
-        // Wait for both promises to resolve
-        const [marketItems, listedItems] = await Promise.all([
-          marketItemsPromise,
-          listedItemsPromise,
-        ]);
-
-        console.log(`[${cacheKey}] Raw market items:`, marketItems);
-        if (userIsOwner) {
-          console.log(`[${cacheKey}] Raw listed items:`, listedItems);
-        }
-
-        // Combine both results to ensure we have all items
-        const combinedItems = [...marketItems];
-
-        // Only add items from listedItems that aren't already in marketItems
-        if (userIsOwner) {
-          for (const listedItem of listedItems) {
-            const itemId = Number(listedItem[0]);
-            const exists = combinedItems.some(
-              (item) => Number(item[0]) === itemId
-            );
-            if (!exists) {
-              combinedItems.push(listedItem);
-            }
-          }
-        }
-
-        console.log(`[${cacheKey}] Combined items:`, combinedItems);
-
-        // Convert to proper format and filter for this collection
-        const marketItemsForCollection = combinedItems
+        // Filter only those market items that belong to this collection
+        const marketItemsForCollection = marketItems
           .filter(
             (item: any) =>
               item[1].toLowerCase() === collectionAddress.toLowerCase()
@@ -287,42 +245,31 @@ export default function CollectionNFTsPage() {
             sold: item[6],
           }));
 
-        console.log(
-          `[${cacheKey}] Market items for collection:`,
-          marketItemsForCollection
-        );
-
-        // Create a lookup map for faster access
+        // Map listed NFTs by tokenId for quick access
         const listedNFTsMap: { [tokenId: number]: MarketItem } = {};
         marketItemsForCollection.forEach((item: MarketItem) => {
           listedNFTsMap[item.tokenId] = item;
         });
 
-        // Process NFTs data
+        // Process all NFTs and attach listing status
         const processedNFTs = await Promise.all(
           nfts.map(async (nft: any) => {
             const tokenId = Number(nft[0]);
             const metadataUrl = nft[1];
             const owner = nft[2];
 
-            // Use the lookup map instead of find() for better performance
             const marketItem = listedNFTsMap[tokenId];
             const isListed = !!marketItem && !marketItem.sold;
 
-            // Fetch metadata if available
             let metadata;
             try {
               if (metadataUrl) {
                 const response = await fetch(metadataUrl);
                 if (response.ok) {
                   metadata = await response.json();
-
-                  // Always determine listing status the same way for everyone
-                  if (isListed && metadata) {
+                  metadata.isListed = isListed;
+                  if (isListed) {
                     metadata.price = marketItem.price;
-                    metadata.isListed = true;
-                  } else if (metadata) {
-                    metadata.isListed = false;
                   }
                 }
               }
@@ -333,21 +280,13 @@ export default function CollectionNFTsPage() {
               );
             }
 
-            // Debug log for this specific NFT
-            console.log(`[${cacheKey}] NFT #${tokenId} listing status:`, {
-              hasMarketItem: !!marketItem,
-              isListed: isListed,
-              owner: owner,
-              price: marketItem?.price || "N/A",
-            });
-
             return {
               tokenId,
               metadataUrl,
               owner,
               metadata,
               marketItem: marketItem || null,
-              isListed, // Explicit isListed field
+              isListed,
             };
           })
         );
@@ -736,7 +675,10 @@ export default function CollectionNFTsPage() {
 
           // Use the lookup map for better performance
           const marketItem = listedNFTsMap[tokenId];
-          const isListed = !!marketItem;
+
+          // IMPORTANT: Determine listing status consistently for all users
+          // An NFT is listed if it has a market item and it's not sold
+          const isListed = !!marketItem && !marketItem.sold;
 
           // Fetch metadata if available
           let metadata;
@@ -747,6 +689,7 @@ export default function CollectionNFTsPage() {
               if (response.ok) {
                 metadata = await response.json();
 
+                // Always set listing status and price the same way for everyone
                 if (isListed && metadata) {
                   metadata.price = marketItem.price;
                   metadata.isListed = true;
@@ -1543,6 +1486,7 @@ export default function CollectionNFTsPage() {
                       <Image
                         src={
                           formatImageUrl(selectedNFT.metadata.image) ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
