@@ -58,6 +58,7 @@ import {
   AlertTriangle,
   ShieldAlert,
   Eye,
+  RefreshCw,
 } from "lucide-react";
 import type React from "react";
 import { useState, useEffect } from "react";
@@ -164,6 +165,12 @@ export default function CollectionNFTsPage() {
   const [showBuyDialog, setShowBuyDialog] = useState(false);
   const [buyNFT, setBuyNFT] = useState<CollectionNFT | null>(null);
 
+  // Add these state variables near your other state declarations
+  const [showResellForm, setShowResellForm] = useState(false);
+  const [isReselling, setIsReselling] = useState(false);
+  const [resellStatus, setResellStatus] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
+
   // Use currency context
   const { currencyRates, error: currencyError } = useCurrency();
 
@@ -193,6 +200,7 @@ export default function CollectionNFTsPage() {
     mode: "onChange",
   });
 
+  // Fetch collection details and NFTs
   useEffect(() => {
     const fetchCollectionData = async () => {
       if (!walletClient || !collectionAddress) return;
@@ -217,20 +225,61 @@ export default function CollectionNFTsPage() {
         const owner = await nftContract.getCollectionOwner(collectionAddress);
         setCollectionOwner(owner);
 
+        // Check if current user is the owner
         const userIsOwner = owner.toLowerCase() === signerAddress.toLowerCase();
         setIsOwner(userIsOwner);
 
-        // Get all NFTs in this collection
+        // Fetch NFTs in the collection
         const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
 
-        // Get all listed items in the marketplace
-        const marketItems = await nftContract.fetchMarketItems({
+        // IMPORTANT: Use both methods to ensure we get all market items
+        // Generate a unique cache key for this request to prevent stale data
+        const cacheKey = `${collectionAddress}-${Date.now()}`;
+
+        // Fetch market items using both methods
+        const marketItemsPromise = nftContract.fetchMarketItems({
           from: signerAddress,
           gasLimit: ethers.parseUnits("500000", "wei"),
         });
 
-        // Filter only those market items that belong to this collection
-        const marketItemsForCollection = marketItems
+        const listedItemsPromise = userIsOwner
+          ? nftContract.fetchItemsListed({
+              from: signerAddress,
+              gasLimit: ethers.parseUnits("500000", "wei"),
+            })
+          : Promise.resolve([]);
+
+        // Wait for both promises to resolve
+        const [marketItems, listedItems] = await Promise.all([
+          marketItemsPromise,
+          listedItemsPromise,
+        ]);
+
+        console.log(`[${cacheKey}] Raw market items:`, marketItems);
+        if (userIsOwner) {
+          console.log(`[${cacheKey}] Raw listed items:`, listedItems);
+        }
+
+        // Combine both results to ensure we have all items
+        const combinedItems = [...marketItems];
+
+        // Only add items from listedItems that aren't already in marketItems
+        if (userIsOwner) {
+          for (const listedItem of listedItems) {
+            const itemId = Number(listedItem[0]);
+            const exists = combinedItems.some(
+              (item) => Number(item[0]) === itemId
+            );
+            if (!exists) {
+              combinedItems.push(listedItem);
+            }
+          }
+        }
+
+        console.log(`[${cacheKey}] Combined items:`, combinedItems);
+
+        // Convert to proper format and filter for this collection
+        const marketItemsForCollection = combinedItems
           .filter(
             (item: any) =>
               item[1].toLowerCase() === collectionAddress.toLowerCase()
@@ -245,31 +294,45 @@ export default function CollectionNFTsPage() {
             sold: item[6],
           }));
 
-        // Map listed NFTs by tokenId for quick access
+        console.log(
+          `[${cacheKey}] Market items for collection:`,
+          marketItemsForCollection
+        );
+
+        // Create a lookup map for faster access
         const listedNFTsMap: { [tokenId: number]: MarketItem } = {};
         marketItemsForCollection.forEach((item: MarketItem) => {
           listedNFTsMap[item.tokenId] = item;
         });
 
-        // Process all NFTs and attach listing status
+        // Process NFTs data
         const processedNFTs = await Promise.all(
           nfts.map(async (nft: any) => {
             const tokenId = Number(nft[0]);
             const metadataUrl = nft[1];
             const owner = nft[2];
 
+            // Use the lookup map instead of find() for better performance
             const marketItem = listedNFTsMap[tokenId];
+
+            // IMPORTANT: Determine listing status consistently for all users
+            // An NFT is listed if it has a market item and it's not sold
             const isListed = !!marketItem && !marketItem.sold;
 
+            // Fetch metadata if available
             let metadata;
             try {
               if (metadataUrl) {
                 const response = await fetch(metadataUrl);
                 if (response.ok) {
                   metadata = await response.json();
-                  metadata.isListed = isListed;
-                  if (isListed) {
+
+                  // Always set listing status and price the same way for everyone
+                  if (isListed && metadata) {
                     metadata.price = marketItem.price;
+                    metadata.isListed = true;
+                  } else if (metadata) {
+                    metadata.isListed = false;
                   }
                 }
               }
@@ -280,13 +343,21 @@ export default function CollectionNFTsPage() {
               );
             }
 
+            // Debug log for this specific NFT
+            console.log(`NFT #${tokenId} listing status:`, {
+              hasMarketItem: !!marketItem,
+              isListed: isListed,
+              owner: owner,
+              price: marketItem?.price || "N/A",
+            });
+
             return {
               tokenId,
               metadataUrl,
               owner,
               metadata,
               marketItem: marketItem || null,
-              isListed,
+              isListed, // Explicit isListed field
             };
           })
         );
@@ -905,6 +976,148 @@ export default function CollectionNFTsPage() {
     }
   };
 
+  // Add these functions after your other handler functions
+
+  // Function to cancel a listing
+  const cancelListing = async (nft: CollectionNFT, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!nft.marketItem || !nft.isListed) {
+      toast.error("This NFT is not listed for sale");
+      return;
+    }
+
+    if (!isNFTOwner(nft)) {
+      toast.error("Only the NFT owner can cancel this listing");
+      return;
+    }
+
+    setIsCancelling(true);
+
+    try {
+      if (!walletClient) {
+        throw new Error("Wallet not connected");
+      }
+
+      const provider = new ethers.BrowserProvider(walletClient);
+      const signer = await provider.getSigner();
+      const nftContract = getERC721Contract(signer);
+
+      // Call the cancelListing function with the itemId
+      const tx = await nftContract.cancelListing(nft.marketItem.itemId);
+
+      toast.info("Cancelling listing...");
+      await tx.wait();
+
+      toast.success("Listing cancelled successfully");
+
+      // Refresh NFT data to show updated listing status
+      refreshNFTData();
+    } catch (error: any) {
+      console.error("Error cancelling listing:", error);
+      toast.error(`Failed to cancel listing: ${error.message}`);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  // Function to open resell form
+  const openResellForm = (nft: CollectionNFT, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!isNFTOwner(nft)) {
+      toast.error("Only the NFT owner can resell this NFT");
+      return;
+    }
+
+    if (nft.isListed) {
+      toast.error("This NFT is already listed for sale");
+      return;
+    }
+
+    setListingNFT(nft);
+    setShowResellForm(true);
+    listingForm.reset({
+      price: "",
+      unit: "ETH",
+    });
+    setResellStatus("");
+  };
+
+  // Function to handle reselling an NFT
+  const handleResellNFT = async () => {
+    if (!listingForm.formState.isValid) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!listingNFT || !listingNFT.marketItem) {
+      toast.error("NFT information is missing");
+      return;
+    }
+
+    setIsReselling(true);
+    setResellStatus("Preparing to resell NFT...");
+
+    try {
+      if (!walletClient) {
+        throw new Error("Wallet not connected");
+      }
+
+      const provider = new ethers.BrowserProvider(walletClient);
+      const signer = await provider.getSigner();
+      const nftContract = getERC721Contract(signer);
+
+      // Get the listing price
+      const listingPriceWei = await nftContract.listingPrice();
+
+      // Convert price based on unit
+      const price = listingForm.getValues("price");
+      const unit = listingForm.getValues("unit");
+
+      let parsedPrice;
+      switch (unit) {
+        case "ETH":
+          parsedPrice = ethers.parseEther(price);
+          break;
+        case "GWEI":
+          parsedPrice = ethers.parseUnits(price, "gwei");
+          break;
+        case "WEI":
+          parsedPrice = ethers.parseUnits(price, "wei");
+          break;
+        default:
+          parsedPrice = ethers.parseEther(price);
+      }
+
+      setResellStatus("Reselling NFT...");
+
+      // Call the resellToken function with itemId and new price
+      const tx = await nftContract.reSellToken(
+        listingNFT.marketItem.itemId,
+        parsedPrice,
+        {
+          value: listingPriceWei,
+        }
+      );
+
+      await tx.wait();
+
+      setResellStatus("✅ NFT relisted successfully!");
+      toast.success("NFT relisted successfully!");
+      setShowResellForm(false);
+
+      // Refresh NFT data to show updated listing status
+      refreshNFTData();
+    } catch (error: any) {
+      console.error("Error reselling NFT:", error);
+      setResellStatus(`❌ Error: ${error.message}`);
+      toast.error(`Failed to resell NFT: ${error.message}`);
+    } finally {
+      setIsReselling(false);
+    }
+  };
+
   if (showMintingUI) {
     return (
       <NFTMintingUI
@@ -1046,16 +1259,47 @@ export default function CollectionNFTsPage() {
                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                     {isNFTOwner(nft) ? (
                       /* Owner Actions */
-                      <div className="flex items-center gap-3">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="flex items-center gap-1"
-                          onClick={(e) => openListingForm(nft, e)}
-                        >
-                          <Tag className="h-4 w-4" />
-                          List
-                        </Button>
+                      <div className="flex items-center gap-2 flex-wrap justify-center">
+                        {!nft.isListed ? (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="flex items-center gap-1"
+                            onClick={(e) => openListingForm(nft, e)}
+                          >
+                            <Tag className="h-4 w-4" />
+                            List
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center gap-1"
+                            onClick={(e) => cancelListing(nft, e)}
+                            disabled={isCancelling}
+                          >
+                            {isCancelling ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <X className="h-4 w-4" />
+                            )}
+                            Cancel
+                          </Button>
+                        )}
+                        {!nft.isListed &&
+                          nft.marketItem &&
+                          nft.owner.toLowerCase() ===
+                            userAddress.toLowerCase() && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                              onClick={(e) => openResellForm(nft, e)}
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                              Resell
+                            </Button>
+                          )}
                         <Button
                           size="sm"
                           variant="destructive"
@@ -1488,6 +1732,8 @@ export default function CollectionNFTsPage() {
                           formatImageUrl(selectedNFT.metadata.image) ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
+                          "/placeholder.svg" ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                         alt={
@@ -1521,6 +1767,34 @@ export default function CollectionNFTsPage() {
                           <Tag className="h-4 w-4 mr-2" />
                           List NFT
                         </Button>
+                        {selectedNFT.isListed && (
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowNFTDetails(false);
+                              cancelListing(selectedNFT, e as any);
+                            }}
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Cancel Listing
+                          </Button>
+                        )}
+                        {!selectedNFT.isListed && selectedNFT.marketItem && (
+                          <Button
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowNFTDetails(false);
+                              openResellForm(selectedNFT, e as any);
+                            }}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Resell NFT
+                          </Button>
+                        )}
                         <Button
                           variant="destructive"
                           className="flex-1"
@@ -1535,6 +1809,7 @@ export default function CollectionNFTsPage() {
                         </Button>
                       </div>
                     ) : (
+                      // Non-owner actions
                       <NFTActionButtons
                         nft={selectedNFT}
                         isInWishlist={isInWishlist(selectedNFT)}
@@ -1943,6 +2218,183 @@ export default function CollectionNFTsPage() {
           onOpenChange={setShowBuyDialog}
           walletClient={walletClient}
         />
+
+        {/* Resell NFT Dialog */}
+        <Dialog open={showResellForm} onOpenChange={setShowResellForm}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Relist NFT for Sale</DialogTitle>
+              <DialogDescription>
+                Set your new price and relist your NFT on the marketplace
+              </DialogDescription>
+            </DialogHeader>
+
+            {listingNFT && (
+              <div className="flex items-center gap-4 mb-4">
+                <div className="relative h-16 w-16 rounded-md overflow-hidden border">
+                  <Image
+                    src={
+                      formatImageUrl(listingNFT.metadata?.image || "") ||
+                      "/placeholder.svg"
+                    }
+                    alt={
+                      listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`
+                    }
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-medium">
+                    {listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Token ID: {listingNFT.tokenId}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <Form {...listingForm}>
+              <form className="space-y-6">
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={listingForm.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Price</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.000001"
+                            min="0"
+                            placeholder="0.00"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={listingForm.control}
+                    name="unit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Unit</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="ETH" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="ETH">ETH</SelectItem>
+                            <SelectItem value="GWEI">GWEI</SelectItem>
+                            <SelectItem value="WEI">WEI</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {listingForm.watch("price") && (
+                  <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Listing price</span>
+                      <span className="font-medium">
+                        {listingForm.watch("price")} {listingForm.watch("unit")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Service Fees</span>
+                      <span className="font-medium">{SERVICE_FEE_ETH} ETH</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Creator Fees</span>
+                      <span className="font-medium">
+                        {CREATOR_FEE_PERCENT}%
+                      </span>
+                    </div>
+                    <Separator className="my-2" />
+                    <div className="flex justify-between font-medium">
+                      <span>Total potential earnings</span>
+                      <span>
+                        {calculatePrice(
+                          listingForm.watch("price") || "0",
+                          listingForm.watch("unit") || "ETH"
+                        ).totalEth.toFixed(6)}{" "}
+                        ETH
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground flex justify-between">
+                      <span>Estimated value</span>
+                      <div className="text-right">
+                        <div>
+                          $
+                          {calculatePrice(
+                            listingForm.watch("price") || "0",
+                            listingForm.watch("unit") || "ETH"
+                          ).priceInUSD.toFixed(2)}{" "}
+                          USD
+                        </div>
+                        <div>
+                          RM
+                          {calculatePrice(
+                            listingForm.watch("price") || "0",
+                            listingForm.watch("unit") || "ETH"
+                          ).priceInMYR.toFixed(2)}{" "}
+                          MYR
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {resellStatus && (
+                  <Alert
+                    variant={
+                      resellStatus.includes("✅") ? "default" : "destructive"
+                    }
+                  >
+                    <AlertDescription>{resellStatus}</AlertDescription>
+                  </Alert>
+                )}
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowResellForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleResellNFT}
+                    disabled={!listingForm.formState.isValid || isReselling}
+                  >
+                    {isReselling ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Reselling...
+                      </>
+                    ) : (
+                      "Relist NFT"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
