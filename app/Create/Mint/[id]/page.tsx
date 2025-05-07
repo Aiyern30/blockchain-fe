@@ -200,7 +200,6 @@ export default function CollectionNFTsPage() {
     mode: "onChange",
   });
 
-  // Fetch collection details and NFTs
   useEffect(() => {
     const fetchCollectionData = async () => {
       if (!walletClient || !collectionAddress) return;
@@ -229,57 +228,22 @@ export default function CollectionNFTsPage() {
         const userIsOwner = owner.toLowerCase() === signerAddress.toLowerCase();
         setIsOwner(userIsOwner);
 
-        // Fetch NFTs in the collection
+        // Fetch all NFTs in the collection
         const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
 
-        // IMPORTANT: Use both methods to ensure we get all market items
-        // Generate a unique cache key for this request to prevent stale data
+        // Unique cache key for logging
         const cacheKey = `${collectionAddress}-${Date.now()}`;
 
-        // Fetch market items using both methods
-        const marketItemsPromise = nftContract.fetchMarketItems({
+        // Fetch all current market items
+        const marketItems = await nftContract.fetchMarketItems({
           from: signerAddress,
           gasLimit: ethers.parseUnits("500000", "wei"),
         });
 
-        const listedItemsPromise = userIsOwner
-          ? nftContract.fetchItemsListed({
-              from: signerAddress,
-              gasLimit: ethers.parseUnits("500000", "wei"),
-            })
-          : Promise.resolve([]);
-
-        // Wait for both promises to resolve
-        const [marketItems, listedItems] = await Promise.all([
-          marketItemsPromise,
-          listedItemsPromise,
-        ]);
-
         console.log(`[${cacheKey}] Raw market items:`, marketItems);
-        if (userIsOwner) {
-          console.log(`[${cacheKey}] Raw listed items:`, listedItems);
-        }
 
-        // Combine both results to ensure we have all items
-        const combinedItems = [...marketItems];
-
-        // Only add items from listedItems that aren't already in marketItems
-        if (userIsOwner) {
-          for (const listedItem of listedItems) {
-            const itemId = Number(listedItem[0]);
-            const exists = combinedItems.some(
-              (item) => Number(item[0]) === itemId
-            );
-            if (!exists) {
-              combinedItems.push(listedItem);
-            }
-          }
-        }
-
-        console.log(`[${cacheKey}] Combined items:`, combinedItems);
-
-        // Convert to proper format and filter for this collection
-        const marketItemsForCollection = combinedItems
+        // Filter and format only the market items for this collection
+        const marketItemsForCollection = marketItems
           .filter(
             (item: any) =>
               item[1].toLowerCase() === collectionAddress.toLowerCase()
@@ -299,27 +263,23 @@ export default function CollectionNFTsPage() {
           marketItemsForCollection
         );
 
-        // Create a lookup map for faster access
+        // Build a quick lookup map by tokenId
         const listedNFTsMap: { [tokenId: number]: MarketItem } = {};
         marketItemsForCollection.forEach((item: MarketItem) => {
           listedNFTsMap[item.tokenId] = item;
         });
 
-        // Process NFTs data
+        // Process each NFT
         const processedNFTs = await Promise.all(
           nfts.map(async (nft: any) => {
             const tokenId = Number(nft[0]);
             const metadataUrl = nft[1];
             const owner = nft[2];
 
-            // Use the lookup map instead of find() for better performance
             const marketItem = listedNFTsMap[tokenId];
-
-            // IMPORTANT: Determine listing status consistently for all users
-            // An NFT is listed if it has a market item and it's not sold
             const isListed = !!marketItem && !marketItem.sold;
 
-            // Fetch metadata if available
+            // Fetch metadata
             let metadata;
             try {
               if (metadataUrl) {
@@ -327,12 +287,12 @@ export default function CollectionNFTsPage() {
                 if (response.ok) {
                   metadata = await response.json();
 
-                  // Always set listing status and price the same way for everyone
-                  if (isListed && metadata) {
-                    metadata.price = marketItem.price;
-                    metadata.isListed = true;
-                  } else if (metadata) {
-                    metadata.isListed = false;
+                  // Append listing info
+                  if (metadata) {
+                    metadata.isListed = isListed;
+                    if (isListed) {
+                      metadata.price = marketItem.price;
+                    }
                   }
                 }
               }
@@ -343,11 +303,11 @@ export default function CollectionNFTsPage() {
               );
             }
 
-            // Debug log for this specific NFT
+            // Debug log
             console.log(`NFT #${tokenId} listing status:`, {
               hasMarketItem: !!marketItem,
-              isListed: isListed,
-              owner: owner,
+              isListed,
+              owner,
               price: marketItem?.price || "N/A",
             });
 
@@ -357,7 +317,7 @@ export default function CollectionNFTsPage() {
               owner,
               metadata,
               marketItem: marketItem || null,
-              isListed, // Explicit isListed field
+              isListed,
             };
           })
         );
@@ -533,7 +493,7 @@ export default function CollectionNFTsPage() {
 
   // Check if user is the NFT owner
   const isNFTOwner = (nft: CollectionNFT) => {
-    return nft.owner.toLowerCase() === userAddress.toLowerCase();
+    return isTrueOwner(nft, userAddress);
   };
 
   // Calculate price in different units
@@ -979,7 +939,10 @@ export default function CollectionNFTsPage() {
   // Add these functions after your other handler functions
 
   // Function to cancel a listing
-  const cancelListing = async (nft: CollectionNFT, e: React.MouseEvent) => {
+  const handleCancelListing = async (
+    nft: CollectionNFT,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
 
     if (!nft.marketItem || !nft.isListed) {
@@ -1021,6 +984,11 @@ export default function CollectionNFTsPage() {
     }
   };
 
+  // Add this function to determine if an NFT can be resold
+  const canResellNFT = (nft: CollectionNFT) => {
+    return canResell(nft, userAddress);
+  };
+
   // Function to open resell form
   const openResellForm = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -1028,10 +996,13 @@ export default function CollectionNFTsPage() {
     console.log("Attempting to open resell form for NFT:", {
       tokenId: nft.tokenId,
       owner: nft.owner,
+      marketItemOwner: nft.marketItem?.owner,
       userAddress: userAddress,
       isOwner: isNFTOwner(nft),
       hasMarketItem: !!nft.marketItem,
       isListed: nft.isListed,
+      isSold: nft.marketItem?.sold,
+      canResell: canResellNFT(nft),
     });
 
     if (!isNFTOwner(nft)) {
@@ -1145,6 +1116,19 @@ export default function CollectionNFTsPage() {
     } finally {
       setIsReselling(false);
     }
+  };
+
+  const isTrueOwner = (nft: CollectionNFT, userAddress: string) => {
+    return nft.owner.toLowerCase() === userAddress.toLowerCase();
+  };
+
+  const canResell = (nft: CollectionNFT, userAddress: string) => {
+    return (
+      isTrueOwner(nft, userAddress) &&
+      !!nft.marketItem &&
+      !nft.isListed &&
+      !nft.marketItem.sold
+    );
   };
 
   if (showMintingUI) {
@@ -1312,7 +1296,7 @@ export default function CollectionNFTsPage() {
                             size="sm"
                             variant="outline"
                             className="flex items-center gap-1"
-                            onClick={(e) => cancelListing(nft, e)}
+                            onClick={(e) => handleCancelListing(nft, e)}
                             disabled={isCancelling}
                           >
                             {isCancelling ? (
@@ -1323,19 +1307,17 @@ export default function CollectionNFTsPage() {
                             Cancel
                           </Button>
                         )}
-                        {!nft.isListed &&
-                          !!nft.marketItem &&
-                          isNFTOwner(nft) && (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="flex items-center gap-1"
-                              onClick={(e) => openResellForm(nft, e)}
-                            >
-                              <RefreshCw className="h-4 w-4" />
-                              Resell
-                            </Button>
-                          )}
+                        {canResellNFT(nft) && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="flex items-center gap-1"
+                            onClick={(e) => openResellForm(nft, e)}
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                            Resell
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="destructive"
@@ -1771,6 +1753,7 @@ export default function CollectionNFTsPage() {
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                         alt={
@@ -1811,14 +1794,14 @@ export default function CollectionNFTsPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               setShowNFTDetails(false);
-                              cancelListing(selectedNFT, e as any);
+                              handleCancelListing(selectedNFT, e as any);
                             }}
                           >
                             <X className="h-4 w-4 mr-2" />
                             Cancel Listing
                           </Button>
                         )}
-                        {!selectedNFT.isListed && selectedNFT.marketItem && (
+                        {canResellNFT(selectedNFT) && (
                           <Button
                             variant="secondary"
                             className="flex-1"
