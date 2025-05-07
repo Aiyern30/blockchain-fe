@@ -7,4 +7,5 @@ export interface CollectionNFT {
   owner: string;
   metadata?: NFTMetadata;
   marketItem?: MarketItem | null;
+  isListed?: boolean;
 }
