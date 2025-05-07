@@ -10,7 +10,7 @@ export interface MarketItem {
 }
 
 export const NFT_CONTRACT_ADDRESS =
-  "0x8aDd86b39464dC8Be92681cf609Fa3223af90bac";
+  "0x24100fb61B4F853cd802493a1107e1138848832F";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
