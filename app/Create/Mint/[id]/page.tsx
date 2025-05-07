@@ -1025,6 +1025,15 @@ export default function CollectionNFTsPage() {
   const openResellForm = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
 
+    console.log("Attempting to open resell form for NFT:", {
+      tokenId: nft.tokenId,
+      owner: nft.owner,
+      userAddress: userAddress,
+      isOwner: isNFTOwner(nft),
+      hasMarketItem: !!nft.marketItem,
+      isListed: nft.isListed,
+    });
+
     if (!isNFTOwner(nft)) {
       toast.error("Only the NFT owner can resell this NFT");
       return;
@@ -1035,6 +1044,8 @@ export default function CollectionNFTsPage() {
       return;
     }
 
+    // Check if the NFT has a market item, but don't require it
+    // This allows reselling even if marketItem is missing
     setListingNFT(nft);
     setShowResellForm(true);
     listingForm.reset({
@@ -1051,11 +1062,12 @@ export default function CollectionNFTsPage() {
       return;
     }
 
-    if (!listingNFT || !listingNFT.marketItem) {
+    if (!listingNFT) {
       toast.error("NFT information is missing");
       return;
     }
 
+    // Don't require marketItem to be present
     setIsReselling(true);
     setResellStatus("Preparing to resell NFT...");
 
@@ -1092,19 +1104,36 @@ export default function CollectionNFTsPage() {
 
       setResellStatus("Reselling NFT...");
 
-      // Call the resellToken function with itemId and new price
-      const tx = await nftContract.reSellToken(
-        listingNFT.marketItem.itemId,
-        parsedPrice,
-        {
-          value: listingPriceWei,
-        }
-      );
+      // If we have a marketItem, use reSellToken, otherwise use listNFT
+      let tx;
+      if (listingNFT.marketItem && listingNFT.marketItem.itemId) {
+        console.log(
+          "Using reSellToken with itemId:",
+          listingNFT.marketItem.itemId
+        );
+        tx = await nftContract.reSellToken(
+          listingNFT.marketItem.itemId,
+          parsedPrice,
+          {
+            value: listingPriceWei,
+          }
+        );
+      } else {
+        console.log("Using listNFT with tokenId:", listingNFT.tokenId);
+        tx = await nftContract.listNFT(
+          collectionAddress,
+          listingNFT.tokenId,
+          parsedPrice,
+          {
+            value: listingPriceWei,
+          }
+        );
+      }
 
       await tx.wait();
 
-      setResellStatus("✅ NFT relisted successfully!");
-      toast.success("NFT relisted successfully!");
+      setResellStatus("✅ NFT listed successfully!");
+      toast.success("NFT listed successfully!");
       setShowResellForm(false);
 
       // Refresh NFT data to show updated listing status
@@ -1169,6 +1198,15 @@ export default function CollectionNFTsPage() {
                 </>
               )}
             </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-2"
+              onClick={refreshNFTData}
+            >
+              <RefreshCw className="h-3.5 w-3.5 mr-1" />
+              Refresh NFTs
+            </Button>
           </div>
         )}
       </CardHeader>
@@ -1255,7 +1293,6 @@ export default function CollectionNFTsPage() {
                     </div>
                   )}
 
-                  {/* Hover Actions Overlay */}
                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                     {isNFTOwner(nft) ? (
                       /* Owner Actions */
@@ -1287,9 +1324,8 @@ export default function CollectionNFTsPage() {
                           </Button>
                         )}
                         {!nft.isListed &&
-                          nft.marketItem &&
-                          nft.owner.toLowerCase() ===
-                            userAddress.toLowerCase() && (
+                          !!nft.marketItem &&
+                          isNFTOwner(nft) && (
                             <Button
                               size="sm"
                               variant="secondary"
@@ -1730,6 +1766,7 @@ export default function CollectionNFTsPage() {
                       <Image
                         src={
                           formatImageUrl(selectedNFT.metadata.image) ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
