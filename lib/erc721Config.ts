@@ -10,7 +10,7 @@ export interface MarketItem {
 }
 
 export const NFT_CONTRACT_ADDRESS =
-  "0x4ba0E71F55C27b6309Ba64076F7298bFf05d28f7";
+  "0xbD28ef3098cfEd1154Ba4560071720B7a21B6b91";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
@@ -206,6 +206,28 @@ const nftABI = [
     type: "function",
   },
   {
+    inputs: [{ internalType: "address", name: "collection", type: "address" }],
+    name: "getAllListedItemsForCollection",
+    outputs: [
+      {
+        components: [
+          { internalType: "uint256", name: "itemId", type: "uint256" },
+          { internalType: "address", name: "collection", type: "address" },
+          { internalType: "uint256", name: "tokenId", type: "uint256" },
+          { internalType: "address payable", name: "seller", type: "address" },
+          { internalType: "address payable", name: "owner", type: "address" },
+          { internalType: "uint256", name: "price", type: "uint256" },
+          { internalType: "bool", name: "sold", type: "bool" },
+        ],
+        internalType: "struct NFTMarketplaceFactory.MarketItem[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       { internalType: "address", name: "collectionAddress", type: "address" },
     ],
@@ -222,6 +244,33 @@ const nftABI = [
     type: "function",
   },
   {
+    inputs: [
+      { internalType: "address", name: "collection", type: "address" },
+      { internalType: "uint256", name: "tokenId", type: "uint256" },
+    ],
+    name: "getNFTListingDetails",
+    outputs: [
+      { internalType: "uint256", name: "itemId", type: "uint256" },
+      { internalType: "address", name: "currentOwner", type: "address" },
+      { internalType: "address", name: "seller", type: "address" },
+      { internalType: "uint256", name: "price", type: "uint256" },
+      { internalType: "bool", name: "isListed", type: "bool" },
+      { internalType: "bool", name: "sold", type: "bool" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "collection", type: "address" },
+      { internalType: "uint256", name: "tokenId", type: "uint256" },
+    ],
+    name: "getNFTOwner",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     name: "idToMarketItem",
     outputs: [
@@ -233,6 +282,16 @@ const nftABI = [
       { internalType: "uint256", name: "price", type: "uint256" },
       { internalType: "bool", name: "sold", type: "bool" },
     ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "collection", type: "address" },
+      { internalType: "uint256", name: "tokenId", type: "uint256" },
+    ],
+    name: "isNFTListed",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
     stateMutability: "view",
     type: "function",
   },
