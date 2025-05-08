@@ -10,7 +10,7 @@ export interface MarketItem {
 }
 
 export const NFT_CONTRACT_ADDRESS =
-  "0xd637898a14E20211BFD466f1b3f8A67cbDBf748E";
+  "0x84Ff282C88Ba7CfEE5F170c52cFC34dA797b8d84";
 const nftABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   {
@@ -98,6 +98,16 @@ const nftABI = [
     name: "activeListings",
     outputs: [{ internalType: "bool", name: "", type: "bool" }],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "collectionAddress", type: "address" },
+      { internalType: "uint256", name: "tokenId", type: "uint256" },
+    ],
+    name: "burnNFT",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
