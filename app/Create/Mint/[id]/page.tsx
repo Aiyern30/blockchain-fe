@@ -80,6 +80,8 @@ import { useCurrency } from "@/contexts/currency-context";
 import { NFTOwnershipBadge } from "@/components/page/NftOwnershipBadge";
 import { ResellNFTDialog } from "@/components/page/ResellNftDialog";
 import { useForm } from "react-hook-form";
+import { canResell, isNFTOwner } from "@/utils/nft-utils";
+import { BurnNFTDialog } from "@/components/page/BurnNftDialog";
 
 const SERVICE_FEE_ETH = "0.0015";
 const CREATOR_FEE_PERCENT = 0;
@@ -154,7 +156,6 @@ export default function CollectionNFTsPage() {
 
   // State for burn confirmation
   const [showBurnConfirmation, setShowBurnConfirmation] = useState(false);
-  const [isBurning, setIsBurning] = useState(false);
 
   // State for attribute dialog
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -531,11 +532,6 @@ export default function CollectionNFTsPage() {
     setShowNFTDetails(true);
   };
 
-  // Check if user is the NFT owner
-  const isNFTOwner = (nft: CollectionNFT) => {
-    return isTrueOwner(nft, userAddress);
-  };
-
   // Calculate price in different units
   const calculatePrice = (price: string, unit: string) => {
     try {
@@ -583,7 +579,7 @@ export default function CollectionNFTsPage() {
   const openListingForm = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!isNFTOwner(nft)) {
+    if (!isNFTOwner(nft, userAddress)) {
       toast.error("Only the NFT owner can list this NFT");
       return;
     }
@@ -600,7 +596,7 @@ export default function CollectionNFTsPage() {
   const openBurnConfirmation = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!isNFTOwner(nft)) {
+    if (!isNFTOwner(nft, userAddress)) {
       toast.error("Only the NFT owner can burn this NFT");
       return;
     }
@@ -928,54 +924,6 @@ export default function CollectionNFTsPage() {
     }
   };
 
-  const burnNFT = async () => {
-    if (!listingNFT || !walletClient) {
-      toast.error("Missing NFT information or wallet connection");
-      return;
-    }
-
-    setIsBurning(true);
-
-    try {
-      const provider = new ethers.BrowserProvider(walletClient);
-      const signer = await provider.getSigner();
-      const signerAddress = await signer.getAddress();
-
-      // Check if user is the NFT owner
-      if (listingNFT.owner.toLowerCase() !== signerAddress.toLowerCase()) {
-        throw new Error("You are not the owner of this NFT");
-      }
-
-      const nftContract = getERC721Contract(signer);
-
-      // Call the burn function (assuming your contract has a burn function)
-      const tx = await nftContract.burnNFT(
-        collectionAddress,
-        listingNFT.tokenId
-      );
-      await tx.wait();
-
-      toast.success("NFT burned successfully");
-      setShowBurnConfirmation(false);
-
-      // Remove the burned NFT from the list
-      setCollectionNFTs((prev) =>
-        prev.filter(
-          (nft) =>
-            !(
-              nft.tokenId === listingNFT.tokenId &&
-              nft.owner === listingNFT.owner
-            )
-        )
-      );
-    } catch (error: any) {
-      console.error("Error burning NFT:", error);
-      toast.error(`Failed to burn NFT: ${error.message}`);
-    } finally {
-      setIsBurning(false);
-    }
-  };
-
   // Add these functions after your other handler functions
 
   // Function to cancel a listing
@@ -990,7 +938,7 @@ export default function CollectionNFTsPage() {
       return;
     }
 
-    if (!isNFTOwner(nft)) {
+    if (!isNFTOwner(nft, userAddress)) {
       toast.error("Only the NFT owner can cancel this listing");
       return;
     }
@@ -1038,14 +986,14 @@ export default function CollectionNFTsPage() {
       owner: nft.owner,
       marketItemOwner: nft.marketItem?.owner,
       userAddress: userAddress,
-      isOwner: isNFTOwner(nft),
+      isOwner: isNFTOwner(nft, userAddress),
       hasMarketItem: !!nft.marketItem,
       isListed: nft.isListed,
       isSold: nft.marketItem?.sold,
       canResell: canResellNFT(nft),
     });
 
-    if (!isNFTOwner(nft)) {
+    if (!isNFTOwner(nft, userAddress)) {
       toast.error("Only the NFT owner can resell this NFT");
       return;
     }
@@ -1056,54 +1004,9 @@ export default function CollectionNFTsPage() {
     }
 
     // Set the NFT and show the dialog
+    // Set the NFT and show the dialog
     setListingNFT(nft);
     setShowResellForm(true);
-  };
-
-  // Add this function near your other handler functions
-  const debugNFT = (nft: CollectionNFT, e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log("NFT Debug Info:", {
-      tokenId: nft.tokenId,
-      owner: nft.owner,
-      userAddress: userAddress,
-      isOwner: isNFTOwner(nft),
-      hasMarketItem: !!nft.marketItem,
-      marketItemDetails: nft.marketItem,
-      isListed: nft.isListed,
-      canResell: canResellNFT(nft),
-    });
-
-    toast.info(`NFT #${nft.tokenId} debug info logged to console`);
-  };
-
-  const isTrueOwner = (nft: CollectionNFT, userAddress: string) => {
-    return nft.owner.toLowerCase() === userAddress.toLowerCase();
-  };
-
-  // Replace the canResell function with this updated version
-  const canResell = (nft: CollectionNFT, userAddress: string) => {
-    // For debugging
-    console.log("Checking if NFT can be resold:", {
-      tokenId: nft.tokenId,
-      isOwner: isTrueOwner(nft, userAddress),
-      hasMarketItem: !!nft.marketItem,
-      isListed: nft.isListed,
-      marketItemSold: nft.marketItem?.sold,
-    });
-
-    // The key change: we WANT marketItem.sold to be true for reselling
-    // An NFT can be resold if:
-    // 1. You are the true owner
-    // 2. It has a market item (has been through the marketplace)
-    // 3. It's not currently listed
-    // 4. The marketItem.sold is true (meaning it was purchased)
-    return (
-      isTrueOwner(nft, userAddress) &&
-      !!nft.marketItem &&
-      !nft.isListed &&
-      nft.marketItem.sold === true // Changed from !nft.marketItem.sold
-    );
   };
 
   if (showMintingUI) {
@@ -1254,11 +1157,15 @@ export default function CollectionNFTsPage() {
 
                   {/* Ownership badge - positioned at the top right */}
                   <div className="absolute top-2 right-2 z-10">
-                    <NFTOwnershipBadge nft={nft} userAddress={userAddress} />
+                    <NFTOwnershipBadge
+                      nft={nft}
+                      userAddress={userAddress}
+                      collectionOwner={collectionOwner}
+                    />
                   </div>
 
                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                    {isNFTOwner(nft) ? (
+                    {isNFTOwner(nft, userAddress) ? (
                       /* Owner Actions */
                       <div className="flex items-center gap-2 flex-wrap justify-center">
                         {!nft.isListed ? (
@@ -1306,15 +1213,6 @@ export default function CollectionNFTsPage() {
                         >
                           <Flame className="h-4 w-4" />
                           Burn
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex items-center gap-1"
-                          onClick={(e) => debugNFT(nft, e)}
-                        >
-                          <Info className="h-4 w-4" />
-                          Debug
                         </Button>
                       </div>
                     ) : (
@@ -1737,16 +1635,6 @@ export default function CollectionNFTsPage() {
                       <Image
                         src={
                           formatImageUrl(selectedNFT.metadata.image) ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                         alt={
@@ -1766,7 +1654,7 @@ export default function CollectionNFTsPage() {
                     </div>
 
                     {/* Action buttons based on ownership */}
-                    {isNFTOwner(selectedNFT) ? (
+                    {isNFTOwner(selectedNFT, userAddress) ? (
                       <div className="flex gap-2">
                         <Button
                           variant="secondary"
@@ -2149,80 +2037,14 @@ export default function CollectionNFTsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Burn NFT Confirmation Dialog */}
-        <Dialog
+        {/* Burn NFT Dialog */}
+        <BurnNFTDialog
+          nft={listingNFT}
           open={showBurnConfirmation}
           onOpenChange={setShowBurnConfirmation}
-        >
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-destructive">Burn NFT</DialogTitle>
-              <DialogDescription>
-                This action is irreversible. The NFT will be permanently
-                destroyed.
-              </DialogDescription>
-            </DialogHeader>
-
-            {listingNFT && (
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative h-16 w-16 rounded-md overflow-hidden border">
-                  <Image
-                    src={
-                      formatImageUrl(listingNFT.metadata?.image || "") ||
-                      "/placeholder.svg"
-                    }
-                    alt={
-                      listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`
-                    }
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium">
-                    {listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Token ID: {listingNFT.tokenId}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Burning an NFT will permanently remove it from the blockchain.
-                This action cannot be undone.
-              </AlertDescription>
-            </Alert>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowBurnConfirmation(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={burnNFT}
-                disabled={isBurning}
-              >
-                {isBurning ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Burning...
-                  </>
-                ) : (
-                  "Burn NFT"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          walletClient={walletClient}
+          collectionAddress={collectionAddress}
+        />
 
         {/* Buy NFT Dialog */}
         <BuyNFTDialog
