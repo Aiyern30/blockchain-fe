@@ -12,7 +12,7 @@ import {
 } from "@/components/ui";
 import type { CollectionNFT } from "@/type/CollectionNFT";
 import { toast } from "sonner";
-import { isNFTListed } from "@/utils/nft-status";
+import { isNFTListed } from "@/utils/nft-utils";
 
 interface NFTActionButtonsProps {
   nft: CollectionNFT;

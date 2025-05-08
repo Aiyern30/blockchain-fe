@@ -15,9 +15,9 @@ import { Tag, X, RefreshCw, Flame, ExternalLink, Info } from "lucide-react";
 import { NFTActionButtons } from "@/components/nft-action-buttons";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
 import { handleCopy } from "@/utils/helper";
-import { isNFTListed, isTrueOwner, canResell } from "@/utils/nft-status";
 import type { CollectionNFT } from "@/type/CollectionNFT";
 import { NFTOwnershipBadge } from "./NftOwnershipBadge";
+import { isNFTOwner, isNFTListed, canResell } from "@/utils/nft-utils";
 
 interface NFTDetailViewProps {
   nft: CollectionNFT;
@@ -35,6 +35,7 @@ interface NFTDetailViewProps {
   onRemoveFromCart: () => void;
   onBuyNow: (e: React.MouseEvent) => void;
   onClose: () => void;
+  collectionOwner?: string;
 }
 
 export function NFTDetailView({
@@ -53,8 +54,9 @@ export function NFTDetailView({
   onRemoveFromCart,
   onBuyNow,
   onClose,
+  collectionOwner,
 }: NFTDetailViewProps) {
-  const isOwner = isTrueOwner(nft, userAddress);
+  const isOwner = isNFTOwner(nft, userAddress);
   const isListed = isNFTListed(nft);
   const canResellNFT = canResell(nft, userAddress);
 
@@ -67,7 +69,11 @@ export function NFTDetailView({
           <CardTitle className="text-2xl">
             {nft.metadata.name || `NFT #${nft.tokenId}`}
           </CardTitle>
-          <NFTOwnershipBadge nft={nft} userAddress={userAddress} />
+          <NFTOwnershipBadge
+            nft={nft}
+            userAddress={userAddress}
+            collectionOwner={collectionOwner || ""}
+          />
         </div>
         <CardDescription>
           Token ID: {nft.tokenId} • Owner: {truncateAddress(nft.owner)}

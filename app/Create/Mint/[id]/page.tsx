@@ -1092,18 +1092,9 @@ export default function CollectionNFTsPage() {
       marketItemSold: nft.marketItem?.sold,
     });
 
-    // The key change: we WANT marketItem.sold to be true for reselling
-    // An NFT can be resold if:
-    // 1. You are the true owner
-    // 2. It has a market item (has been through the marketplace)
-    // 3. It's not currently listed
-    // 4. The marketItem.sold is true (meaning it was purchased)
-    return (
-      isTrueOwner(nft, userAddress) &&
-      !!nft.marketItem &&
-      !nft.isListed &&
-      nft.marketItem.sold === true // Changed from !nft.marketItem.sold
-    );
+    // Modified logic: Allow reselling if you own the NFT and it's not currently listed
+    // We're removing the requirement for a market item with sold=true
+    return isTrueOwner(nft, userAddress) && !nft.isListed;
   };
 
   if (showMintingUI) {
@@ -1254,7 +1245,11 @@ export default function CollectionNFTsPage() {
 
                   {/* Ownership badge - positioned at the top right */}
                   <div className="absolute top-2 right-2 z-10">
-                    <NFTOwnershipBadge nft={nft} userAddress={userAddress} />
+                    <NFTOwnershipBadge
+                      nft={nft}
+                      userAddress={userAddress}
+                      collectionOwner={collectionOwner}
+                    />
                   </div>
 
                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
@@ -1737,6 +1732,9 @@ export default function CollectionNFTsPage() {
                       <Image
                         src={
                           formatImageUrl(selectedNFT.metadata.image) ||
+                          "/placeholder.svg" ||
+                          "/placeholder.svg" ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
