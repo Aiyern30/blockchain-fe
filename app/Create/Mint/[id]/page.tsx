@@ -1004,6 +1004,7 @@ export default function CollectionNFTsPage() {
     }
 
     // Set the NFT and show the dialog
+    // Set the NFT and show the dialog
     setListingNFT(nft);
     setShowResellForm(true);
   };
