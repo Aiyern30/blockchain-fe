@@ -23,13 +23,12 @@ export const isNFTListed = (nft: any): boolean => {
 export const isTrueOwner = (nft: any, userAddress: string): boolean => {
   if (!userAddress) return false;
 
-  // If the NFT is sold, check if the user is the new owner
+  // If the NFT is sold through the marketplace, check the marketItem owner
   if (nft.marketItem && nft.marketItem.sold) {
-    // For sold NFTs, the owner in the marketItem is the true owner
     return nft.marketItem.owner.toLowerCase() === userAddress.toLowerCase();
   }
 
-  // For non-sold NFTs, check the NFT owner field
+  // Otherwise check the NFT owner field
   return nft.owner.toLowerCase() === userAddress.toLowerCase();
 };
 
