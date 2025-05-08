@@ -40,15 +40,18 @@ export const isCollectionCreator = (
 
 // Check if an NFT can be resold by the current user
 export const canResell = (nft: CollectionNFT, userAddress: string): boolean => {
-  // User must be the owner
-  if (!isNFTOwner(nft, userAddress)) return false;
+  // For debugging
+  console.log("Checking if NFT can be resold:", {
+    tokenId: nft.tokenId,
+    isOwner: isNFTOwner(nft, userAddress),
+    hasMarketItem: !!nft.marketItem,
+    isListed: isNFTListed(nft),
+    marketItemSold: nft.marketItem?.sold,
+  });
 
-  // NFT must not be currently listed
-  if (isNFTListed(nft)) return false;
-
-  // NFT must have been previously sold through the marketplace
-  // (which means it has a market item with sold=true)
-  return !!nft.marketItem && nft.marketItem.sold === true;
+  // Simplified logic: Allow reselling if you own the NFT and it's not currently listed
+  // We're removing the requirement for a market item with sold=true
+  return isNFTOwner(nft, userAddress) && !isNFTListed(nft);
 };
 
 // Check if user can burn an NFT (only owner or creator can burn)

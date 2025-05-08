@@ -80,6 +80,7 @@ import { useCurrency } from "@/contexts/currency-context";
 import { NFTOwnershipBadge } from "@/components/page/NftOwnershipBadge";
 import { ResellNFTDialog } from "@/components/page/ResellNftDialog";
 import { useForm } from "react-hook-form";
+import { canResell, isNFTOwner } from "@/utils/nft-utils";
 
 const SERVICE_FEE_ETH = "0.0015";
 const CREATOR_FEE_PERCENT = 0;
@@ -531,11 +532,6 @@ export default function CollectionNFTsPage() {
     setShowNFTDetails(true);
   };
 
-  // Check if user is the NFT owner
-  const isNFTOwner = (nft: CollectionNFT) => {
-    return isTrueOwner(nft, userAddress);
-  };
-
   // Calculate price in different units
   const calculatePrice = (price: string, unit: string) => {
     try {
@@ -583,7 +579,7 @@ export default function CollectionNFTsPage() {
   const openListingForm = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!isNFTOwner(nft)) {
+    if (!isNFTOwner(nft, userAddress)) {
       toast.error("Only the NFT owner can list this NFT");
       return;
     }
@@ -600,7 +596,7 @@ export default function CollectionNFTsPage() {
   const openBurnConfirmation = (nft: CollectionNFT, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!isNFTOwner(nft)) {
+    if (!isNFTOwner(nft, userAddress)) {
       toast.error("Only the NFT owner can burn this NFT");
       return;
     }
@@ -990,7 +986,7 @@ export default function CollectionNFTsPage() {
       return;
     }
 
-    if (!isNFTOwner(nft)) {
+    if (!isNFTOwner(nft, userAddress)) {
       toast.error("Only the NFT owner can cancel this listing");
       return;
     }
@@ -1038,14 +1034,14 @@ export default function CollectionNFTsPage() {
       owner: nft.owner,
       marketItemOwner: nft.marketItem?.owner,
       userAddress: userAddress,
-      isOwner: isNFTOwner(nft),
+      isOwner: isNFTOwner(nft, userAddress),
       hasMarketItem: !!nft.marketItem,
       isListed: nft.isListed,
       isSold: nft.marketItem?.sold,
       canResell: canResellNFT(nft),
     });
 
-    if (!isNFTOwner(nft)) {
+    if (!isNFTOwner(nft, userAddress)) {
       toast.error("Only the NFT owner can resell this NFT");
       return;
     }
@@ -1058,43 +1054,6 @@ export default function CollectionNFTsPage() {
     // Set the NFT and show the dialog
     setListingNFT(nft);
     setShowResellForm(true);
-  };
-
-  // Add this function near your other handler functions
-  const debugNFT = (nft: CollectionNFT, e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log("NFT Debug Info:", {
-      tokenId: nft.tokenId,
-      owner: nft.owner,
-      userAddress: userAddress,
-      isOwner: isNFTOwner(nft),
-      hasMarketItem: !!nft.marketItem,
-      marketItemDetails: nft.marketItem,
-      isListed: nft.isListed,
-      canResell: canResellNFT(nft),
-    });
-
-    toast.info(`NFT #${nft.tokenId} debug info logged to console`);
-  };
-
-  const isTrueOwner = (nft: CollectionNFT, userAddress: string) => {
-    return nft.owner.toLowerCase() === userAddress.toLowerCase();
-  };
-
-  // Replace the canResell function with this updated version
-  const canResell = (nft: CollectionNFT, userAddress: string) => {
-    // For debugging
-    console.log("Checking if NFT can be resold:", {
-      tokenId: nft.tokenId,
-      isOwner: isTrueOwner(nft, userAddress),
-      hasMarketItem: !!nft.marketItem,
-      isListed: nft.isListed,
-      marketItemSold: nft.marketItem?.sold,
-    });
-
-    // Modified logic: Allow reselling if you own the NFT and it's not currently listed
-    // We're removing the requirement for a market item with sold=true
-    return isTrueOwner(nft, userAddress) && !nft.isListed;
   };
 
   if (showMintingUI) {
@@ -1253,7 +1212,7 @@ export default function CollectionNFTsPage() {
                   </div>
 
                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                    {isNFTOwner(nft) ? (
+                    {isNFTOwner(nft, userAddress) ? (
                       /* Owner Actions */
                       <div className="flex items-center gap-2 flex-wrap justify-center">
                         {!nft.isListed ? (
@@ -1301,15 +1260,6 @@ export default function CollectionNFTsPage() {
                         >
                           <Flame className="h-4 w-4" />
                           Burn
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex items-center gap-1"
-                          onClick={(e) => debugNFT(nft, e)}
-                        >
-                          <Info className="h-4 w-4" />
-                          Debug
                         </Button>
                       </div>
                     ) : (
@@ -1764,7 +1714,7 @@ export default function CollectionNFTsPage() {
                     </div>
 
                     {/* Action buttons based on ownership */}
-                    {isNFTOwner(selectedNFT) ? (
+                    {isNFTOwner(selectedNFT, userAddress) ? (
                       <div className="flex gap-2">
                         <Button
                           variant="secondary"
