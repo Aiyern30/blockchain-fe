@@ -81,8 +81,6 @@ import { NFTOwnershipBadge } from "@/components/page/NftOwnershipBadge";
 import { ResellNFTDialog } from "@/components/page/ResellNftDialog";
 import { useForm } from "react-hook-form";
 
-// Import the new components at the top of the file
-
 const SERVICE_FEE_ETH = "0.0015";
 const CREATOR_FEE_PERCENT = 0;
 
@@ -1062,16 +1060,49 @@ export default function CollectionNFTsPage() {
     setShowResellForm(true);
   };
 
+  // Add this function near your other handler functions
+  const debugNFT = (nft: CollectionNFT, e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("NFT Debug Info:", {
+      tokenId: nft.tokenId,
+      owner: nft.owner,
+      userAddress: userAddress,
+      isOwner: isNFTOwner(nft),
+      hasMarketItem: !!nft.marketItem,
+      marketItemDetails: nft.marketItem,
+      isListed: nft.isListed,
+      canResell: canResellNFT(nft),
+    });
+
+    toast.info(`NFT #${nft.tokenId} debug info logged to console`);
+  };
+
   const isTrueOwner = (nft: CollectionNFT, userAddress: string) => {
     return nft.owner.toLowerCase() === userAddress.toLowerCase();
   };
 
+  // Replace the canResell function with this updated version
   const canResell = (nft: CollectionNFT, userAddress: string) => {
+    // For debugging
+    console.log("Checking if NFT can be resold:", {
+      tokenId: nft.tokenId,
+      isOwner: isTrueOwner(nft, userAddress),
+      hasMarketItem: !!nft.marketItem,
+      isListed: nft.isListed,
+      marketItemSold: nft.marketItem?.sold,
+    });
+
+    // The key change: we WANT marketItem.sold to be true for reselling
+    // An NFT can be resold if:
+    // 1. You are the true owner
+    // 2. It has a market item (has been through the marketplace)
+    // 3. It's not currently listed
+    // 4. The marketItem.sold is true (meaning it was purchased)
     return (
       isTrueOwner(nft, userAddress) &&
       !!nft.marketItem &&
       !nft.isListed &&
-      !nft.marketItem.sold
+      nft.marketItem.sold === true // Changed from !nft.marketItem.sold
     );
   };
 
@@ -1275,6 +1306,15 @@ export default function CollectionNFTsPage() {
                         >
                           <Flame className="h-4 w-4" />
                           Burn
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex items-center gap-1"
+                          onClick={(e) => debugNFT(nft, e)}
+                        >
+                          <Info className="h-4 w-4" />
+                          Debug
                         </Button>
                       </div>
                     ) : (
@@ -1697,6 +1737,8 @@ export default function CollectionNFTsPage() {
                       <Image
                         src={
                           formatImageUrl(selectedNFT.metadata.image) ||
+                          "/placeholder.svg" ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||

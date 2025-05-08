@@ -40,7 +40,7 @@ export const canResell = (nft: any, userAddress: string): boolean => {
   // NFT must not be currently listed
   if (isNFTListed(nft)) return false;
 
-  // NFT must have been previously sold through the marketplace
-  // (which means it has a marketItem)
-  return !!nft.marketItem;
+  // Allow reselling if the user owns the NFT and it's not listed
+  // This is a more permissive approach that doesn't require a market item
+  return true;
 };
