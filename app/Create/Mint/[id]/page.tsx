@@ -81,6 +81,7 @@ import { NFTOwnershipBadge } from "@/components/page/NftOwnershipBadge";
 import { ResellNFTDialog } from "@/components/page/ResellNftDialog";
 import { useForm } from "react-hook-form";
 import { canResell, isNFTOwner } from "@/utils/nft-utils";
+import { BurnNFTDialog } from "@/components/page/BurnNftDialog";
 
 const SERVICE_FEE_ETH = "0.0015";
 const CREATOR_FEE_PERCENT = 0;
@@ -155,7 +156,6 @@ export default function CollectionNFTsPage() {
 
   // State for burn confirmation
   const [showBurnConfirmation, setShowBurnConfirmation] = useState(false);
-  const [isBurning, setIsBurning] = useState(false);
 
   // State for attribute dialog
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -924,54 +924,6 @@ export default function CollectionNFTsPage() {
     }
   };
 
-  const burnNFT = async () => {
-    if (!listingNFT || !walletClient) {
-      toast.error("Missing NFT information or wallet connection");
-      return;
-    }
-
-    setIsBurning(true);
-
-    try {
-      const provider = new ethers.BrowserProvider(walletClient);
-      const signer = await provider.getSigner();
-      const signerAddress = await signer.getAddress();
-
-      // Check if user is the NFT owner
-      if (listingNFT.owner.toLowerCase() !== signerAddress.toLowerCase()) {
-        throw new Error("You are not the owner of this NFT");
-      }
-
-      const nftContract = getERC721Contract(signer);
-
-      // Call the burn function (assuming your contract has a burn function)
-      const tx = await nftContract.burnNFT(
-        collectionAddress,
-        listingNFT.tokenId
-      );
-      await tx.wait();
-
-      toast.success("NFT burned successfully");
-      setShowBurnConfirmation(false);
-
-      // Remove the burned NFT from the list
-      setCollectionNFTs((prev) =>
-        prev.filter(
-          (nft) =>
-            !(
-              nft.tokenId === listingNFT.tokenId &&
-              nft.owner === listingNFT.owner
-            )
-        )
-      );
-    } catch (error: any) {
-      console.error("Error burning NFT:", error);
-      toast.error(`Failed to burn NFT: ${error.message}`);
-    } finally {
-      setIsBurning(false);
-    }
-  };
-
   // Add these functions after your other handler functions
 
   // Function to cancel a listing
@@ -1682,19 +1634,6 @@ export default function CollectionNFTsPage() {
                       <Image
                         src={
                           formatImageUrl(selectedNFT.metadata.image) ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg" ||
                           "/placeholder.svg"
                         }
                         alt={
@@ -2097,80 +2036,14 @@ export default function CollectionNFTsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Burn NFT Confirmation Dialog */}
-        <Dialog
+        {/* Burn NFT Dialog */}
+        <BurnNFTDialog
+          nft={listingNFT}
           open={showBurnConfirmation}
           onOpenChange={setShowBurnConfirmation}
-        >
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-destructive">Burn NFT</DialogTitle>
-              <DialogDescription>
-                This action is irreversible. The NFT will be permanently
-                destroyed.
-              </DialogDescription>
-            </DialogHeader>
-
-            {listingNFT && (
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative h-16 w-16 rounded-md overflow-hidden border">
-                  <Image
-                    src={
-                      formatImageUrl(listingNFT.metadata?.image || "") ||
-                      "/placeholder.svg"
-                    }
-                    alt={
-                      listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`
-                    }
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium">
-                    {listingNFT.metadata?.name || `NFT #${listingNFT.tokenId}`}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Token ID: {listingNFT.tokenId}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Burning an NFT will permanently remove it from the blockchain.
-                This action cannot be undone.
-              </AlertDescription>
-            </Alert>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowBurnConfirmation(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={burnNFT}
-                disabled={isBurning}
-              >
-                {isBurning ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Burning...
-                  </>
-                ) : (
-                  "Burn NFT"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          walletClient={walletClient}
+          collectionAddress={collectionAddress}
+        />
 
         {/* Buy NFT Dialog */}
         <BuyNFTDialog
