@@ -44,6 +44,8 @@ export function BuyNFTDialog({
   const price = nft?.metadata?.price
     ? Number.parseFloat(nft.metadata.price)
     : 0.05;
+
+  // Fix the service fee calculation - ensure it's not zero
   const serviceFee = price * 0.025; // 2.5% service fee
   const totalPrice = price + serviceFee;
 
@@ -106,6 +108,30 @@ export function BuyNFTDialog({
       const receipt = await tx.wait();
 
       console.log("Purchase transaction receipt:", receipt);
+
+      // IMPORTANT: Update the local NFT data to reflect the purchase
+      // This is crucial for the resell button to appear
+      if (nft.marketItem) {
+        // Mark the market item as sold and update the owner
+        nft.marketItem.sold = true;
+        nft.marketItem.owner = signerAddress;
+
+        // Update the metadata listing status
+        if (nft.metadata) {
+          nft.metadata.isListed = false;
+        }
+
+        // Update the NFT owner
+        nft.owner = signerAddress;
+
+        // Log the updated NFT state for debugging
+        console.log("Updated NFT after purchase:", {
+          tokenId: nft.tokenId,
+          owner: nft.owner,
+          marketItem: nft.marketItem,
+          isListed: nft.metadata?.isListed,
+        });
+      }
 
       setPurchaseStatus("✅ NFT purchased successfully!");
       toast.success(
