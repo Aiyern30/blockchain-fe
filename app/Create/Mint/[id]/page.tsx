@@ -84,7 +84,6 @@ import { canResell, isNFTOwner } from "@/utils/nft-utils";
 import { BurnNFTDialog } from "@/components/page/BurnNftDialog";
 
 const SERVICE_FEE_ETH = "0.0015";
-const CREATOR_FEE_PERCENT = 0;
 
 const attributeSchema = z.object({
   trait_type: z.string().min(1, { message: "Trait type is required" }),
@@ -230,10 +229,15 @@ export default function CollectionNFTsPage() {
         const userIsOwner = owner.toLowerCase() === signerAddress.toLowerCase();
         setIsOwner(userIsOwner);
 
-        // Fetch NFTs in the collection
-        const nfts = await nftContract.viewCollectionNFTs(collectionAddress);
+        // Fetch NFTs in the collection - this is the problematic call
+        let nfts = [];
+        try {
+          nfts = await nftContract.viewCollectionNFTs(collectionAddress);
+        } catch (error) {
+          console.error("Error fetching collection NFTs:", error);
+          // Continue with an empty array if this fails
+        }
 
-        // IMPORTANT: Use both methods to ensure we get all market items
         // Generate a unique cache key for this request to prevent stale data
         const cacheKey = `${collectionAddress}-${Date.now()}`;
 
@@ -282,10 +286,9 @@ export default function CollectionNFTsPage() {
         // Convert to proper format and filter for this collection
         const marketItemsForCollection = combinedItems
           .filter(
-            (item: any) =>
-              item[1].toLowerCase() === collectionAddress.toLowerCase()
+            (item) => item[1].toLowerCase() === collectionAddress.toLowerCase()
           )
-          .map((item: any) => ({
+          .map((item) => ({
             itemId: Number(item[0]),
             collection: item[1],
             tokenId: Number(item[2]),
@@ -302,66 +305,83 @@ export default function CollectionNFTsPage() {
 
         // Create a lookup map for faster access
         const listedNFTsMap: { [tokenId: number]: MarketItem } = {};
-        marketItemsForCollection.forEach((item: MarketItem) => {
+        marketItemsForCollection.forEach((item) => {
           listedNFTsMap[item.tokenId] = item;
         });
 
-        // Process NFTs data
-        const processedNFTs = await Promise.all(
-          nfts.map(async (nft: any) => {
+        // Process NFTs data with error handling for each token
+        const processedNFTs = [];
+
+        for (const nft of nfts) {
+          try {
             const tokenId = Number(nft[0]);
             const metadataUrl = nft[1];
-            const owner = nft[2];
 
-            // Use the lookup map instead of find() for better performance
+            // Verify the token exists by checking its owner
+            let currentOwner;
+            try {
+              currentOwner = await nftContract.getNFTOwner(
+                collectionAddress,
+                tokenId
+              );
+
+              // Double-check that owner is valid
+              if (!currentOwner) {
+                console.log(`Token ${tokenId} has no owner, skipping`);
+                continue;
+              }
+            } catch {
+              console.log(`Token ${tokenId} no longer exists, skipping`);
+              continue; // Skip this token
+            }
+
             const marketItem = listedNFTsMap[tokenId];
-
-            // IMPORTANT: Determine listing status consistently for all users
-            // An NFT is listed if it has a market item and it's not sold
             const isListed = !!marketItem && !marketItem.sold;
 
-            // Fetch metadata if available
             let metadata;
             try {
               if (metadataUrl) {
                 const response = await fetch(metadataUrl);
                 if (response.ok) {
                   metadata = await response.json();
-
-                  // Always set listing status and price the same way for everyone
-                  if (isListed && metadata) {
+                  metadata.isListed = isListed;
+                  if (isListed) {
                     metadata.price = marketItem.price;
-                    metadata.isListed = true;
-                  } else if (metadata) {
-                    metadata.isListed = false;
                   }
+                } else {
+                  throw new Error("Metadata fetch failed");
                 }
+              } else {
+                throw new Error("Empty metadata URL");
               }
             } catch (error) {
               console.error(
                 `Failed to fetch metadata for token ${tokenId}:`,
                 error
               );
+              continue; // Skip this NFT
             }
 
-            // Debug log for this specific NFT
             console.log(`NFT #${tokenId} listing status:`, {
               hasMarketItem: !!marketItem,
-              isListed: isListed,
-              owner: owner,
+              isListed,
+              owner: currentOwner,
               price: marketItem?.price || "N/A",
             });
 
-            return {
+            processedNFTs.push({
               tokenId,
               metadataUrl,
-              owner,
+              owner: currentOwner,
               metadata,
               marketItem: marketItem || null,
-              isListed, // Explicit isListed field
-            };
-          })
-        );
+              isListed,
+            });
+          } catch (error) {
+            console.error("Error processing NFT:", error);
+            // Continue with the next NFT
+          }
+        }
 
         setCollectionNFTs(processedNFTs);
       } catch (error) {
@@ -552,13 +572,11 @@ export default function CollectionNFTsPage() {
       }
 
       const serviceFeeEth = Number.parseFloat(SERVICE_FEE_ETH);
-      const creatorFeeEth = (priceInEth * CREATOR_FEE_PERCENT) / 100;
-      const totalEth = priceInEth - serviceFeeEth - creatorFeeEth;
+      const totalEth = priceInEth - serviceFeeEth;
 
       return {
         priceInEth,
         serviceFeeEth,
-        creatorFeeEth,
         totalEth,
         priceInUSD: priceInEth * currencyRates.USD,
         priceInMYR: priceInEth * currencyRates.MYR,
@@ -568,7 +586,6 @@ export default function CollectionNFTsPage() {
       return {
         priceInEth: 0,
         serviceFeeEth: 0,
-        creatorFeeEth: 0,
         totalEth: 0,
         priceInUSD: 0,
         priceInMYR: 0,
@@ -733,66 +750,58 @@ export default function CollectionNFTsPage() {
         }
       });
 
-      // Process NFTs data with the lookup map
-      const processedNFTs = await Promise.all(
-        nfts.map(async (nft: any) => {
-          const tokenId = Number(nft[0]);
-          const metadataUrl = nft[1];
-          const owner = nft[2];
+      const processedNFTs = (
+        await Promise.all(
+          nfts.map(async (nft: any) => {
+            const tokenId = Number(nft[0]);
+            const metadataUrl = nft[1];
+            const owner = nft[2];
 
-          // Use the lookup map for better performance
-          const marketItem = listedNFTsMap[tokenId];
+            const marketItem = listedNFTsMap[tokenId];
+            const isListed = !!marketItem && !marketItem.sold;
 
-          // IMPORTANT: Determine listing status consistently for all users
-          // An NFT is listed if it has a market item and it's not sold
-          const isListed = !!marketItem && !marketItem.sold;
-
-          // Fetch metadata if available
-          let metadata;
-          try {
-            if (metadataUrl) {
-              // Add cache-busting parameter to metadata URL fetch
-              const response = await fetch(`${metadataUrl}?_=${timestamp}`);
-              if (response.ok) {
-                metadata = await response.json();
-
-                // Always set listing status and price the same way for everyone
-                if (isListed && metadata) {
-                  metadata.price = marketItem.price;
-                  metadata.isListed = true;
-                } else if (metadata) {
-                  metadata.isListed = false;
+            let metadata;
+            try {
+              if (metadataUrl) {
+                const response = await fetch(metadataUrl);
+                if (response.ok) {
+                  metadata = await response.json();
+                  metadata.isListed = isListed;
+                  if (isListed) {
+                    metadata.price = marketItem.price;
+                  }
+                } else {
+                  throw new Error("Metadata fetch failed");
                 }
+              } else {
+                throw new Error("Empty metadata URL");
               }
+            } catch (error) {
+              console.error(
+                `Failed to fetch metadata for token ${tokenId}:`,
+                error
+              );
+              return null; // ❌ Skip this NFT
             }
-          } catch (error) {
-            console.error(
-              `Failed to fetch metadata for token ${tokenId}:`,
-              error
-            );
-          }
 
-          // Debug log for this specific NFT
-          console.log(
-            `[Refresh ${timestamp}] NFT #${tokenId} listing status:`,
-            {
+            console.log(`NFT #${tokenId} listing status:`, {
               hasMarketItem: !!marketItem,
-              isListed: isListed,
-              owner: owner,
+              isListed,
+              owner,
               price: marketItem?.price || "N/A",
-            }
-          );
+            });
 
-          return {
-            tokenId,
-            metadataUrl,
-            owner,
-            metadata,
-            marketItem: marketItem || null,
-            isListed, // Explicit isListed field
-          };
-        })
-      );
+            return {
+              tokenId,
+              metadataUrl,
+              owner,
+              metadata,
+              marketItem: marketItem || null,
+              isListed,
+            };
+          })
+        )
+      ).filter(Boolean);
 
       setCollectionNFTs(processedNFTs);
     } catch (error) {
@@ -1958,12 +1967,7 @@ export default function CollectionNFTsPage() {
                       <span>Service Fees</span>
                       <span className="font-medium">{SERVICE_FEE_ETH} ETH</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Creator Fees</span>
-                      <span className="font-medium">
-                        {CREATOR_FEE_PERCENT}%
-                      </span>
-                    </div>
+
                     <Separator className="my-2" />
                     <div className="flex justify-between font-medium">
                       <span>Total potential earnings</span>
@@ -2044,6 +2048,7 @@ export default function CollectionNFTsPage() {
           onOpenChange={setShowBurnConfirmation}
           walletClient={walletClient}
           collectionAddress={collectionAddress}
+          onSuccess={refreshNFTData}
         />
 
         {/* Buy NFT Dialog */}
