@@ -19,10 +19,10 @@ export function ViewSelector({ className }: ViewSelectorProps) {
 
   useEffect(() => {
     const storedView = localStorage.getItem("nft-grid-view") as GridView;
-    if (storedView) {
+    if (storedView && storedView !== filter.view) {
       setFilter({ view: storedView });
     }
-  }, [setFilter]);
+  }, [filter.view, setFilter]);
 
   const handleViewChange = (newView: GridView) => {
     localStorage.setItem("nft-grid-view", newView);
