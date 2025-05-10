@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui";
 import Providers from "./Providers";
 import LayoutProvider from "./LayoutProvider";
 import { CurrencyProvider } from "@/contexts/currency-context";
+import { WalletDropdownProvider } from "@/contexts/wallet-context";
 
 export const metadata: Metadata = {
   title: "GamerTokenHub",
@@ -28,12 +29,14 @@ export default function RootLayout({
 
       <body>
         <Providers>
-          <CurrencyProvider>
-            <LayoutProvider>
-              {children}
-              <Toaster />
-            </LayoutProvider>
-          </CurrencyProvider>
+          <WalletDropdownProvider>
+            <CurrencyProvider>
+              <LayoutProvider>
+                {children}
+                <Toaster />
+              </LayoutProvider>
+            </CurrencyProvider>
+          </WalletDropdownProvider>
         </Providers>
       </body>
     </html>
