@@ -432,3 +432,9 @@ export function getERC721TokenContract(
 ) {
   return new ethers.Contract(tokenAddress, ERC721_ABI, signerOrProvider);
 }
+
+export function getMarketplaceFactoryContract(
+  signerOrProvider: ethers.Signer | ethers.Provider
+) {
+  return new ethers.Contract(NFT_CONTRACT_ADDRESS, nftABI, signerOrProvider);
+}
