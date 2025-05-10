@@ -24,7 +24,7 @@ import {
 import { ShoppingCart, Trash2 } from "lucide-react";
 import { formatImageUrl } from "@/utils/function";
 import { useCart } from "@/hooks/use-cart";
-
+import CardEmptyUI from "@/components/CardEmptyUI";
 export function CartSheet() {
   const {
     cartItems,
@@ -147,25 +147,13 @@ export function CartSheet() {
               </ScrollArea>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-[400px] text-center">
-              <div className="relative w-[200px] h-[200px]">
-                <Image
-                  src="/placeholder.svg"
-                  alt="Empty Cart"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">
-                Your cart is empty!
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Add some awesome NFTs to your cart!
-              </p>
-              <Button variant="default" onClick={() => setIsOpen(false)}>
-                Explore NFTs
-              </Button>
-            </div>
+            <CardEmptyUI
+              title="Your cart is empty!"
+              description="Add some awesome NFTs to your cart!"
+              buttonText="Explore NFTs"
+              onButtonClick={() => setIsOpen(false)}
+              type="cart"
+            />
           )}
         </div>
 
