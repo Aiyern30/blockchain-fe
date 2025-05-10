@@ -96,11 +96,12 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
     router.push("/Explore");
   };
 
-  // Determine grid columns based on view
   const gridColumns = {
-    small: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
-    medium: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-    large: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+    small:
+      "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+    medium:
+      "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+    large: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
     list: "",
   };
 
@@ -112,23 +113,24 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
         } gap-4`}
       >
         {view === "list"
-          ? // List view skeletons
-            Array(3)
+          ? Array(4)
               .fill(0)
               .map((_, i) => (
-                <div key={i} className="flex items-center border-b p-4 gap-4">
+                <div
+                  key={i}
+                  className="flex items-center gap-4 p-4 border-b animate-pulse"
+                >
                   <Skeleton className="h-16 w-16 rounded-md" />
-                  <div className="flex-1">
-                    <Skeleton className="h-5 w-1/3 mb-2" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-1/3" />
                     <Skeleton className="h-4 w-2/3" />
                   </div>
                 </div>
               ))
-          : // Grid view skeletons
-            Array(6)
+          : Array(8)
               .fill(0)
               .map((_, i) => (
-                <Card key={i} className="overflow-hidden">
+                <Card key={i} className="overflow-hidden animate-pulse">
                   <Skeleton className="h-40 w-full" />
                   <CardHeader className="pb-2">
                     <Skeleton className="h-5 w-3/4 mb-1" />
@@ -155,53 +157,58 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
 
   if (view === "list") {
     return (
-      <div className="mt-6 space-y-1">
-        {collectionDetails.map((collection) => (
-          <div
-            key={collection.address}
-            className="flex items-center justify-between border-b p-4 hover:bg-muted/50 cursor-pointer transition-colors"
-            onClick={navigateToCollections}
-          >
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 relative rounded-md overflow-hidden bg-muted">
-                <Image
-                  src={formatImageUrl(collection.image) || "/placeholder.svg"}
-                  alt={collection.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{collection.name}</h3>
-                  <Badge variant="outline" className="text-xs">
-                    Collection
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground line-clamp-1">
-                  {collection.description || "No description provided"}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Address:{" "}
-                  <span className="font-mono">
-                    {truncateAddress(collection.address)}
-                  </span>
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => e.stopPropagation()}
+      <div className="mt-6 w-full">
+        <div className="space-y-2 w-full">
+          {collectionDetails.map((collection) => (
+            <div
+              key={collection.address}
+              className="flex w-full items-center justify-between border rounded-lg px-6 py-4 hover:bg-muted/50 cursor-pointer transition-colors"
+              onClick={navigateToCollections}
             >
-              <ExternalLink className="h-4 w-4" />
+              <div className="flex items-center gap-5 w-full">
+                <div className="h-20 w-20 relative rounded-md overflow-hidden bg-muted shrink-0">
+                  <Image
+                    src={formatImageUrl(collection.image) || "/placeholder.svg"}
+                    alt={collection.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex flex-col w-full overflow-hidden">
+                  <div className="flex items-center justify-between w-full">
+                    <h3 className="font-medium text-base truncate">
+                      {collection.name}
+                    </h3>
+                    <Badge variant="outline" className="text-xs shrink-0 ml-2">
+                      Collection
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-1">
+                    {collection.description || "No description provided"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 truncate">
+                    Address:{" "}
+                    <span className="font-mono">
+                      {truncateAddress(collection.address)}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <div className="flex justify-center mt-6">
+            <Button variant="outline" onClick={navigateToCollections}>
+              View All Collections
             </Button>
           </div>
-        ))}
-        <div className="flex justify-center mt-6">
-          <Button variant="outline" onClick={navigateToCollections}>
-            View All Collections
-          </Button>
         </div>
       </div>
     );
@@ -213,10 +220,10 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
         {collectionDetails.map((collection) => (
           <Card
             key={collection.address}
-            className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+            className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border hover:border-primary"
             onClick={navigateToCollections}
           >
-            <div className="relative h-40 w-full bg-muted">
+            <div className="relative h-44 w-full bg-muted">
               <Image
                 src={formatImageUrl(collection.image) || "/placeholder.svg"}
                 alt={collection.name}
@@ -224,24 +231,31 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
                 className="object-cover"
               />
             </div>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-base">{collection.name}</CardTitle>
-                <Badge variant="outline" className="text-xs">
+            <CardHeader className="space-y-1 pb-1">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-base font-semibold truncate">
+                  {collection.name}
+                </CardTitle>
+                <Badge variant="secondary" className="text-xs">
                   Collection
                 </Badge>
               </div>
-              <CardDescription className="line-clamp-1 text-xs">
+              <CardDescription className="line-clamp-2 text-sm text-muted-foreground">
                 {collection.description || "No description provided"}
               </CardDescription>
             </CardHeader>
-            <CardFooter className="pt-0 pb-3">
-              <p className="text-xs text-muted-foreground">
-                <span className="font-medium mr-1">Address:</span>
-                <span className="font-mono">
-                  {truncateAddress(collection.address)}
-                </span>
-              </p>
+            <CardFooter className="pt-1 pb-3 text-xs text-muted-foreground flex justify-between items-center">
+              <div className="truncate font-mono">
+                {truncateAddress(collection.address)}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
             </CardFooter>
           </Card>
         ))}
