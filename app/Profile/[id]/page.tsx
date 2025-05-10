@@ -39,7 +39,7 @@ export default function ProfilePage() {
   console.log("Profile Address:", profileAddress);
   const { address: rainbowKitAddress, isConnected } = useAccount();
   const [activeTab, setActiveTab] = useState("collection");
-  const [gridView, setGridView] = useState<GridView>("medium");
+  const [gridView] = useState<GridView>("medium");
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -292,11 +292,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <ViewSelector
-              view={gridView}
-              onChange={setGridView}
-              className="w-full md:w-auto"
-            />
+            <ViewSelector className="w-full md:w-auto" />
           </div>
         )}
 
