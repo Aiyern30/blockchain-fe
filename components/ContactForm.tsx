@@ -18,21 +18,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
 import { useToast } from "@/hooks/use-toast";
 import emailjs from "emailjs-com";
 import { cn } from "@/lib/utils";
 import {
-  Github,
-  Linkedin,
+  Twitter,
   Instagram,
   MessageSquare,
   Send,
   Phone,
   Mail,
   User,
-  Code,
+  Globe,
   Loader2,
+  HelpCircle,
+  Wallet,
+  ShoppingBag,
+  Shield,
 } from "lucide-react";
 
 // Schema definition
@@ -45,6 +53,9 @@ const formSchema = z.object({
     .min(2, { message: "Last name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   contactNumber: z.string().optional(),
+  inquiryType: z.string({
+    required_error: "Please select an inquiry type.",
+  }),
   message: z
     .string()
     .min(10, { message: "Message must be at least 10 characters." }),
@@ -55,34 +66,48 @@ type FormValues = z.infer<typeof formSchema>;
 // Social links data
 const socialLinks = [
   {
-    name: "GitHub",
-    url: "https://github.com/Aiyern30",
-    icon: <Github className="w-5 h-5" />,
-  },
-  {
-    name: "LinkedIn",
-    url: "https://www.linkedin.com/in/ian-gan-346547279/",
-    icon: <Linkedin className="w-5 h-5" />,
+    name: "Twitter",
+    url: "https://twitter.com/nftmarketplace",
+    icon: <Twitter className="w-5 h-5" />,
   },
   {
     name: "Instagram",
-    url: "https://www.instagram.com/_aiyern_/",
+    url: "https://www.instagram.com/nftmarketplace/",
     icon: <Instagram className="w-5 h-5" />,
   },
   {
     name: "Discord",
-    url: "https://discord.gg/eEzxaxPR2d",
+    url: "https://discord.gg/nftmarketplace",
     icon: <MessageSquare className="w-5 h-5" />,
   },
   {
-    name: "WhatsApp",
-    url: "https://wa.me/+60182133211?text='Type%20your%20message%20here%20%3A'",
-    icon: <Phone className="w-5 h-5" />,
+    name: "Website",
+    url: "https://nftmarketplace.com",
+    icon: <Globe className="w-5 h-5" />,
+  },
+];
+
+// Inquiry types
+const inquiryTypes = [
+  {
+    value: "general",
+    label: "General Inquiry",
+    icon: <HelpCircle className="w-4 h-4 mr-2" />,
   },
   {
-    name: "Source",
-    url: "https://github.com/Aiyern30/Ian-portfolio",
-    icon: <Code className="w-5 h-5" />,
+    value: "wallet",
+    label: "Wallet Support",
+    icon: <Wallet className="w-4 h-4 mr-2" />,
+  },
+  {
+    value: "purchase",
+    label: "Purchase Issues",
+    icon: <ShoppingBag className="w-4 h-4 mr-2" />,
+  },
+  {
+    value: "security",
+    label: "Security Concerns",
+    icon: <Shield className="w-4 h-4 mr-2" />,
   },
 ];
 
@@ -98,6 +123,7 @@ export default function ContactForm() {
       lastName: "",
       email: "",
       contactNumber: "",
+      inquiryType: "",
       message: "",
     },
   });
@@ -109,6 +135,7 @@ export default function ContactForm() {
       lastname: data.lastName,
       email: data.email,
       contactNumber: data.contactNumber,
+      inquiryType: data.inquiryType,
       enquiry: data.message,
     };
 
@@ -122,7 +149,8 @@ export default function ContactForm() {
       .then(() => {
         toast({
           title: "Message sent!",
-          description: "We'll get back to you as soon as possible.",
+          description:
+            "Our support team will get back to you as soon as possible.",
         });
         form.reset();
         setFormSubmitted(true);
@@ -152,7 +180,7 @@ export default function ContactForm() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl font-bold mb-4">Get In Touch</h2>
+          <h2 className="text-4xl font-bold mb-4">Contact Support</h2>
           <motion.div
             className="h-1 w-32 bg-gradient-to-r from-[#FF9D7A] to-[#FFD166] mx-auto"
             initial={{ width: 0 }}
@@ -160,8 +188,8 @@ export default function ContactForm() {
             transition={{ duration: 0.8, delay: 0.3 }}
           />
           <p className="text-muted-foreground max-w-2xl mx-auto mt-4">
-            Have a project in mind or want to collaborate? I'd love to hear from
-            you!
+            Have questions about our NFT marketplace or need assistance? Our
+            team is here to help!
           </p>
         </motion.div>
 
@@ -171,7 +199,7 @@ export default function ContactForm() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-[#320F85]/20 backdrop-blur-sm p-8 rounded-xl border border-white/10 shadow-xl"
+            className="p-8 rounded-xl border border-white/10 shadow-xl"
           >
             {formSubmitted ? (
               <motion.div
@@ -184,8 +212,8 @@ export default function ContactForm() {
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Message Sent!</h3>
                 <p className="text-white/70 mb-6">
-                  Thank you for reaching out. I'll get back to you as soon as
-                  possible.
+                  Thank you for reaching out. Our support team will get back to
+                  you as soon as possible.
                 </p>
                 <Button
                   variant="outline"
@@ -217,7 +245,7 @@ export default function ContactForm() {
                                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 w-4 h-4" />
                                 <Input
                                   placeholder="John"
-                                  className="bg-[#320F85]/40 border-white/10 focus:border-[#FF9D7A]/50 pl-10 text-white"
+                                  className=" pl-10 text-white"
                                   {...field}
                                 />
                               </div>
@@ -239,7 +267,7 @@ export default function ContactForm() {
                                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 w-4 h-4" />
                                 <Input
                                   placeholder="Doe"
-                                  className="bg-[#320F85]/40 border-white/10 focus:border-[#FF9D7A]/50 pl-10 text-white"
+                                  className=" pl-10 text-white"
                                   {...field}
                                 />
                               </div>
@@ -261,7 +289,7 @@ export default function ContactForm() {
                               <Input
                                 type="email"
                                 placeholder="johndoe@example.com"
-                                className="bg-[#320F85]/40 border-white/10 focus:border-[#FF9D7A]/50 pl-10 text-white"
+                                className=" pl-10 text-white"
                                 {...field}
                               />
                             </div>
@@ -283,15 +311,47 @@ export default function ContactForm() {
                               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 w-4 h-4" />
                               <Input
                                 type="tel"
-                                placeholder="+60 182133211"
-                                className="bg-[#320F85]/40 border-white/10 focus:border-[#FF9D7A]/50 pl-10 text-white"
+                                placeholder="+1 (555) 123-4567"
+                                className=" pl-10 text-white"
                                 {...field}
                               />
                             </div>
                           </FormControl>
                           <FormDescription className="text-white/50 text-xs">
-                            I'll only use this to contact you if necessary.
+                            We'll only use this to contact you if necessary.
                           </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="inquiryType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white/80">
+                            Inquiry Type
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className=" text-white">
+                                <SelectValue placeholder="Select inquiry type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {inquiryTypes.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>
+                                  <div className="flex items-center">
+                                    {type.icon}
+                                    {type.label}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -308,8 +368,8 @@ export default function ContactForm() {
                             <div className="relative">
                               <MessageSquare className="absolute left-3 top-3 text-white/40 w-4 h-4" />
                               <Textarea
-                                placeholder="Tell me about your project or inquiry..."
-                                className="resize-none bg-[#320F85]/40 border-white/10 focus:border-[#FF9D7A]/50 pl-10 text-white min-h-[120px]"
+                                placeholder="Please describe your issue or question in detail..."
+                                className="resize-none pl-10 text-white min-h-[120px]"
                                 {...field}
                               />
                             </div>
@@ -348,27 +408,79 @@ export default function ContactForm() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-white p-8 bg-[#320F85]/20 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl flex flex-col justify-between"
+            className="text-white p-8 rounded-xl border border-white/10 shadow-xl flex flex-col justify-between"
           >
             <div>
               <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                Need a <span className="text-[#FF9D7A]">Web Developer</span>?
+                Discover, Collect, and Sell{" "}
+                <span className="text-[#FF9D7A]">Extraordinary</span> NFTs
                 <br />
-                Let's build something{" "}
-                <span className="text-[#FFD166]">amazing</span> together.
+                Join our <span className="text-[#FFD166]">thriving</span>{" "}
+                community.
               </h3>
 
               <p className="text-white/70 mb-8">
-                I'm currently available for freelance work and exciting
-                collaborations. Whether you need a website, web application, or
-                have a creative project in mind, I'd love to help bring your
-                vision to life.
+                Our NFT marketplace connects artists and collectors in a secure,
+                user-friendly environment. Whether you're looking to buy your
+                first NFT, need help with a transaction, or have questions about
+                creating and selling your own digital assets, our support team
+                is here to assist you.
               </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5">
+                  <div className="mt-1">
+                    <ShoppingBag className="w-5 h-5 text-[#FF9D7A]" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Marketplace Support</h4>
+                    <p className="text-sm text-white/70">
+                      Get help with buying, selling, and trading NFTs
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5">
+                  <div className="mt-1">
+                    <Wallet className="w-5 h-5 text-[#FFD166]" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Wallet Assistance</h4>
+                    <p className="text-sm text-white/70">
+                      Resolve issues with connecting wallets and transactions
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5">
+                  <div className="mt-1">
+                    <Shield className="w-5 h-5 text-[#FF9D7A]" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Security Concerns</h4>
+                    <p className="text-sm text-white/70">
+                      Get help with account security and suspicious activity
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5">
+                  <div className="mt-1">
+                    <HelpCircle className="w-5 h-5 text-[#FFD166]" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">General Inquiries</h4>
+                    <p className="text-sm text-white/70">
+                      Questions about our platform, fees, or services
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div>
               <h4 className="text-lg font-medium mb-4 border-b border-white/10 pb-2">
-                Connect With Me
+                Connect With Us
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 {socialLinks.map((link, index) => (
@@ -383,9 +495,7 @@ export default function ContactForm() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
                   >
-                    <div className="w-8 h-8 rounded-full bg-[#320F85]/60 flex items-center justify-center group-hover:bg-[#FF9D7A]/20 transition-colors">
-                      {link.icon}
-                    </div>
+                    <div className="w-8 h-8 rounded-full">{link.icon}</div>
                     <span className="font-medium">{link.name}</span>
                   </motion.a>
                 ))}
