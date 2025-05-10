@@ -26,10 +26,10 @@ import { ProfileCart } from "./ProfileCart";
 
 export default function ProfilePage() {
   const tabs = [
-    { id: "transaction", label: "Transaction" },
     { id: "collection", label: "Collection" },
     { id: "cart", label: "Cart" },
     { id: "wishlist", label: "Wishlist" },
+    { id: "transaction", label: "Transaction" },
   ];
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [gridView, setGridView] = useState<GridView>("medium");
