@@ -15,7 +15,7 @@ import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { truncateAddress } from "@/utils/function";
 import { handleCopy, handleShare } from "@/utils/helper";
-import { mockCartItems, mockWishlistItems } from "@/utils/mock-data";
+import { mockCartItems } from "@/utils/mock-data";
 import {
   fetchAllTransactions,
   type ProcessedTransaction,
@@ -23,6 +23,7 @@ import {
 import { NFTGrid } from "./NftGrid";
 import { TransactionList } from "./TransactionList";
 import { ProfileCollections } from "./ProfileCollection";
+import { ProfileWishlist } from "./ProfileWishlist";
 
 export default function ProfilePage() {
   const tabs = [
@@ -138,11 +139,7 @@ export default function ProfilePage() {
           <EmptyState label="Cart" />
         );
       case "wishlist":
-        return mockWishlistItems.length > 0 ? (
-          <NFTGrid items={mockWishlistItems} view={gridView} />
-        ) : (
-          <EmptyState label="Wishlist" />
-        );
+        return <ProfileWishlist view={gridView} />;
       default:
         return <EmptyState label={activeTab} />;
     }
