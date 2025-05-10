@@ -63,7 +63,7 @@ export function useWishlist() {
     };
   }, []);
 
-  // Then, in a separate effect, enhance wishlist items with blockchain data
+  // Then, in a separate effect, enhance wishlist items with blockchain data and validate
   useEffect(() => {
     const enhanceWishlistWithBlockchainData = async () => {
       if (!walletClient) return;
@@ -93,29 +93,53 @@ export function useWishlist() {
           return;
         }
 
-        // Keep all localStorage items but enhance them with blockchain data when available
-        const enhancedItems = storedWishlistItems.map((item) => {
-          const matchingMarketItem = allMarketItems.find(
-            (marketItem) =>
-              marketItem.tokenId === item.tokenId &&
-              marketItem.owner === item.owner
-          );
-
-          // If we found matching blockchain data, merge it with localStorage data
-          if (matchingMarketItem) {
-            return {
-              ...matchingMarketItem,
-              addedAt: item.addedAt,
-            };
-          }
-
-          // Otherwise, keep the localStorage item as is
-          return item;
+        // Create a map of token IDs and owners for faster lookup
+        const marketItemsMap = new Map<string, CollectionNFT>();
+        allMarketItems.forEach((item) => {
+          const key = `${item.tokenId}-${item.owner}`;
+          marketItemsMap.set(key, item);
         });
 
-        globalWishlistItems = enhancedItems;
-        setWishlistItems(enhancedItems);
-        setWishlistCount(enhancedItems.length);
+        // Keep valid items and enhance them with blockchain data
+        const validItems: WishlistItem[] = [];
+        let removedItemsCount = 0;
+
+        storedWishlistItems.forEach((item) => {
+          const key = `${item.tokenId}-${item.owner}`;
+          const matchingMarketItem = marketItemsMap.get(key);
+
+          if (matchingMarketItem) {
+            // NFT still exists, enhance it with blockchain data
+            validItems.push({
+              ...matchingMarketItem,
+              addedAt: item.addedAt,
+            });
+          } else {
+            // NFT no longer exists (possibly burned or transferred)
+            removedItemsCount++;
+          }
+        });
+
+        // If some items were removed, update localStorage and notify
+        if (removedItemsCount > 0) {
+          globalWishlistItems = validItems;
+          localStorage.setItem("nft-wishlist", JSON.stringify(validItems));
+
+          // Show a notification
+          toast.info(
+            `Removed ${removedItemsCount} item${
+              removedItemsCount !== 1 ? "s" : ""
+            } that no longer exist`,
+            {
+              description:
+                "Some NFTs in your wishlist may have been burned or transferred",
+            }
+          );
+        }
+
+        setWishlistItems(validItems);
+        setWishlistCount(validItems.length);
+        notifyWishlistListeners();
       } catch (error) {
         console.error("Failed to fetch collection data:", error);
         toast.error("Failed to load collection data");
