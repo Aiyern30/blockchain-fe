@@ -32,7 +32,7 @@ import { ethers } from "ethers";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { cn } from "@/lib/utils";
 import type { StagingStatus } from "@/type/stagingStatus";
-import NFTMintingUI from "@/components/page/Explore/Create/Drop/NFTMintingUI";
+import NFTMintingUI from "@/components/page/Drop/NFTMintingUI";
 import { uploadToIPFS } from "@/utils/uploadIPFS";
 import { STATUS_STAGES } from "@/type/StatusStages";
 

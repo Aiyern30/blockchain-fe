@@ -27,7 +27,7 @@ import { useAccount, useWalletClient } from "wagmi";
 import { StagingStatus } from "@/type/stagingStatus";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { ethers } from "ethers";
-import NFTMintingUI from "./page/Explore/Create/Drop/NFTMintingUI";
+import NFTMintingUI from "./page/Drop/NFTMintingUI";
 
 type FormValues = {
   collectionName: string;

@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import NFTMintingUI from "@/components/page/Explore/Create/Drop/NFTMintingUI";
+import NFTMintingUI from "@/components/page/Drop/NFTMintingUI";
 import Image from "next/image";
 import {
   Button,
