@@ -1,14 +1,15 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/";
 import { useRouter } from "next/navigation";
+
 interface CardEmptyUIProps {
   title: string;
   description: string;
   buttonText: string;
   onButtonClick?: () => void;
   type: "cart" | "wishlist" | "collection" | "profile";
+  openConnectModal?: () => void;
 }
-import { useWalletDropdown } from "@/contexts/wallet-context";
 
 const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
   title,
@@ -16,6 +17,7 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
   buttonText,
   onButtonClick,
   type,
+  openConnectModal,
 }) => {
   const imageSrc =
     type === "cart"
@@ -27,15 +29,14 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
       : "/shopping-cart.svg";
 
   const router = useRouter();
-  const { toggleDropdown } = useWalletDropdown();
 
   const navigationTo = () => {
     if (onButtonClick) {
       onButtonClick();
     }
 
-    if (type === "profile") {
-      toggleDropdown();
+    if (type === "profile" && openConnectModal) {
+      openConnectModal();
       return;
     }
 
@@ -45,6 +46,7 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
       router.push("/Explore");
     }
   };
+
   return (
     <div className="flex flex-col items-center justify-center h-full text-center">
       <div className="relative w-[200px] h-[200px]">

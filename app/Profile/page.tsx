@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWalletClient } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import CardEmptyUI from "@/components/CardEmptyUI";
 
 export default function ProfileRedirectPage() {
@@ -17,12 +18,17 @@ export default function ProfileRedirectPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-center">
-      <CardEmptyUI
-        title="Connect Wallet to View Profile"
-        description="You need to connect your wallet to access your profile page."
-        buttonText="Connect Wallet"
-        type="profile"
-      />
+      <ConnectButton.Custom>
+        {({ openConnectModal }) => (
+          <CardEmptyUI
+            title="Connect Wallet to View Profile"
+            description="You need to connect your wallet to access your profile page."
+            buttonText="Connect Wallet"
+            type="profile"
+            openConnectModal={openConnectModal}
+          />
+        )}
+      </ConnectButton.Custom>
     </div>
   );
 }
