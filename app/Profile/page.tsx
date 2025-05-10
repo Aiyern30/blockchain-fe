@@ -15,12 +15,11 @@ import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { truncateAddress } from "@/utils/function";
 import { handleCopy, handleShare } from "@/utils/helper";
+import { mockNFTs, mockCartItems, mockWishlistItems } from "@/utils/mock-data";
 import {
-  mockNFTs,
-  mockCartItems,
-  mockWishlistItems,
-  mockTransactions,
-} from "@/utils/mock-data";
+  fetchAllTransactions,
+  type ProcessedTransaction,
+} from "@/utils/etherscan";
 import { NFTGrid } from "./NftGrid";
 import { TransactionList } from "./TransactionList";
 
@@ -37,6 +36,9 @@ export default function ProfilePage() {
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [transactionError, setTransactionError] = useState<string | null>(null);
 
   useEffect(() => {
     const storedAddress = localStorage.getItem("walletAddress");
@@ -90,13 +92,42 @@ export default function ProfilePage() {
     fetchFirstTransactionDate();
   }, [walletAddress]);
 
+  // Fetch transactions when wallet address changes or when transaction tab is selected
+  useEffect(() => {
+    const getTransactions = async () => {
+      if (!walletAddress) return;
+
+      if (activeTab === "transaction") {
+        setIsLoadingTransactions(true);
+        setTransactionError(null);
+
+        try {
+          const txs = await fetchAllTransactions(walletAddress);
+          setTransactions(txs);
+        } catch (error) {
+          console.error("Error fetching transactions:", error);
+          setTransactionError(
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch transactions"
+          );
+        } finally {
+          setIsLoadingTransactions(false);
+        }
+      }
+    };
+
+    getTransactions();
+  }, [walletAddress, activeTab]);
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "transaction":
-        return mockTransactions.length > 0 ? (
-          <TransactionList transactions={mockTransactions} />
-        ) : (
-          <EmptyState label="Transaction" />
+        return (
+          <TransactionList
+            transactions={transactions}
+            isLoading={isLoadingTransactions}
+          />
         );
       case "collection":
         return mockNFTs.length > 0 ? (
@@ -193,54 +224,64 @@ export default function ProfilePage() {
           </nav>
         </div>
 
-        <div className="mt-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col md:flex-row w-full gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full md:w-auto"
-                >
-                  Status
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>All</DropdownMenuItem>
-                <DropdownMenuItem>Active</DropdownMenuItem>
-                <DropdownMenuItem>Inactive</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full md:w-auto"
-                >
-                  Chains
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>Ethereum</DropdownMenuItem>
-                <DropdownMenuItem>Polygon</DropdownMenuItem>
-                <DropdownMenuItem>Optimism</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <div className="relative w-full">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search by name" className="pl-8 w-full" />
-            </div>
+        {activeTab === "transaction" ? (
+          <div className="mt-4">
+            {transactionError && (
+              <div className="mb-4 rounded-md bg-red-50 p-4 text-red-800 dark:bg-red-950/20 dark:text-red-200">
+                <p className="text-sm font-medium">Error: {transactionError}</p>
+              </div>
+            )}
           </div>
+        ) : (
+          <div className="mt-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row w-full gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full md:w-auto"
+                  >
+                    Status
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>All</DropdownMenuItem>
+                  <DropdownMenuItem>Active</DropdownMenuItem>
+                  <DropdownMenuItem>Inactive</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-          <ViewSelector
-            view={gridView}
-            onChange={setGridView}
-            className="w-full md:w-auto"
-          />
-        </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full md:w-auto"
+                  >
+                    Chains
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>Ethereum</DropdownMenuItem>
+                  <DropdownMenuItem>Polygon</DropdownMenuItem>
+                  <DropdownMenuItem>Optimism</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <div className="relative w-full">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search by name" className="pl-8 w-full" />
+              </div>
+            </div>
+
+            <ViewSelector
+              view={gridView}
+              onChange={setGridView}
+              className="w-full md:w-auto"
+            />
+          </div>
+        )}
 
         {renderTabContent()}
       </div>
