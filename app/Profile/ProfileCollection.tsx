@@ -7,7 +7,7 @@ import { ethers } from "ethers";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { toast } from "sonner";
 import Image from "next/image";
-import { ExternalLink, Plus } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import {
   Button,
   Badge,
@@ -21,6 +21,7 @@ import {
 import { useRouter } from "next/navigation";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
 import type { GridView } from "@/type/view";
+import CardEmptyUI from "@/components/CardEmptyUI";
 
 interface CollectionDetail {
   address: string;
@@ -95,10 +96,6 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
     router.push("/collections");
   };
 
-  const navigateToCreate = () => {
-    router.push("/Create/Collection");
-  };
-
   // Determine grid columns based on view
   const gridColumns = {
     small: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
@@ -145,15 +142,13 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
 
   if (collectionDetails.length === 0) {
     return (
-      <div className="mt-12 text-center">
-        <p className="text-lg font-medium">No collections found</p>
-        <p className="text-sm text-muted-foreground mt-2">
-          You haven't created any NFT collections yet.
-        </p>
-        <Button variant="default" className="mt-4" onClick={navigateToCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Your First Collection
-        </Button>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-center">
+        <CardEmptyUI
+          title="No collections found"
+          description="You haven't created any NFT collections yet!"
+          buttonText="Create Your First Collection"
+          type="collection"
+        />
       </div>
     );
   }

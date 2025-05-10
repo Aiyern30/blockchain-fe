@@ -28,8 +28,14 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
     if (onButtonClick) {
       onButtonClick();
     }
-    router.push("/Explore");
+
+    if (type === "collection") {
+      router.push("/Create/Collection");
+    } else {
+      router.push("/Explore");
+    }
   };
+
   return (
     <div className="flex flex-col items-center justify-center h-full text-center">
       <div className="relative w-[200px] h-[200px]">
