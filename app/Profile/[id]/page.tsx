@@ -168,13 +168,21 @@ export default function ProfilePage() {
               <Copy className="w-4 h-4 text-muted-foreground" />
             </code>
             {isLoading ? (
-              <span className="text-sm text-muted-foreground">Loading...</span>
+              <span className="text-sm text-muted-foreground"></span>
             ) : (
               joinedDate && (
                 <span className="text-sm text-muted-foreground">
                   Joined {joinedDate}
                 </span>
               )
+            )}
+
+            {walletAddress && profileAddress && (
+              <span className="text-xl text-muted-foreground italic">
+                {walletAddress.toLowerCase() === profileAddress.toLowerCase()
+                  ? "You are viewing your profile."
+                  : "You are viewing another user's profile."}
+              </span>
             )}
           </div>
 
