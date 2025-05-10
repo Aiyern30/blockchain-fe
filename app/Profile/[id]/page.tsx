@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
+import { useSearchParams } from "next/navigation"; // Import useSearchParams
 import { Search, Share2, MoreHorizontal, Copy } from "lucide-react";
 import {
   Button,
@@ -31,15 +33,20 @@ export default function ProfilePage() {
     { id: "wishlist", label: "Wishlist" },
     { id: "transaction", label: "Transaction" },
   ];
-  const [activeTab, setActiveTab] = useState(tabs[0].id);
-  const [gridView, setGridView] = useState<GridView>("medium");
+
+  const searchParams = useSearchParams(); // Get search params from the URL
+  const profileAddress = searchParams.get("address"); // Fetch the 'address' query param
+
   const { address: rainbowKitAddress, isConnected } = useAccount();
+  const [activeTab, setActiveTab] = useState("collection");
+  const [gridView, setGridView] = useState<GridView>("medium");
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [transactionError, setTransactionError] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   useEffect(() => {
     const storedAddress = localStorage.getItem("walletAddress");
@@ -49,8 +56,6 @@ export default function ProfilePage() {
       setWeb3AuthAddress(storedAddress);
     }
   }, []);
-
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   useEffect(() => {
     setWalletAddress(
@@ -95,7 +100,12 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const getTransactions = async () => {
-      if (!walletAddress) return;
+      if (!walletAddress || profileAddress !== walletAddress) {
+        // If the profile address is not the same as the connected wallet, don't fetch transactions
+        setTransactionError("You cannot view transactions of other profiles.");
+        setTransactions([]);
+        return;
+      }
 
       if (activeTab === "transaction") {
         setIsLoadingTransactions(true);
@@ -118,7 +128,7 @@ export default function ProfilePage() {
     };
 
     getTransactions();
-  }, [walletAddress, activeTab]);
+  }, [walletAddress, activeTab, profileAddress]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -195,7 +205,7 @@ export default function ProfilePage() {
 
         <div className="mt-4 border-b overflow-x-auto">
           <nav className="flex gap-4 whitespace-nowrap overflow-x-auto no-scrollbar scroll-snap-x">
-            {tabs.map((tab) => (
+            {tabs.map((tab: any) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -205,6 +215,9 @@ export default function ProfilePage() {
               ? "border-b-2 border-primary text-primary"
               : "text-muted-foreground"
           }`}
+                disabled={
+                  tab.id === "transaction" && profileAddress !== walletAddress
+                }
               >
                 {tab.label}
               </button>
@@ -283,14 +296,7 @@ function EmptyState({ label }: { label: string }) {
   return (
     <div className="mt-12 text-center">
       <p className="text-lg font-medium">No items found for {label}</p>
-      <Button
-        variant="default"
-        className="mt-4"
-        onClick={() => {
-          // Reset filters and search
-          console.log("Resetting filters and search for", label);
-        }}
-      >
+      <Button variant="default" className="mt-4">
         Back to all {label}
       </Button>
     </div>
