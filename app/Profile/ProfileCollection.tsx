@@ -92,8 +92,8 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
     fetchCollections();
   }, [address, isConnected, walletClient]);
 
-  const navigateToCollections = () => {
-    router.push("/Explore");
+  const navigateToCollections = (address: string) => {
+    router.push(`/Mint/${address}`);
   };
 
   const gridColumns = {
@@ -163,7 +163,7 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
             <div
               key={collection.address}
               className="flex w-full items-center justify-between border rounded-lg px-6 py-4 hover:bg-muted/50 cursor-pointer transition-colors"
-              onClick={navigateToCollections}
+              onClick={() => navigateToCollections(collection.address)}
             >
               <div className="flex items-center gap-5 w-full">
                 <div className="h-20 w-20 relative rounded-md overflow-hidden bg-muted shrink-0">
@@ -205,7 +205,7 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
             </div>
           ))}
           <div className="flex justify-center mt-6">
-            <Button variant="outline" onClick={navigateToCollections}>
+            <Button variant="outline" onClick={() => router.push("/Mint")}>
               View All Collections
             </Button>
           </div>
@@ -221,7 +221,7 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
           <Card
             key={collection.address}
             className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border hover:border-primary"
-            onClick={navigateToCollections}
+            onClick={() => navigateToCollections(collection.address)}
           >
             <div className="relative h-44 w-full bg-muted">
               <Image
@@ -261,7 +261,7 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
         ))}
       </div>
       <div className="flex justify-center mt-6">
-        <Button variant="outline" onClick={navigateToCollections}>
+        <Button variant="outline" onClick={() => router.push("/Mint")}>
           View All Collections
         </Button>
       </div>
