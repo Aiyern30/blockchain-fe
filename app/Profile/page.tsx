@@ -15,15 +15,14 @@ import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { truncateAddress } from "@/utils/function";
 import { handleCopy, handleShare } from "@/utils/helper";
-import { mockCartItems } from "@/utils/mock-data";
 import {
   fetchAllTransactions,
   type ProcessedTransaction,
 } from "@/utils/etherscan";
-import { NFTGrid } from "./NftGrid";
 import { TransactionList } from "./TransactionList";
 import { ProfileCollections } from "./ProfileCollection";
 import { ProfileWishlist } from "./ProfileWishlist";
+import { ProfileCart } from "./ProfileCart";
 
 export default function ProfilePage() {
   const tabs = [
@@ -133,11 +132,7 @@ export default function ProfilePage() {
       case "collection":
         return <ProfileCollections view={gridView} />;
       case "cart":
-        return mockCartItems.length > 0 ? (
-          <NFTGrid items={mockCartItems} view={gridView} />
-        ) : (
-          <EmptyState label="Cart" />
-        );
+        return <ProfileCart view={gridView} />;
       case "wishlist":
         return <ProfileWishlist view={gridView} />;
       default:
