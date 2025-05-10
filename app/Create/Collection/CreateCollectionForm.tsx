@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Sparkles, Palette, EyeOff, Eye } from "lucide-react";
 import { toast } from "sonner";
 import {
   Button,
@@ -210,189 +210,276 @@ export function CreateCollectionForm() {
   }
 
   return (
-    <>
-      <Card className="max-w-6xl mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle>Create Collection</CardTitle>
-          <CardDescription>Card Description</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Collection Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="My Awesome Collection" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The name of your NFT collection
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="symbol"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Symbol</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="MAC"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(e.target.value.toUpperCase())
-                        }
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      A short uppercase symbol for your collection (e.g., BTC,
-                      ETH)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe your collection..."
-                        className="resize-none min-h-[120px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Detailed description of your collection
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel
-                      className={cn(
-                        form.formState.errors.image && "text-red-500"
-                      )}
-                    >
-                      Logo Image
-                    </FormLabel>
-                    <FormControl>
-                      <div
-                        className={cn(
-                          "border border-dashed border-zinc-700 rounded-lg w-full max-w-[240px] h-[240px] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden mx-auto",
-                          "hover:bg-muted/50 transition-colors"
-                        )}
-                        onClick={() =>
-                          document.getElementById("file-input")?.click()
-                        }
-                      >
-                        <input
-                          id="file-input"
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={(e) => {
-                            handleFileInput(e);
-                            if (e.target.files?.[0]) {
-                              const fileUrl = URL.createObjectURL(
-                                e.target.files[0]
-                              );
-                              field.onChange(fileUrl);
-                            }
-                          }}
-                        />
-                        {imageUrl ? (
-                          <div className="relative w-full h-full">
-                            <Image
-                              src={imageUrl || "/placeholder.svg"}
-                              alt="Uploaded logo"
-                              fill
-                              className="object-contain p-2"
-                              unoptimized
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-center p-4">
-                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                            <p className="text-sm font-medium">
-                              Drag and drop media
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Browse files
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Max size: 50MB
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              JPG, PNG, GIF, SVG, MP4
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormDescription className="text-center">
-                      Upload a logo image for your collection
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="externalLink"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>External Link (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="https://your-website.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Link to your website or social media
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                disabled={!form.formState.isValid || isSubmitting}
-                className="w-full md:w-auto"
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+      <div className="lg:col-span-2">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle>Create Collection</CardTitle>
+            <CardDescription>
+              Fill in details about your NFT collection
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-8"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Collection...
-                  </>
-                ) : (
-                  "Create Collection"
-                )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Collection Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="My Awesome Collection" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        The name of your NFT collection
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="symbol"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Symbol</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="MAC"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(e.target.value.toUpperCase())
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        A short uppercase symbol for your collection (e.g., BTC,
+                        ETH)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe your collection..."
+                          className="resize-none min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Detailed description of your collection
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel
+                        className={cn(
+                          form.formState.errors.image && "text-red-500"
+                        )}
+                      >
+                        Logo Image
+                      </FormLabel>
+                      <FormControl>
+                        <div
+                          className={cn(
+                            "border border-dashed border-zinc-700 rounded-lg w-full max-w-[240px] h-[240px] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden mx-auto",
+                            "hover:bg-muted/50 transition-colors"
+                          )}
+                          onClick={() =>
+                            document.getElementById("file-input")?.click()
+                          }
+                        >
+                          <input
+                            id="file-input"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => {
+                              handleFileInput(e);
+                              if (e.target.files?.[0]) {
+                                const fileUrl = URL.createObjectURL(
+                                  e.target.files[0]
+                                );
+                                field.onChange(fileUrl);
+                              }
+                            }}
+                          />
+                          {imageUrl ? (
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={imageUrl || "/placeholder.svg"}
+                                alt="Uploaded logo"
+                                fill
+                                className="object-contain p-2"
+                                unoptimized
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-center p-4">
+                              <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                              <p className="text-sm font-medium">
+                                Drag and drop media
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Browse files
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Max size: 50MB
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                JPG, PNG, GIF, SVG, MP4
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormDescription className="text-center">
+                        Upload a logo image for your collection
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="externalLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>External Link (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://your-website.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Link to your website or social media
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  disabled={!form.formState.isValid || isSubmitting}
+                  className="w-full md:w-auto"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Collection...
+                    </>
+                  ) : (
+                    "Create Collection"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Information sidebar */}
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Once your contract is deployed, you&apos;ll have the ability to:
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              <li className="flex gap-3">
+                <div className="mt-1">
+                  <Sparkles className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">Adjust collection preferences</p>
+                  <p className="text-sm text-muted-foreground">
+                    Modify collection details, royalties, and external links.
+                  </p>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <div className="mt-1">
+                  <Sparkles className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">Configure your release</p>
+                  <p className="text-sm text-muted-foreground">
+                    Define minting phases, presale access, and schedules.
+                  </p>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <div className="mt-1">
+                  <Palette className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">Customize visuals</p>
+                  <p className="text-sm text-muted-foreground">
+                    Personalize your drop page and upload all media assets.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Your audience:</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              <li className="flex gap-3">
+                <div className="mt-1">
+                  <EyeOff className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">Won&apos;t see</p>
+                  <p className="text-sm text-muted-foreground">
+                    Your minting page or assets until you make them public.
+                  </p>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <div className="mt-1">
+                  <Eye className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">Will see</p>
+                  <p className="text-sm text-muted-foreground">
+                    That your smart contract has been successfully deployed.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
