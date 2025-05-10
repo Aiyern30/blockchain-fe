@@ -1,34 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FaListUl } from "react-icons/fa";
 import { TfiLayoutGrid4 } from "react-icons/tfi";
 import { BsGrid3X3 } from "react-icons/bs";
 import { SlGrid } from "react-icons/sl";
 import { Button } from "@/components/ui";
+import { useFilter } from "@/contexts/filter-context";
 import { GridView } from "@/type/view";
 
 interface ViewSelectorProps {
-  view: GridView;
-  onChange: (view: GridView) => void;
   className?: string;
 }
 
-export function ViewSelector({ view, onChange, className }: ViewSelectorProps) {
-  const [selectedView, setSelectedView] = useState<GridView>(view);
+export function ViewSelector({ className }: ViewSelectorProps) {
+  const { filter, setFilter } = useFilter();
+  const selectedView = filter.view;
 
   useEffect(() => {
     const storedView = localStorage.getItem("nft-grid-view") as GridView;
     if (storedView) {
-      setSelectedView(storedView);
-      onChange(storedView);
+      setFilter({ view: storedView });
     }
-  }, [onChange]);
+  }, [setFilter]);
 
   const handleViewChange = (newView: GridView) => {
-    setSelectedView(newView);
     localStorage.setItem("nft-grid-view", newView);
-    onChange(newView);
+    setFilter({ view: newView });
   };
 
   return (
