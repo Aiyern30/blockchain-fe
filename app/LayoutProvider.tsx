@@ -32,7 +32,7 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
       <Navbar />
       {(isMobile || isTablet) && (
-        <div className="flex justify-center py-5 relative z-50">
+        <div className="flex justify-center py-5 relative z-40">
           <WalletConnectDropdown />
         </div>
       )}
