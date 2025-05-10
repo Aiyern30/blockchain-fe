@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface EtherscanTransaction {
   blockNumber: string;
   timeStamp: string;
@@ -23,7 +24,7 @@ export interface EtherscanTransaction {
 }
 
 export interface ProcessedTransaction {
-  id: string;
+  id: string; // This should be unique
   type: string;
   nftName: string;
   collection: string;
@@ -39,7 +40,8 @@ export interface ProcessedTransaction {
 }
 
 export async function fetchTransactions(
-  address: string
+  address: string,
+  network: "sepolia" | string = "mainnet"
 ): Promise<ProcessedTransaction[]> {
   const apiKey = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY;
 
@@ -47,9 +49,14 @@ export async function fetchTransactions(
     throw new Error("Wallet address or API key is missing");
   }
 
+  const baseUrl =
+    network === "sepolia"
+      ? "https://api-sepolia.etherscan.io"
+      : "https://api.etherscan.io";
+
   try {
     const response = await fetch(
-      `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`
+      `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`
     );
 
     const data = await response.json();
@@ -69,40 +76,49 @@ function processTransactions(
   transactions: EtherscanTransaction[],
   address: string
 ): ProcessedTransaction[] {
-  return transactions.map((tx) => {
-    const valueInEth = Number.parseFloat(tx.value) / 1e18;
-    const formattedValue = valueInEth > 0 ? valueInEth.toFixed(4) : "0";
+  return transactions
+    .map((tx, index) => {
+      const valueInEth = Number.parseFloat(tx.value) / 1e18;
+      const formattedValue = valueInEth > 0 ? valueInEth.toFixed(4) : "0";
 
-    let type = "Transfer";
-    if (tx.functionName?.includes("transfer")) {
-      type = "Transfer";
-    } else if (valueInEth > 0) {
-      type =
-        tx.from.toLowerCase() === address.toLowerCase() ? "Sent" : "Received";
-    } else if (tx.input !== "0x") {
-      type = "Contract Interaction";
-    }
+      let type = "Transfer";
+      if (tx.functionName?.includes("transfer")) {
+        type = "Transfer";
+      } else if (valueInEth > 0) {
+        type =
+          tx.from.toLowerCase() === address.toLowerCase() ? "Sent" : "Received";
+      } else if (tx.input !== "0x") {
+        type = "Contract Interaction";
+      }
 
-    return {
-      id: tx.hash,
-      type,
-      nftName: "Unknown",
-      collection: "Unknown",
-      price: formattedValue,
-      currency: "ETH",
-      from: tx.from,
-      to: tx.to,
-      timestamp: new Date(Number.parseInt(tx.timeStamp) * 1000).toISOString(),
-      hash: tx.hash,
-      isError: tx.isError === "1",
-      gasUsed: tx.gasUsed,
-      gasPrice: tx.gasPrice,
-    };
-  });
+      // Create a unique ID by combining hash and index
+      const uniqueId = `${tx.hash}-${index}`;
+
+      return {
+        id: uniqueId,
+        type,
+        nftName: "Unknown",
+        collection: "Unknown",
+        price: formattedValue,
+        currency: "ETH",
+        from: tx.from,
+        to: tx.to,
+        timestamp: new Date(Number.parseInt(tx.timeStamp) * 1000).toISOString(),
+        hash: tx.hash,
+        isError: tx.isError === "1",
+        gasUsed: tx.gasUsed,
+        gasPrice: tx.gasPrice,
+      };
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
 }
 
 export async function fetchNFTTransfers(
-  address: string
+  address: string,
+  network: "sepolia" | string = "mainnet"
 ): Promise<ProcessedTransaction[]> {
   const apiKey = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY;
 
@@ -110,9 +126,14 @@ export async function fetchNFTTransfers(
     throw new Error("Wallet address or API key is missing");
   }
 
+  const baseUrl =
+    network === "sepolia"
+      ? "https://api-sepolia.etherscan.io"
+      : "https://api.etherscan.io";
+
   try {
     const erc721Response = await fetch(
-      `https://api.etherscan.io/api?module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`
+      `${baseUrl}/api?module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`
     );
     const erc721Data = await erc721Response.json();
 
@@ -122,7 +143,7 @@ export async function fetchNFTTransfers(
     }
 
     const erc1155Response = await fetch(
-      `https://api.etherscan.io/api?module=account&action=token1155tx&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`
+      `${baseUrl}/api?module=account&action=token1155tx&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`
     );
     const erc1155Data = await erc1155Response.json();
 
@@ -141,51 +162,71 @@ function processNFTTransfers(
   transfers: any[],
   address: string
 ): ProcessedTransaction[] {
-  return transfers.map((transfer) => {
-    const type =
-      transfer.from.toLowerCase() === address.toLowerCase()
-        ? "NFT Sent"
-        : "NFT Received";
+  return transfers
+    .map((transfer, index) => {
+      const type =
+        transfer.from.toLowerCase() === address.toLowerCase()
+          ? "NFT Sent"
+          : "NFT Received";
 
-    return {
-      id: transfer.hash,
-      type,
-      nftName: transfer.tokenName
-        ? `${transfer.tokenName} #${transfer.tokenID}`
-        : `NFT #${transfer.tokenID}`,
-      collection: transfer.tokenName || "Unknown Collection",
-      price: "0",
-      currency: "ETH",
-      from: transfer.from,
-      to: transfer.to,
-      timestamp: new Date(
-        Number.parseInt(transfer.timeStamp) * 1000
-      ).toISOString(),
-      hash: transfer.hash,
-      isError: false,
-      gasUsed: transfer.gasUsed || "0",
-      gasPrice: transfer.gasPrice || "0",
-    };
-  });
+      // Create a unique ID by combining hash, type and index
+      const uniqueId = `${transfer.hash}-nft-${index}`;
+
+      return {
+        id: uniqueId,
+        type,
+        nftName: transfer.tokenName
+          ? `${transfer.tokenName} #${transfer.tokenID}`
+          : `NFT #${transfer.tokenID}`,
+        collection: transfer.tokenName || "Unknown Collection",
+        price: "0",
+        currency: "ETH",
+        from: transfer.from,
+        to: transfer.to,
+        timestamp: new Date(
+          Number.parseInt(transfer.timeStamp) * 1000
+        ).toISOString(),
+        hash: transfer.hash,
+        isError: false,
+        gasUsed: transfer.gasUsed || "0",
+        gasPrice: transfer.gasPrice || "0",
+      };
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
 }
 
 export async function fetchAllTransactions(
-  address: string
+  address: string,
+  network: "sepolia" | string = "mainnet"
 ): Promise<ProcessedTransaction[]> {
-  const apiKey = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY;
+  try {
+    const [normalTxs, nftTxs] = await Promise.all([
+      fetchTransactions(address, network),
+      fetchNFTTransfers(address, network),
+    ]);
 
-  if (!address || !apiKey) {
-    throw new Error("Wallet address or API key is missing");
+    // Create a map to track seen transaction hashes
+    const seenTxs = new Map<string, boolean>();
+    const uniqueTransactions: ProcessedTransaction[] = [];
+
+    // Process and deduplicate transactions
+    [...normalTxs, ...nftTxs].forEach((tx) => {
+      // If we haven't seen this exact transaction ID before, add it
+      if (!seenTxs.has(tx.id)) {
+        seenTxs.set(tx.id, true);
+        uniqueTransactions.push(tx);
+      }
+    });
+
+    return uniqueTransactions.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  } catch (error) {
+    console.error("Error fetching all transactions:", error);
+    throw error;
   }
-
-  const url = `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`;
-
-  const res = await fetch(url);
-  const data = await res.json();
-
-  if (data.status !== "1" || !Array.isArray(data.result)) {
-    throw new Error(data.message || "No transactions found");
-  }
-
-  return processTransactions(data.result, address);
 }

@@ -92,7 +92,6 @@ export default function ProfilePage() {
     fetchFirstTransactionDate();
   }, [walletAddress]);
 
-  // Fetch transactions when wallet address changes or when transaction tab is selected
   useEffect(() => {
     const getTransactions = async () => {
       if (!walletAddress) return;
@@ -102,7 +101,7 @@ export default function ProfilePage() {
         setTransactionError(null);
 
         try {
-          const txs = await fetchAllTransactions(walletAddress);
+          const txs = await fetchAllTransactions(walletAddress, "sepolia");
           setTransactions(txs);
         } catch (error) {
           console.error("Error fetching transactions:", error);
