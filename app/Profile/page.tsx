@@ -15,22 +15,28 @@ import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { truncateAddress } from "@/utils/function";
 import { handleCopy, handleShare } from "@/utils/helper";
+import {
+  mockNFTs,
+  mockCartItems,
+  mockWishlistItems,
+  mockTransactions,
+} from "@/utils/mock-data";
+import { NFTGrid } from "./NftGrid";
+import { TransactionList } from "./TransactionList";
 
 export default function ProfilePage() {
   const tabs = [
     { id: "transaction", label: "Transaction" },
-    { id: "collected", label: "Collected" },
-    { id: "offers", label: "Offers made" },
-    { id: "deals", label: "Deals" },
-    { id: "created", label: "Created" },
-    { id: "favorited", label: "Favorited" },
-    { id: "activity", label: "Activity" },
+    { id: "collection", label: "Collection" },
+    { id: "cart", label: "Cart" },
+    { id: "wishlist", label: "Wishlist" },
   ];
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [gridView, setGridView] = useState<GridView>("medium");
   const { address: rainbowKitAddress, isConnected } = useAccount();
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const storedAddress = localStorage.getItem("walletAddress");
@@ -54,6 +60,7 @@ export default function ProfilePage() {
 
     const fetchFirstTransactionDate = async () => {
       if (!walletAddress || !apiKey) return;
+      setIsLoading(true);
 
       try {
         const res = await fetch(
@@ -61,7 +68,7 @@ export default function ProfilePage() {
         );
         const data = await res.json();
 
-        if (data.result.length > 0) {
+        if (data.result && data.result.length > 0) {
           const firstTx = data.result[0];
           const timestamp = Number.parseInt(firstTx.timeStamp) * 1000;
           const date = new Date(timestamp).toLocaleString("en-US", {
@@ -75,37 +82,69 @@ export default function ProfilePage() {
       } catch (error) {
         console.error("Error fetching transaction history:", error);
         setJoinedDate(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchFirstTransactionDate();
   }, [walletAddress]);
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "transaction":
+        return mockTransactions.length > 0 ? (
+          <TransactionList transactions={mockTransactions} />
+        ) : (
+          <EmptyState label="Transaction" />
+        );
+      case "collection":
+        return mockNFTs.length > 0 ? (
+          <NFTGrid items={mockNFTs} view={gridView} />
+        ) : (
+          <EmptyState label="Collection" />
+        );
+      case "cart":
+        return mockCartItems.length > 0 ? (
+          <NFTGrid items={mockCartItems} view={gridView} />
+        ) : (
+          <EmptyState label="Cart" />
+        );
+      case "wishlist":
+        return mockWishlistItems.length > 0 ? (
+          <NFTGrid items={mockWishlistItems} view={gridView} />
+        ) : (
+          <EmptyState label="Wishlist" />
+        );
+      default:
+        return <EmptyState label={activeTab} />;
+    }
+  };
+
   return (
-    <div className="h-[calc(100vh-128px)] bg-background text-foreground">
+    <div className="h-[calc(100vh-128px)] bg-background text-foreground overflow-auto">
       <div className="px-4 py-6">
-        <div className="flex flex-col sm:flex-row sm:items-start items-center justify-between w-full gap-4">
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <div className="w-24 h-24 rounded-full bg-blue-600" />
-            <div className="text-center sm:text-left">
-              <h1 className="text-2xl font-bold">Unnamed</h1>
-              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 text-sm text-muted-foreground">
-                <code
-                  className="cursor-pointer flex items-center gap-2"
-                  onClick={() => handleCopy(walletAddress ?? "")}
-                >
-                  {truncateAddress(walletAddress ?? "")}
-                  {isConnected && walletAddress && (
-                    <Copy className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </code>
-                <span>·</span>
-                <span>{joinedDate ? `Joined ${joinedDate}` : ""}</span>
-              </div>
-            </div>
+        <div className="flex items-center justify-between w-full gap-4 py-4">
+          <div className="flex items-center gap-2">
+            <code
+              className="cursor-pointer flex items-center gap-2 text-sm font-mono bg-muted px-2 py-1 rounded"
+              onClick={() => handleCopy(walletAddress ?? "")}
+            >
+              {truncateAddress(walletAddress ?? "")}
+              <Copy className="w-4 h-4 text-muted-foreground" />
+            </code>
+            {isLoading ? (
+              <span className="text-sm text-muted-foreground">Loading...</span>
+            ) : (
+              joinedDate && (
+                <span className="text-sm text-muted-foreground">
+                  Joined {joinedDate}
+                </span>
+              )
+            )}
           </div>
 
-          <div className="flex gap-2 flex-row mx-auto sm:mx-0">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="icon"
@@ -113,13 +152,29 @@ export default function ProfilePage() {
             >
               <Share2 className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => handleCopy(walletAddress ?? "")}
+                >
+                  Copy Address
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleShare(walletAddress ?? "")}
+                >
+                  Share Profile
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        <div className="mt-8 border-b overflow-x-auto">
+        <div className="mt-4 border-b overflow-x-auto">
           <nav className="flex gap-4 whitespace-nowrap overflow-x-auto no-scrollbar scroll-snap-x">
             {tabs.map((tab) => (
               <button
@@ -187,30 +242,26 @@ export default function ProfilePage() {
           />
         </div>
 
-        {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={activeTab === tab.id ? "block" : "hidden"}
-          >
-            <div className="mt-12 text-center">
-              <p className="text-lg font-medium">
-                No items found for {tab.label}
-              </p>
-              <Button
-                variant="default"
-                className="mt-4"
-                onClick={() => {
-                  // Reset filters and search
-                  // This is a placeholder for the actual reset logic
-                  console.log("Resetting filters and search for", tab.label);
-                }}
-              >
-                Back to all {tab.label}
-              </Button>
-            </div>
-          </div>
-        ))}
+        {renderTabContent()}
       </div>
+    </div>
+  );
+}
+
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="mt-12 text-center">
+      <p className="text-lg font-medium">No items found for {label}</p>
+      <Button
+        variant="default"
+        className="mt-4"
+        onClick={() => {
+          // Reset filters and search
+          console.log("Resetting filters and search for", label);
+        }}
+      >
+        Back to all {label}
+      </Button>
     </div>
   );
 }
