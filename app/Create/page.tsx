@@ -45,7 +45,7 @@ export default function CreatePage() {
               icon: <Package className="w-6 h-6" />,
             },
             {
-              href: "/Create/Mint",
+              href: "/Mint",
               title: "Mint NFTs into Collection",
               description:
                 "Select an existing collection and mint one or multiple NFTs into it. Ideal for expanding your project with new items.",

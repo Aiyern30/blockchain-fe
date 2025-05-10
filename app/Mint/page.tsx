@@ -98,7 +98,7 @@ export default function CollectionsPage() {
   };
 
   const navigateToMint = (collectionAddress: string) => {
-    router.push(`/Create/Mint/${collectionAddress}`);
+    router.push(`Mint/${collectionAddress}`);
   };
 
   return (

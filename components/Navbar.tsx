@@ -38,6 +38,7 @@ export default function Navbar() {
       <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
         <NavLink href="/Explore">Explore</NavLink>
         <NavLink href="/Create">Create</NavLink>
+        <NavLink href="/Mint">Mint</NavLink>
       </div>
 
       {/* Desktop Icons */}
