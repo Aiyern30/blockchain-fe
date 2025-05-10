@@ -23,6 +23,7 @@ import {
 } from "@/components/ui";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { formatImageUrl } from "@/utils/function";
+import CardEmptyUI from "@/components/CardEmptyUI";
 
 export function WishlistSheet() {
   const { wishlistItems, removeFromWishlist, clearWishlist, wishlistCount } =
@@ -150,22 +151,12 @@ export function WishlistSheet() {
               </ScrollArea>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center h-[400px]">
-              <div className="relative w-[200px] h-[200px]">
-                <Image
-                  src="/placeholder.svg"
-                  alt="Empty Wishlist"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <p className="text-gray-500 text-xl mt-4">
-                Your wishlist is empty.
-              </p>
-              <Button className="mt-4" onClick={() => setIsOpen(false)}>
-                Explore NFTs
-              </Button>
-            </div>
+            <CardEmptyUI
+              title="Your Wishlist is empty!"
+              description="Add some awesome NFTs to your wishlist!"
+              buttonText="Explore NFTs"
+              type="wishlist"
+            />
           )}
         </div>
       </SheetContent>
