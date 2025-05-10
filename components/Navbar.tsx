@@ -43,6 +43,7 @@ export default function Navbar() {
         <NavLink href="/Explore">Explore</NavLink>
         <NavLink href="/Create">Create</NavLink>
         <NavLink href="/Mint">Mint</NavLink>
+        <NavLink href="/Contact">Contact</NavLink>
       </div>
 
       <div className="flex items-center space-x-4 ml-auto md:space-x-3">
@@ -90,6 +91,7 @@ export default function Navbar() {
             <NavLink href="/Explore">Explore</NavLink>
             <NavLink href="/Create">Create</NavLink>
             <NavLink href="/Mint">Mint</NavLink>
+            <NavLink href="/Contact">Contact</NavLink>
           </motion.div>
         )}
       </AnimatePresence>
