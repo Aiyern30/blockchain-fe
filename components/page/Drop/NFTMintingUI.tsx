@@ -29,7 +29,7 @@ export default function NFTMintingUI({
   const router = useRouter();
 
   const handleViewCollection = () => {
-    router.push("/Create/Mint");
+    router.push("/Mint");
   };
 
   return (
