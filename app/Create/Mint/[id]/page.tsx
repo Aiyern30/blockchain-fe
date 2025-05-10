@@ -485,7 +485,7 @@ export default function CollectionNFTsPage() {
         image: imageUrl,
         external_url: data.external_url || undefined,
         attributes: data.attributes,
-        price: (0.01 + Math.random() * 0.1).toFixed(3), // Add a random price for demo purposes
+        price: (0).toFixed(3),
       };
 
       console.log("📤 Uploading metadata to IPFS...");
