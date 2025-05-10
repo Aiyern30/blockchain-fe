@@ -93,7 +93,7 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
   }, [address, isConnected, walletClient]);
 
   const navigateToCollections = () => {
-    router.push("/collections");
+    router.push("/Explore");
   };
 
   // Determine grid columns based on view
