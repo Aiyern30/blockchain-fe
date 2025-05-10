@@ -1032,7 +1032,7 @@ export default function CollectionNFTsPage() {
 
   return (
     <Card className="container mx-auto">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <CardHeader className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold">
             {collectionDetails.name || "Collection"}
@@ -1054,10 +1054,10 @@ export default function CollectionNFTsPage() {
         </div>
 
         {!isLoading && (
-          <div className="flex items-center gap-2 mt-4 sm:mt-0 sm:ml-auto">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-2 mt-4 sm:mt-0 lg:ml-auto w-full lg:w-auto">
             <Badge
               variant={isOwner ? "default" : "outline"}
-              className="px-3 py-1"
+              className="px-3 py-1 w-full sm:w-auto flex items-center justify-center"
             >
               {isOwner ? (
                 <>
@@ -1074,7 +1074,7 @@ export default function CollectionNFTsPage() {
             <Button
               variant="outline"
               size="sm"
-              className="ml-2"
+              className="w-full sm:w-auto"
               onClick={refreshNFTData}
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1" />
