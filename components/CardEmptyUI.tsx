@@ -8,6 +8,7 @@ interface CardEmptyUIProps {
   onButtonClick?: () => void;
   type: "cart" | "wishlist" | "collection" | "profile";
 }
+import { useWalletDropdown } from "@/contexts/wallet-context";
 
 const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
   title,
@@ -26,10 +27,16 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
       : "/shopping-cart.svg";
 
   const router = useRouter();
+  const { toggleDropdown } = useWalletDropdown();
 
   const navigationTo = () => {
     if (onButtonClick) {
       onButtonClick();
+    }
+
+    if (type === "profile") {
+      toggleDropdown();
+      return;
     }
 
     if (type === "collection") {
@@ -38,7 +45,6 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
       router.push("/Explore");
     }
   };
-
   return (
     <div className="flex flex-col items-center justify-center h-full text-center">
       <div className="relative w-[200px] h-[200px]">
