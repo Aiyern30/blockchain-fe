@@ -11,58 +11,15 @@ import { WagmiProvider } from "wagmi";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { ThemeProvider } from "@/components/theme-provider";
-import {
-  mainnet,
-  polygon,
-  optimism,
-  arbitrum,
-  base,
-  sepolia,
-  hardhat,
-  scroll,
-  scrollSepolia,
-  holesky,
-} from "wagmi/chains";
-// import type { Chain } from "viem";
-
-// export const holesky: Chain = {
-//   id: 17000,
-//   name: "Holesky",
-//   nativeCurrency: {
-//     decimals: 18,
-//     name: "Holesky ETH",
-//     symbol: "ETH",
-//   },
-//   rpcUrls: {
-//     default: { http: ["https://ethereum-holesky.publicnode.com"] },
-//     public: { http: ["https://ethereum-holesky.publicnode.com"] },
-//   },
-//   blockExplorers: {
-//     default: {
-//       name: "Holesky Etherscan",
-//       url: "https://holesky.etherscan.io",
-//     },
-//   },
-//   testnet: true,
-// };
+import { sepolia, holesky } from "wagmi/chains";
 
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
   projectId: process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || "",
-  chains: [
-    mainnet,
-    polygon,
-    optimism,
-    arbitrum,
-    base,
-    sepolia,
-    hardhat,
-    scroll,
-    scrollSepolia,
-    holesky,
-  ],
+  chains: [sepolia, holesky],
   ssr: true,
 });
+
 const queryClient = new QueryClient();
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
