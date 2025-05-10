@@ -1,14 +1,17 @@
 "use client";
+import { GridView } from "@/type/view";
 import { createContext, useContext, useState } from "react";
 
 export type FilterState = {
   category: string;
   sort: string;
+  view: GridView;
 };
 
 const defaultFilter: FilterState = {
   category: "All",
   sort: "Newest",
+  view: "medium",
 };
 
 const FilterContext = createContext<{
