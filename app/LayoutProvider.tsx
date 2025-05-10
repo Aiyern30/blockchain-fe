@@ -10,7 +10,7 @@ import { useDeviceType } from "@/utils/useDeviceType";
 import React from "react";
 
 const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
-  const { isMobile } = useDeviceType();
+  const { isMobile, isTablet } = useDeviceType();
   return (
     <div
       className="min-h-screen antialiased relative overflow-hidden
@@ -30,7 +30,7 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <Navbar />
-      {isMobile && (
+      {(isMobile || isTablet) && (
         <div className="flex justify-center py-5">
           <WalletConnectDropdown />
         </div>
