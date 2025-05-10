@@ -11,12 +11,14 @@ import { usePathname } from "next/navigation";
 import WishlistSheet from "./Wishlist";
 import { CartSheet } from "./Cart";
 import { useDeviceType } from "@/utils/useDeviceType";
+import { useWalletClient } from "wagmi";
+import { toast } from "sonner";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
   const { isMobile, isTablet, isDesktop } = useDeviceType();
-
+  const { data: walletClient } = useWalletClient();
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -38,7 +40,6 @@ export default function Navbar() {
         </span>
       </Link>
 
-      {/* Centered Navigation Links (Hidden on Mobile) */}
       <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
         <NavLink href="/Explore">Explore</NavLink>
         <NavLink href="/Create">Create</NavLink>
@@ -52,10 +53,17 @@ export default function Navbar() {
         <Button
           variant="outline"
           size="icon"
-          onClick={() => router.push("/Profile")}
+          onClick={() => {
+            if (walletClient?.account.address) {
+              router.push(`/Profile/${walletClient.account.address}`);
+            } else {
+              toast.warning("Please connect your wallet first.");
+            }
+          }}
         >
           <User className="w-6 h-6" />
         </Button>
+
         <WishlistSheet />
         <CartSheet />
         <ThemeToggle />
