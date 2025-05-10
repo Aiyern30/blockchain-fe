@@ -21,7 +21,7 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
       ? "/Cart.svg"
       : type === "wishlist"
       ? "/shopping-cart.svg"
-      : "/Collection.svg";
+      : "/collection.svg";
   const router = useRouter();
 
   const navigationTo = () => {
