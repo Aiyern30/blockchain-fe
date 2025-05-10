@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
-import { useSearchParams } from "next/navigation"; // Import useSearchParams
 import { Search, Share2, MoreHorizontal, Copy } from "lucide-react";
 import {
   Button,
@@ -34,9 +34,9 @@ export default function ProfilePage() {
     { id: "transaction", label: "Transaction" },
   ];
 
-  const searchParams = useSearchParams(); // Get search params from the URL
-  const profileAddress = searchParams.get("address"); // Fetch the 'address' query param
-
+  const params = useParams();
+  const profileAddress = params?.id as string;
+  console.log("Profile Address:", profileAddress);
   const { address: rainbowKitAddress, isConnected } = useAccount();
   const [activeTab, setActiveTab] = useState("collection");
   const [gridView, setGridView] = useState<GridView>("medium");
@@ -101,7 +101,6 @@ export default function ProfilePage() {
   useEffect(() => {
     const getTransactions = async () => {
       if (!walletAddress || profileAddress !== walletAddress) {
-        // If the profile address is not the same as the connected wallet, don't fetch transactions
         setTransactionError("You cannot view transactions of other profiles.");
         setTransactions([]);
         return;
