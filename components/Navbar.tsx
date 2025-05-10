@@ -10,10 +10,12 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import WishlistSheet from "./Wishlist";
 import { CartSheet } from "./Cart";
+import { useDeviceType } from "@/utils/useDeviceType";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
+  const { isMobile, isTablet, isDesktop } = useDeviceType();
 
   return (
     <motion.nav
@@ -31,7 +33,9 @@ export default function Navbar() {
             priority
           />
         </div>
-        <span className="text-white font-medium text-xl">GamerTokenHub</span>
+        <span className="text-white font-medium text-xl hidden lg:inline">
+          GamerTokenHub
+        </span>
       </Link>
 
       {/* Centered Navigation Links (Hidden on Mobile) */}
@@ -41,9 +45,9 @@ export default function Navbar() {
         <NavLink href="/Mint">Mint</NavLink>
       </div>
 
-      {/* Desktop Icons */}
-      <div className="hidden md:flex items-center space-x-4 ml-auto">
-        <WalletConnectDropdown />
+      <div className="flex items-center space-x-4 ml-auto md:space-x-3">
+        {isDesktop && <WalletConnectDropdown />}
+
         <Button
           variant="outline"
           size="icon"
@@ -54,25 +58,21 @@ export default function Navbar() {
         <WishlistSheet />
         <CartSheet />
         <ThemeToggle />
-      </div>
 
-      <div className="flex items-center space-x-3 md:hidden">
-        <WishlistSheet />
-        <CartSheet />
-        <ThemeToggle />
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-white"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Menu className="w-6 h-6" />
-          )}
-        </Button>
+        {(isMobile || isTablet) && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Mobile Menu */}
@@ -83,12 +83,13 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="absolute top-full left-0 w-full 
-        bg-blue-900/95 dark:bg-black/95  
-        backdrop-blur-lg border-b border-white/10 
-        p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
+              bg-blue-900/95 dark:bg-black/95  
+              backdrop-blur-lg border-b border-white/10 
+              p-6 flex flex-col items-center space-y-4 md:hidden z-50 pointer-events-auto"
           >
             <NavLink href="/Explore">Explore</NavLink>
             <NavLink href="/Create">Create</NavLink>
+            <NavLink href="/Mint">Mint</NavLink>
           </motion.div>
         )}
       </AnimatePresence>
