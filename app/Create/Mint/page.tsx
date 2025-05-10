@@ -18,6 +18,7 @@ import {
   CardTitle,
   Skeleton,
 } from "@/components/ui";
+import CardEmptyUI from "@/components/CardEmptyUI";
 import { useRouter } from "next/navigation";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
 
@@ -134,23 +135,13 @@ export default function CollectionsPage() {
           ))}
         </div>
       ) : collectionDetails.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center flex-grow">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">
-              No Collections Found
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            You haven&apos;t created any NFT collections yet. Start by creating
-            your first collection.
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Button size="lg" onClick={navigateToCreate}>
-              <Plus className="h-5 w-5 mr-2" />
-              Create Your First Collection
-            </Button>
-          </CardFooter>
-        </Card>
+        <CardEmptyUI
+          title="No collections found"
+          description="You haven't created any NFT collections yet! Start by creating
+            your first collection."
+          buttonText="Create Your First Collection"
+          type="collection"
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {collectionDetails.map((collection, index) => (
