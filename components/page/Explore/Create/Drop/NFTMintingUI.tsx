@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { StagingStatus } from "@/type/stagingStatus";
 import { STATUS_STAGES } from "@/type/StatusStages";
+import { useRouter } from "next/navigation";
 
 interface NFTMintingUIProps {
   status: StagingStatus;
@@ -25,6 +26,12 @@ export default function NFTMintingUI({
   txHash,
   onRetry,
 }: NFTMintingUIProps) {
+  const router = useRouter();
+
+  const handleViewCollection = () => {
+    router.push("/Create/Mint");
+  };
+
   return (
     <div className="flex h-[calc(100vh-120px)] items-center justify-center ">
       <div className="w-full max-w-md rounded-xl p-6 shadow-xl bg-gray-900">
@@ -148,15 +155,23 @@ export default function NFTMintingUI({
           </div>
         )}
 
-        {/* Action Button */}
-        <div className="flex justify-center">
+        {/* Action Buttons */}
+        <div className="flex justify-center gap-4">
           {status === "done" || status === "exists" ? (
-            <Button
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => onRetry()}
-            >
-              Mint Another
-            </Button>
+            <>
+              <Button
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => onRetry()}
+              >
+                Mint Another
+              </Button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={handleViewCollection}
+              >
+                View Your Collection
+              </Button>
+            </>
           ) : status === "cancelled" || status === "error" ? (
             <Button
               className="bg-red-600 hover:bg-red-700"
