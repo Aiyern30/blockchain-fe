@@ -11,6 +11,7 @@ import React from "react";
 
 const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
   const { isMobile, isTablet } = useDeviceType();
+
   return (
     <div
       className="min-h-screen antialiased relative overflow-hidden
@@ -31,20 +32,23 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
       <Navbar />
       {(isMobile || isTablet) && (
-        <div className="flex justify-center py-5">
+        <div className="flex justify-center py-5 relative z-10">
           <WalletConnectDropdown />
         </div>
       )}
 
       <div className="relative z-10 p-5">{children}</div>
+
       {!isMobile && (
-        <div className="absolute bottom-0 right-0 w-96 h-96">
+        <div className="absolute bottom-0 right-0 w-96 h-96 z-20">
           <RoboAnimation />
         </div>
       )}
-      <div className="absolute inset-0 overflow-hidden">
+
+      <div className="absolute inset-0 overflow-hidden z-0">
         <FloatingIcon count={4} />
       </div>
+
       <ChatBot />
     </div>
   );
