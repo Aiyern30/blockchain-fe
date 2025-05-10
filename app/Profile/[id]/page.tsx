@@ -131,14 +131,20 @@ export default function ProfilePage() {
   }, [walletAddress, activeTab, profileAddress]);
 
   const renderTabContent = () => {
+    if (activeTab === "transaction") {
+      if (!isConnected || profileAddress !== walletAddress) {
+        return null;
+      }
+
+      return (
+        <TransactionList
+          transactions={transactions}
+          isLoading={isLoadingTransactions}
+        />
+      );
+    }
+
     switch (activeTab) {
-      case "transaction":
-        return (
-          <TransactionList
-            transactions={transactions}
-            isLoading={isLoadingTransactions}
-          />
-        );
       case "collection":
         return <ProfileCollections view={gridView} />;
       case "cart":
@@ -205,23 +211,26 @@ export default function ProfilePage() {
 
         <div className="mt-4 border-b overflow-x-auto">
           <nav className="flex gap-4 whitespace-nowrap overflow-x-auto no-scrollbar scroll-snap-x">
-            {tabs.map((tab: any) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`pb-2 px-1 text-sm font-medium transition-colors hover:text-primary 
+            {tabs
+              .filter(
+                (tab) =>
+                  tab.id !== "transaction" ||
+                  (tab.id === "transaction" && profileAddress === walletAddress)
+              )
+              .map((tab: any) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`pb-2 px-1 text-sm font-medium transition-colors hover:text-primary 
           ${
             activeTab === tab.id
               ? "border-b-2 border-primary text-primary"
               : "text-muted-foreground"
           }`}
-                disabled={
-                  tab.id === "transaction" && profileAddress !== walletAddress
-                }
-              >
-                {tab.label}
-              </button>
-            ))}
+                >
+                  {tab.label}
+                </button>
+              ))}
           </nav>
         </div>
 
