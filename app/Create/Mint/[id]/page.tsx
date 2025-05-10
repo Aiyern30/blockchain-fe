@@ -1306,7 +1306,7 @@ export default function CollectionNFTsPage() {
 
         {/* NFT Form Dialog */}
         <Dialog open={showNFTForm} onOpenChange={setShowNFTForm}>
-          <DialogContent className="max-w-6xl">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 Create NFT in {collectionDetails.name || "Collection"}
@@ -1316,7 +1316,244 @@ export default function CollectionNFTsPage() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Mobile view: Form only */}
+            <div className="lg:hidden">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>NFT Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="My Awesome NFT" {...field} />
+                        </FormControl>
+                        <FormDescription>The name of your NFT</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe your NFT..."
+                            className="resize-none min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Detailed description of your NFT
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="external_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>External Link (Optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="https://your-website.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Link to your website or social media
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel
+                          className={cn(
+                            form.formState.errors.image && "text-red-500"
+                          )}
+                        >
+                          NFT Image
+                        </FormLabel>
+                        <FormControl>
+                          <div
+                            className={cn(
+                              "border border-dashed border-zinc-700 rounded-lg w-full h-[180px] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden mx-auto",
+                              "hover:bg-muted/50 transition-colors"
+                            )}
+                            onClick={() =>
+                              document
+                                .getElementById("file-input-mobile")
+                                ?.click()
+                            }
+                          >
+                            <input
+                              id="file-input-mobile"
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => {
+                                handleFileInput(e);
+                                if (e.target.files?.[0]) {
+                                  const fileUrl = URL.createObjectURL(
+                                    e.target.files[0]
+                                  );
+                                  field.onChange(fileUrl);
+                                }
+                              }}
+                            />
+                            {imageUrl ? (
+                              <div className="relative w-full h-full">
+                                <Image
+                                  src={imageUrl || "/placeholder.svg"}
+                                  alt="Uploaded NFT image"
+                                  fill
+                                  className="object-contain p-2"
+                                  unoptimized
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute top-2 right-2 rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setImageUrl(null);
+                                    field.onChange("");
+                                  }}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center text-center p-4">
+                                <Upload className="h-6 w-6 text-muted-foreground mb-2" />
+                                <p className="text-sm font-medium">
+                                  Upload image
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Max size: 50MB
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormDescription className="text-center">
+                          Upload an image for your NFT
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="attributes"
+                    render={() => (
+                      <FormItem className="border rounded-lg p-4">
+                        <FormLabel>Attributes</FormLabel>
+                        <FormDescription>
+                          Add traits and properties to your NFT
+                        </FormDescription>
+
+                        <div className="mt-3">
+                          {form.watch("attributes")?.length > 0 ? (
+                            <div className="grid grid-cols-1 gap-2 mb-4">
+                              {form.watch("attributes").map((attr, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between border rounded-md p-2 bg-muted/30"
+                                >
+                                  <div className="flex flex-col">
+                                    <Badge
+                                      variant="outline"
+                                      className="mb-1 w-fit"
+                                    >
+                                      {attr.trait_type}
+                                    </Badge>
+                                    <span className="text-sm">
+                                      {attr.value}
+                                    </span>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeAttribute(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-4 bg-muted/20 rounded-md mb-4">
+                              <p className="text-sm text-muted-foreground">
+                                No attributes added yet
+                              </p>
+                            </div>
+                          )}
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => setDialogOpen(true)}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Attribute
+                          </Button>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Separator className="my-4" />
+
+                  <div className="flex justify-between gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowNFTForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={!form.formState.isValid || isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        "Create NFT"
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
+
+            {/* Desktop view: Form and Information side by side */}
+            <div className="hidden lg:grid lg:grid-cols-3 gap-6">
               {/* Form occupies 2/3 of the space */}
               <div className="lg:col-span-2">
                 <Form {...form}>
@@ -1540,69 +1777,6 @@ export default function CollectionNFTsPage() {
                                   Add Attribute
                                 </Button>
                               </div>
-
-                              <Dialog
-                                open={dialogOpen}
-                                onOpenChange={setDialogOpen}
-                              >
-                                <DialogContent className="sm:max-w-md">
-                                  <DialogHeader>
-                                    <DialogTitle>Add NFT Attribute</DialogTitle>
-                                  </DialogHeader>
-
-                                  <div className="grid gap-4 py-4">
-                                    <div className="grid gap-2">
-                                      <FormLabel htmlFor="trait-type">
-                                        Trait Type
-                                      </FormLabel>
-                                      <Input
-                                        id="trait-type"
-                                        placeholder="e.g. Color, Size, Rarity"
-                                        value={newAttribute.trait_type}
-                                        onChange={(e) =>
-                                          setNewAttribute({
-                                            ...newAttribute,
-                                            trait_type: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                      <FormLabel htmlFor="trait-value">
-                                        Value
-                                      </FormLabel>
-                                      <Input
-                                        id="trait-value"
-                                        placeholder="e.g. Blue, Large, Legendary"
-                                        value={newAttribute.value}
-                                        onChange={(e) =>
-                                          setNewAttribute({
-                                            ...newAttribute,
-                                            value: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <DialogFooter>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      onClick={() => setDialogOpen(false)}
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      onClick={addAttribute}
-                                    >
-                                      Add Attribute
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
                             </FormItem>
                           )}
                         />
@@ -1642,6 +1816,59 @@ export default function CollectionNFTsPage() {
                 <NFTInformation />
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add NFT Attribute</DialogTitle>
+            </DialogHeader>
+
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <FormLabel htmlFor="trait-type">Trait Type</FormLabel>
+                <Input
+                  id="trait-type"
+                  placeholder="e.g. Color, Size, Rarity"
+                  value={newAttribute.trait_type}
+                  onChange={(e) =>
+                    setNewAttribute({
+                      ...newAttribute,
+                      trait_type: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <FormLabel htmlFor="trait-value">Value</FormLabel>
+                <Input
+                  id="trait-value"
+                  placeholder="e.g. Blue, Large, Legendary"
+                  value={newAttribute.value}
+                  onChange={(e) =>
+                    setNewAttribute({
+                      ...newAttribute,
+                      value: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="button" onClick={addAttribute}>
+                Add Attribute
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
