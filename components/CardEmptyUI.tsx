@@ -6,7 +6,7 @@ interface CardEmptyUIProps {
   description: string;
   buttonText: string;
   onButtonClick?: () => void;
-  type: "cart" | "wishlist" | "collection";
+  type: "cart" | "wishlist" | "collection" | "profile";
 }
 
 const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
@@ -20,8 +20,11 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
     type === "cart"
       ? "/Cart.svg"
       : type === "wishlist"
-      ? "/shopping-cart.svg"
-      : "/collection.svg";
+      ? "/collection.svg"
+      : type === "profile"
+      ? "/connect-wallet.svg"
+      : "/shopping-cart.svg";
+
   const router = useRouter();
 
   const navigationTo = () => {
