@@ -20,6 +20,7 @@ import {
 import { useCart } from "@/hooks/use-cart";
 import { formatImageUrl } from "@/utils/function";
 import type { GridView } from "@/type/view";
+import CardEmptyUI from "@/components/CardEmptyUI";
 
 export function ProfileCart({ view }: { view: GridView }) {
   const {
@@ -38,19 +39,13 @@ export function ProfileCart({ view }: { view: GridView }) {
 
   if (cartItems.length === 0) {
     return (
-      <div className="mt-12 text-center">
-        <div className="mx-auto relative w-[200px] h-[200px]">
-          <Image
-            src="/placeholder.svg"
-            alt="Empty Cart"
-            fill
-            className="object-contain"
-          />
-        </div>
-        <p className="text-lg font-medium mt-4">Your cart is empty</p>
-        <p className="text-sm text-muted-foreground mt-2">
-          Add some awesome NFTs to your cart!
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-center">
+        <CardEmptyUI
+          title="Your cart is empty!"
+          description="Add some awesome NFTs to your cart!"
+          buttonText="Explore NFTs"
+          type="cart"
+        />
       </div>
     );
   }

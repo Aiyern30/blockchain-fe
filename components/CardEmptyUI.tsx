@@ -1,11 +1,11 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/";
-
+import { useRouter } from "next/navigation";
 interface CardEmptyUIProps {
   title: string;
   description: string;
   buttonText: string;
-  onButtonClick: () => void;
+  onButtonClick?: () => void;
   type: "cart" | "wishlist" | "collection";
 }
 
@@ -22,7 +22,14 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
       : type === "wishlist"
       ? "/Wishlist.svg"
       : "/Collection.svg";
+  const router = useRouter();
 
+  const navigationTo = () => {
+    if (onButtonClick) {
+      onButtonClick();
+    }
+    router.push("/Explore");
+  };
   return (
     <div className="flex flex-col items-center justify-center h-full text-center">
       <div className="relative w-[200px] h-[200px]">
@@ -35,7 +42,12 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
       </div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-muted-foreground mb-4">{description}</p>
-      <Button variant="default" onClick={onButtonClick}>
+      <Button
+        variant="default"
+        onClick={() => {
+          navigationTo();
+        }}
+      >
         {buttonText}
       </Button>
     </div>
