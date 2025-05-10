@@ -106,38 +106,57 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
   };
 
   if (isLoading) {
+    if (view === "list") {
+      return (
+        <div className="mt-6 w-full space-y-4">
+          {Array(4)
+            .fill(0)
+            .map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-4 p-4 border-b animate-pulse w-full"
+              >
+                <Skeleton className="h-16 w-16 rounded-md" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-1/3" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>
+            ))}
+        </div>
+      );
+    }
+
     return (
       <div
-        className={`mt-6 grid ${
-          view !== "list" ? gridColumns[view] : ""
-        } gap-4`}
+        className={`mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4`}
       >
-        {view === "list"
-          ? Array(4)
-              .fill(0)
-              .map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-4 p-4 border-b animate-pulse"
-                >
-                  <Skeleton className="h-16 w-16 rounded-md" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-5 w-1/3" />
-                    <Skeleton className="h-4 w-2/3" />
-                  </div>
+        {Array(4)
+          .fill(0)
+          .map((_, i) => (
+            <Card
+              key={i}
+              className="overflow-hidden cursor-pointer animate-pulse border hover:border-primary hover:shadow-lg transition-shadow w-64"
+            >
+              <div className="relative h-44 w-full bg-muted">
+                <Skeleton className="h-full w-full absolute inset-0" />
+              </div>
+
+              <CardHeader className="space-y-1 pb-1">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-5 w-3/5" />
+                  <Skeleton className="h-5 w-16" />
                 </div>
-              ))
-          : Array(8)
-              .fill(0)
-              .map((_, i) => (
-                <Card key={i} className="overflow-hidden animate-pulse">
-                  <Skeleton className="h-40 w-full" />
-                  <CardHeader className="pb-2">
-                    <Skeleton className="h-5 w-3/4 mb-1" />
-                    <Skeleton className="h-4 w-full" />
-                  </CardHeader>
-                </Card>
-              ))}
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+              </CardHeader>
+
+              <CardFooter className="pt-1 pb-3 flex justify-between items-center">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-6" />
+              </CardFooter>
+            </Card>
+          ))}
       </div>
     );
   }
