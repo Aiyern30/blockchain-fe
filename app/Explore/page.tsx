@@ -157,7 +157,7 @@ export default function ViewListedNFTs() {
           title="No NFTs found"
           description="There are no NFTs currently listed in the marketplace."
           type="collection"
-          buttonText={""}
+          buttonText={"Create your own NFT"}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
