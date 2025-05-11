@@ -10,13 +10,22 @@ export interface MarketItem {
 }
 
 export const NFT_CONTRACT_ADDRESS =
-  "0x10Fe685dBce6329D9899d426F6c5383DeF2B00e2";
+  "0xB33496C5fbf3ebe63A962c61D34Cc82Eaab5110b"; //0x10Fe685dBce6329D9899d426F6c5383DeF2B00e2 - old
 const nftABI = [
-  { inputs: [], stateMutability: "nonpayable", type: "constructor" },
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: "address", name: "user", type: "address" },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
       {
         indexed: false,
         internalType: "address",
@@ -66,7 +75,12 @@ const nftABI = [
         name: "price",
         type: "uint256",
       },
-      { indexed: false, internalType: "bool", name: "sold", type: "bool" },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "sold",
+        type: "bool",
+      },
     ],
     name: "MarketItemCreated",
     type: "event",
@@ -92,18 +106,59 @@ const nftABI = [
   },
   {
     inputs: [
-      { internalType: "address", name: "", type: "address" },
-      { internalType: "uint256", name: "", type: "uint256" },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
     name: "activeListings",
-    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "address", name: "collectionAddress", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "allCollections",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "collectionAddress",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
     ],
     name: "burnNFT",
     outputs: [],
@@ -111,39 +166,99 @@ const nftABI = [
     type: "function",
   },
   {
-    inputs: [{ internalType: "uint256", name: "itemId", type: "uint256" }],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "itemId",
+        type: "uint256",
+      },
+    ],
     name: "cancelListing",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
   {
-    inputs: [{ internalType: "address", name: "", type: "address" }],
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
     name: "collectionDetails",
     outputs: [
-      { internalType: "string", name: "name", type: "string" },
-      { internalType: "string", name: "description", type: "string" },
-      { internalType: "string", name: "image", type: "string" },
-      { internalType: "string", name: "externalLink", type: "string" },
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "image",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "externalLink",
+        type: "string",
+      },
     ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "string", name: "name", type: "string" },
-      { internalType: "string", name: "symbol", type: "string" },
-      { internalType: "string", name: "description", type: "string" },
-      { internalType: "string", name: "image", type: "string" },
-      { internalType: "string", name: "externalLink", type: "string" },
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "symbol",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "image",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "externalLink",
+        type: "string",
+      },
     ],
     name: "createCollection",
-    outputs: [{ internalType: "address", name: "", type: "address" }],
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },
   {
-    inputs: [{ internalType: "uint256", name: "itemId", type: "uint256" }],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "itemId",
+        type: "uint256",
+      },
+    ],
     name: "createMarketSale",
     outputs: [],
     stateMutability: "payable",
@@ -155,13 +270,41 @@ const nftABI = [
     outputs: [
       {
         components: [
-          { internalType: "uint256", name: "itemId", type: "uint256" },
-          { internalType: "address", name: "collection", type: "address" },
-          { internalType: "uint256", name: "tokenId", type: "uint256" },
-          { internalType: "address payable", name: "seller", type: "address" },
-          { internalType: "address payable", name: "owner", type: "address" },
-          { internalType: "uint256", name: "price", type: "uint256" },
-          { internalType: "bool", name: "sold", type: "bool" },
+          {
+            internalType: "uint256",
+            name: "itemId",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "collection",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "tokenId",
+            type: "uint256",
+          },
+          {
+            internalType: "address payable",
+            name: "seller",
+            type: "address",
+          },
+          {
+            internalType: "address payable",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "price",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "sold",
+            type: "bool",
+          },
         ],
         internalType: "struct NFTMarketplaceFactory.MarketItem[]",
         name: "",
@@ -177,13 +320,41 @@ const nftABI = [
     outputs: [
       {
         components: [
-          { internalType: "uint256", name: "itemId", type: "uint256" },
-          { internalType: "address", name: "collection", type: "address" },
-          { internalType: "uint256", name: "tokenId", type: "uint256" },
-          { internalType: "address payable", name: "seller", type: "address" },
-          { internalType: "address payable", name: "owner", type: "address" },
-          { internalType: "uint256", name: "price", type: "uint256" },
-          { internalType: "bool", name: "sold", type: "bool" },
+          {
+            internalType: "uint256",
+            name: "itemId",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "collection",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "tokenId",
+            type: "uint256",
+          },
+          {
+            internalType: "address payable",
+            name: "seller",
+            type: "address",
+          },
+          {
+            internalType: "address payable",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "price",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "sold",
+            type: "bool",
+          },
         ],
         internalType: "struct NFTMarketplaceFactory.MarketItem[]",
         name: "",
@@ -199,13 +370,41 @@ const nftABI = [
     outputs: [
       {
         components: [
-          { internalType: "uint256", name: "itemId", type: "uint256" },
-          { internalType: "address", name: "collection", type: "address" },
-          { internalType: "uint256", name: "tokenId", type: "uint256" },
-          { internalType: "address payable", name: "seller", type: "address" },
-          { internalType: "address payable", name: "owner", type: "address" },
-          { internalType: "uint256", name: "price", type: "uint256" },
-          { internalType: "bool", name: "sold", type: "bool" },
+          {
+            internalType: "uint256",
+            name: "itemId",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "collection",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "tokenId",
+            type: "uint256",
+          },
+          {
+            internalType: "address payable",
+            name: "seller",
+            type: "address",
+          },
+          {
+            internalType: "address payable",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "price",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "sold",
+            type: "bool",
+          },
         ],
         internalType: "struct NFTMarketplaceFactory.MarketItem[]",
         name: "",
@@ -216,18 +415,65 @@ const nftABI = [
     type: "function",
   },
   {
-    inputs: [{ internalType: "address", name: "collection", type: "address" }],
+    inputs: [],
+    name: "getAllCollections",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+    ],
     name: "getAllListedItemsForCollection",
     outputs: [
       {
         components: [
-          { internalType: "uint256", name: "itemId", type: "uint256" },
-          { internalType: "address", name: "collection", type: "address" },
-          { internalType: "uint256", name: "tokenId", type: "uint256" },
-          { internalType: "address payable", name: "seller", type: "address" },
-          { internalType: "address payable", name: "owner", type: "address" },
-          { internalType: "uint256", name: "price", type: "uint256" },
-          { internalType: "bool", name: "sold", type: "bool" },
+          {
+            internalType: "uint256",
+            name: "itemId",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "collection",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "tokenId",
+            type: "uint256",
+          },
+          {
+            internalType: "address payable",
+            name: "seller",
+            type: "address",
+          },
+          {
+            internalType: "address payable",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "price",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "sold",
+            type: "bool",
+          },
         ],
         internalType: "struct NFTMarketplaceFactory.MarketItem[]",
         name: "",
@@ -239,84 +485,212 @@ const nftABI = [
   },
   {
     inputs: [
-      { internalType: "address", name: "collectionAddress", type: "address" },
+      {
+        internalType: "address",
+        name: "collectionAddress",
+        type: "address",
+      },
     ],
     name: "getCollectionOwner",
-    outputs: [{ internalType: "address", name: "", type: "address" }],
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [],
     name: "getMyCollections",
-    outputs: [{ internalType: "address[]", name: "", type: "address[]" }],
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "address", name: "collection", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
     ],
     name: "getNFTListingDetails",
     outputs: [
-      { internalType: "uint256", name: "itemId", type: "uint256" },
-      { internalType: "address", name: "currentOwner", type: "address" },
-      { internalType: "address", name: "seller", type: "address" },
-      { internalType: "uint256", name: "price", type: "uint256" },
-      { internalType: "bool", name: "isListed", type: "bool" },
-      { internalType: "bool", name: "sold", type: "bool" },
+      {
+        internalType: "uint256",
+        name: "itemId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "currentOwner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "seller",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "isListed",
+        type: "bool",
+      },
+      {
+        internalType: "bool",
+        name: "sold",
+        type: "bool",
+      },
     ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "address", name: "collection", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
     ],
     name: "getNFTOwner",
-    outputs: [{ internalType: "address", name: "", type: "address" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    name: "idToMarketItem",
     outputs: [
-      { internalType: "uint256", name: "itemId", type: "uint256" },
-      { internalType: "address", name: "collection", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
-      { internalType: "address payable", name: "seller", type: "address" },
-      { internalType: "address payable", name: "owner", type: "address" },
-      { internalType: "uint256", name: "price", type: "uint256" },
-      { internalType: "bool", name: "sold", type: "bool" },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "address", name: "collection", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "idToMarketItem",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "itemId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address payable",
+        name: "seller",
+        type: "address",
+      },
+      {
+        internalType: "address payable",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "sold",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
     ],
     name: "isNFTListed",
-    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [],
     name: "itemCount",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "address", name: "collection", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
-      { internalType: "uint256", name: "price", type: "uint256" },
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
     ],
     name: "listNFT",
     outputs: [],
@@ -326,31 +700,65 @@ const nftABI = [
   {
     inputs: [],
     name: "listingPrice",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "address", name: "collection", type: "address" },
-      { internalType: "string", name: "tokenURI", type: "string" },
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "tokenURI",
+        type: "string",
+      },
     ],
     name: "mintIntoCollection",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },
   {
     inputs: [],
     name: "owner",
-    outputs: [{ internalType: "address payable", name: "", type: "address" }],
+    outputs: [
+      {
+        internalType: "address payable",
+        name: "",
+        type: "address",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "uint256", name: "itemId", type: "uint256" },
-      { internalType: "uint256", name: "newPrice", type: "uint256" },
+      {
+        internalType: "uint256",
+        name: "itemId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "newPrice",
+        type: "uint256",
+      },
     ],
     name: "reSellToken",
     outputs: [],
@@ -359,7 +767,11 @@ const nftABI = [
   },
   {
     inputs: [
-      { internalType: "uint256", name: "_listingPrice", type: "uint256" },
+      {
+        internalType: "uint256",
+        name: "_listingPrice",
+        type: "uint256",
+      },
     ],
     name: "updateListingPrice",
     outputs: [],
@@ -368,41 +780,109 @@ const nftABI = [
   },
   {
     inputs: [
-      { internalType: "address", name: "", type: "address" },
-      { internalType: "uint256", name: "", type: "uint256" },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
     name: "userCollections",
-    outputs: [{ internalType: "address", name: "", type: "address" }],
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "address", name: "", type: "address" },
-      { internalType: "uint256", name: "", type: "uint256" },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
     name: "userListedItems",
     outputs: [
-      { internalType: "uint256", name: "itemId", type: "uint256" },
-      { internalType: "address", name: "collection", type: "address" },
-      { internalType: "uint256", name: "tokenId", type: "uint256" },
-      { internalType: "address payable", name: "seller", type: "address" },
-      { internalType: "address payable", name: "owner", type: "address" },
-      { internalType: "uint256", name: "price", type: "uint256" },
-      { internalType: "bool", name: "sold", type: "bool" },
+      {
+        internalType: "uint256",
+        name: "itemId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address payable",
+        name: "seller",
+        type: "address",
+      },
+      {
+        internalType: "address payable",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "sold",
+        type: "bool",
+      },
     ],
     stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [{ internalType: "address", name: "collection", type: "address" }],
+    inputs: [
+      {
+        internalType: "address",
+        name: "collection",
+        type: "address",
+      },
+    ],
     name: "viewCollectionNFTs",
     outputs: [
       {
         components: [
-          { internalType: "uint256", name: "tokenId", type: "uint256" },
-          { internalType: "string", name: "tokenURI", type: "string" },
-          { internalType: "address", name: "owner", type: "address" },
+          {
+            internalType: "uint256",
+            name: "tokenId",
+            type: "uint256",
+          },
+          {
+            internalType: "string",
+            name: "tokenURI",
+            type: "string",
+          },
+          {
+            internalType: "address",
+            name: "owner",
+            type: "address",
+          },
         ],
         internalType: "struct NFTMarketplaceFactory.CollectionNFT[]",
         name: "",
@@ -424,6 +904,7 @@ const ERC721_ABI = [
   "function tokenURI(uint256 tokenId) view returns (string memory)",
   "function getApproved(uint256 tokenId) view returns (address)",
   "function ownerOf(uint256 tokenId) view returns (address)",
+  "function getAllCollections() view returns (address[])",
 ];
 
 export function getERC721TokenContract(

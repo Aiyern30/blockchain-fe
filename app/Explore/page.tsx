@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
 import { useAccount } from "wagmi";
@@ -20,40 +20,65 @@ import {
 import CardEmptyUI from "@/components/CardEmptyUI";
 import { truncateAddress, formatImageUrl } from "@/utils/function";
 import { getMarketplaceFactoryContract } from "@/lib/erc721Config";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export default function ViewListedNFTs() {
+export default function ExplorePage() {
+  const router = useRouter();
   const { isConnected } = useAccount();
+  const [collections, setCollections] = useState<any[]>([]);
   const [nfts, setNfts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [buyingTokenId, setBuyingTokenId] = useState<number | null>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  const fetchListedNFTs = async () => {
+  const scrollCarousel = (direction: "left" | "right") => {
+    if (!carouselRef.current) return;
+    const scrollAmount = 340; // each card width + margin
+    carouselRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  const fetchCollections = async (provider: any, contract: any) => {
     try {
-      setLoading(true);
-      if (!window.ethereum) throw new Error("MetaMask not detected");
+      const collectionAddresses: string[] = await contract.getAllCollections();
+      const metadataList = await Promise.all(
+        collectionAddresses.map(async (addr: string) => {
+          const metadata = await contract.collectionDetails(addr);
+          return {
+            address: addr,
+            name: metadata.name,
+            description: metadata.description,
+            image: formatImageUrl(metadata.image),
+            externalLink: metadata.externalLink,
+          };
+        })
+      );
+      setCollections(metadataList);
+    } catch (err) {
+      console.error("Error fetching collections:", err);
+    }
+  };
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = getMarketplaceFactoryContract(provider);
+  const fetchListedNFTs = async (provider: any, contract: any) => {
+    try {
       const items = await contract.fetchMarketItems();
-
       const enrichedItems = await Promise.all(
         items.map(async (item: any) => {
           const [itemId, collection, tokenId, seller, owner, price, sold] =
             item;
-
           const nftContract = new ethers.Contract(
             collection,
             ["function tokenURI(uint256 tokenId) view returns (string)"],
             provider
           );
-
           let tokenURI = "";
           try {
             tokenURI = await nftContract.tokenURI(tokenId);
           } catch {
             return null;
           }
-
           let metadataURL = tokenURI.startsWith("ipfs://")
             ? tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
             : tokenURI;
@@ -62,20 +87,12 @@ export default function ViewListedNFTs() {
           let name = `NFT #${tokenId}`;
           let description = "No description available";
 
-          if (
-            metadataURL.endsWith(".png") ||
-            metadataURL.endsWith(".jpg") ||
-            metadataURL.endsWith(".jpeg")
-          ) {
-            image = metadataURL;
-          } else {
-            try {
-              const metadata = await axios.get(metadataURL);
-              image = formatImageUrl(metadata.data.image);
-              name = metadata.data.name || name;
-              description = metadata.data.description || description;
-            } catch {}
-          }
+          try {
+            const metadata = await axios.get(metadataURL);
+            image = formatImageUrl(metadata.data.image);
+            name = metadata.data.name || name;
+            description = metadata.data.description || description;
+          } catch {}
 
           return {
             itemId: Number(itemId),
@@ -91,75 +108,92 @@ export default function ViewListedNFTs() {
           };
         })
       );
-
       setNfts(enrichedItems.filter((nft) => nft !== null));
-    } catch (error) {
-      console.error("Error loading NFTs:", error);
-      toast.error("Failed to load NFTs. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBuy = async (nft: any) => {
-    try {
-      setBuyingTokenId(nft.tokenId);
-
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = getMarketplaceFactoryContract(signer);
-
-      const tx = await contract.createMarketSale(nft.itemId, {
-        value: ethers.parseUnits(nft.price, "ether"),
-      });
-
-      await tx.wait();
-      toast.success("Purchase successful!");
-      fetchListedNFTs();
-    } catch (err: any) {
-      console.error("Buy failed:", err);
-      toast.error(err?.message || "Transaction failed");
-    } finally {
-      setBuyingTokenId(null);
+    } catch (err) {
+      console.error("Error loading NFTs:", err);
+      toast.error("Failed to load NFTs.");
     }
   };
 
   useEffect(() => {
-    if (isConnected) fetchListedNFTs();
+    const init = async () => {
+      setLoading(true);
+      if (!window.ethereum) return;
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = getMarketplaceFactoryContract(provider);
+      await fetchCollections(provider, contract);
+      await fetchListedNFTs(provider, contract);
+      setLoading(false);
+    };
+    if (isConnected) init();
   }, [isConnected]);
 
   return (
-    <div className="container mx-auto py-8 px-4 min-h-[calc(100vh-120px)] flex flex-col">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Explore NFTs on Marketplace</h1>
-          <p className="text-muted-foreground mt-1">
-            Browse and buy NFTs listed by other users
-          </p>
-        </div>
-      </div>
+    <div className="container mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold mb-6">Explore</h1>
 
+      {collections.length > 0 && (
+        <div
+          className="relative w-full h-[350px] sm:h-[450px] rounded-xl overflow-hidden mb-10 shadow-lg cursor-pointer group"
+          onClick={() => router.push(`/collection/${collections[0].address}`)}
+        >
+          <Image
+            src={collections[0].image || "/placeholder.svg"}
+            alt={collections[0].name}
+            fill
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col justify-end p-8">
+            <h2 className="text-white text-3xl sm:text-5xl font-bold">
+              {collections[0].name}
+            </h2>
+            <p className="text-white/80 mt-2 text-sm sm:text-base max-w-3xl">
+              {collections[0].description}
+            </p>
+            <div className="mt-4 text-white text-sm">
+              Address:{" "}
+              <span className="font-mono">
+                {truncateAddress(collections[0].address)}
+              </span>
+            </div>
+            {collections[0].externalLink && (
+              <Button
+                variant="outline"
+                className="mt-4 w-fit"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent navigation
+                  window.open(collections[0].externalLink, "_blank");
+                }}
+              >
+                Visit External Link
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <h2 className="text-2xl font-bold mb-4">Listed NFTs</h2>
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="overflow-hidden">
+            <Card key={i}>
               <Skeleton className="h-48 w-full" />
-              <CardHeader className="pb-2">
+              <CardHeader>
                 <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-full" />
               </CardHeader>
               <CardContent>
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-full" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : nfts.length === 0 ? (
         <CardEmptyUI
-            title="No NFTs found"
-            description="There are no NFTs currently listed in the marketplace."
-            type="collection" buttonText={""}        />
+          title="No NFTs Found"
+          description="There are no NFTs listed currently."
+          type="collection"
+          buttonText=""
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {nfts.map((nft, index) => (
@@ -172,47 +206,22 @@ export default function ViewListedNFTs() {
                   className="object-cover"
                 />
               </div>
-
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{nft.name}</CardTitle>
-                  <Badge variant="outline" className="text-xs">
-                    Token ID #{nft.tokenId}
-                  </Badge>
-                </div>
+              <CardHeader>
+                <CardTitle className="text-xl">{nft.name}</CardTitle>
                 <CardDescription className="line-clamp-2">
                   {nft.description}
                 </CardDescription>
               </CardHeader>
-
               <CardContent>
-                <div className="text-xs text-muted-foreground mb-2">
-                  Collection:{" "}
-                  <span className="font-mono">
-                    {truncateAddress(nft.collection)}
-                  </span>
-                </div>
-                <div className="font-semibold text-green-600">
-                  {nft.price} ETH
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  Collection: {truncateAddress(nft.collection)}
+                </p>
+                <p className="text-green-600 font-bold">{nft.price} ETH</p>
               </CardContent>
-
               <CardFooter className="pt-0">
-                {nft.sold ? (
-                  <Button disabled className="w-full">
-                    SOLD OUT
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => handleBuy(nft)}
-                    className="w-full"
-                    disabled={buyingTokenId === nft.tokenId}
-                  >
-                    {buyingTokenId === nft.tokenId
-                      ? "Processing..."
-                      : "Buy Now"}
-                  </Button>
-                )}
+                <Button disabled={nft.sold} className="w-full">
+                  {nft.sold ? "SOLD OUT" : "Buy Now"}
+                </Button>
               </CardFooter>
             </Card>
           ))}
