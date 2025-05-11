@@ -150,7 +150,7 @@ export default function ProfilePage() {
       case "collection":
         return <ProfileCollections />;
       case "cart":
-        return <ProfileCart view={gridView} />;
+        return <ProfileCart />;
       case "wishlist":
         return <ProfileWishlist view={gridView} />;
       default:

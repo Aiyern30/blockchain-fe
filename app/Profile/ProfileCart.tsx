@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { Trash2, ShoppingBag } from "lucide-react";
 import {
@@ -19,35 +19,75 @@ import {
 } from "@/components/ui";
 import { useCart } from "@/hooks/use-cart";
 import { formatImageUrl } from "@/utils/function";
-import type { GridView } from "@/type/view";
 import CardEmptyUI from "@/components/CardEmptyUI";
+import { useFilter } from "@/contexts/filter-context";
 
-export function ProfileCart({ view }: { view: GridView }) {
+export function ProfileCart() {
   const {
     cartItems,
     removeFromCart,
     clearCart,
-    totalPrice,
+
     getTotalPriceInCurrency,
   } = useCart();
+  const { filter } = useFilter();
+  const { view, searchQuery } = filter;
+
   const [hoverIndex, setHoverIndex] = useState<string | null>(null);
-  console.log("Cart Items:", hoverIndex);
+  console.log("hoverIndex", hoverIndex);
+  // Filter cart items based on search query
+  const filteredCartItems = useMemo(() => {
+    if (!searchQuery) return cartItems;
+
+    const query = searchQuery.toLowerCase();
+    return cartItems.filter(
+      (item) =>
+        (item.metadata?.name || "").toLowerCase().includes(query) ||
+        item.tokenId.toString().includes(query) ||
+        (item.owner || "").toLowerCase().includes(query)
+    );
+  }, [cartItems, searchQuery]);
 
   // Calculate USD and MYR prices using currency context
   const usdPrice = getTotalPriceInCurrency("USD");
   const myrPrice = getTotalPriceInCurrency("MYR");
 
-  if (cartItems.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-center">
-        <CardEmptyUI
-          title="Your cart is empty!"
-          description="Add some awesome NFTs to your cart!"
-          buttonText="Explore NFTs"
-          type="cart"
-        />
-      </div>
-    );
+  // Calculate filtered items total price
+  const filteredTotalPrice = useMemo(() => {
+    return filteredCartItems.reduce((acc, item) => {
+      const price = parseFloat(item.metadata?.price || "0");
+      return acc + price;
+    }, 0);
+  }, [filteredCartItems]);
+
+  // Display empty state if no cart items match the search
+  if (filteredCartItems.length === 0) {
+    // Show different message if cart is empty vs no search results
+    if (cartItems.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-center">
+          <CardEmptyUI
+            title="Your cart is empty!"
+            description="Add some awesome NFTs to your cart!"
+            buttonText="Explore NFTs"
+            type="cart"
+          />
+        </div>
+      );
+    } else {
+      // Show message for no search results
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[40vh] w-full text-center">
+          <div className="p-8 rounded-lg border max-w-md">
+            <h3 className="text-xl font-semibold mb-2">No matching items</h3>
+            <p className="text-muted-foreground mb-4">
+              No items in your cart match your search criteria. Try adjusting
+              your search.
+            </p>
+          </div>
+        </div>
+      );
+    }
   }
 
   // Determine grid columns based on view
@@ -64,7 +104,8 @@ export function ProfileCart({ view }: { view: GridView }) {
         <div className="flex items-center gap-2">
           <ShoppingBag className="h-5 w-5" />
           <h2 className="text-xl font-semibold">
-            Your Cart ({cartItems.length} item{cartItems.length !== 1 && "s"})
+            Your Cart ({filteredCartItems.length} of {cartItems.length} item
+            {cartItems.length !== 1 && "s"})
           </h2>
         </div>
 
@@ -92,7 +133,7 @@ export function ProfileCart({ view }: { view: GridView }) {
 
       {view === "list" ? (
         <div className="space-y-2">
-          {cartItems.map((item) => (
+          {filteredCartItems.map((item) => (
             <div
               key={`${item.tokenId}-${item.owner}`}
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -162,7 +203,7 @@ export function ProfileCart({ view }: { view: GridView }) {
         </div>
       ) : (
         <div className={`grid ${gridColumns[view]} gap-4`}>
-          {cartItems.map((item) => (
+          {filteredCartItems.map((item) => (
             <Card
               key={`${item.tokenId}-${item.owner}`}
               className="overflow-hidden relative group"
@@ -234,8 +275,11 @@ export function ProfileCart({ view }: { view: GridView }) {
           <div>
             <h3 className="text-lg font-medium">Order Summary</h3>
             <p className="text-sm text-muted-foreground">
-              {cartItems.length} item{cartItems.length !== 1 && "s"} in your
-              cart
+              {filteredCartItems.length} item
+              {filteredCartItems.length !== 1 && "s"} in your cart{" "}
+              {searchQuery && filteredCartItems.length !== cartItems.length
+                ? `(filtered from ${cartItems.length})`
+                : ""}
             </p>
           </div>
 
@@ -243,8 +287,8 @@ export function ProfileCart({ view }: { view: GridView }) {
             <div className="flex justify-between mb-2">
               <span>Subtotal</span>
               <span className="font-medium">
-                {typeof totalPrice === "number"
-                  ? totalPrice.toFixed(3)
+                {typeof filteredTotalPrice === "number"
+                  ? filteredTotalPrice.toFixed(3)
                   : "0.000"}{" "}
                 ETH
               </span>
@@ -263,8 +307,8 @@ export function ProfileCart({ view }: { view: GridView }) {
             <div className="flex justify-between font-semibold">
               <span>Total</span>
               <span>
-                {typeof totalPrice === "number"
-                  ? totalPrice.toFixed(3)
+                {typeof filteredTotalPrice === "number"
+                  ? filteredTotalPrice.toFixed(3)
                   : "0.000"}{" "}
                 ETH
               </span>
