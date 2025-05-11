@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
   Input,
 } from "@/components/ui/";
-import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { truncateAddress } from "@/utils/function";
 import { handleCopy, handleShare } from "@/utils/helper";
@@ -40,7 +39,6 @@ export default function ProfilePage() {
   console.log("Profile Address:", profileAddress);
   const { address: rainbowKitAddress, isConnected } = useAccount();
   const [activeTab, setActiveTab] = useState("collection");
-  const [gridView] = useState<GridView>("medium");
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -152,7 +150,7 @@ export default function ProfilePage() {
       case "cart":
         return <ProfileCart />;
       case "wishlist":
-        return <ProfileWishlist view={gridView} />;
+        return <ProfileWishlist />;
       default:
         return <EmptyState label={activeTab} />;
     }
