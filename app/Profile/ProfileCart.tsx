@@ -109,9 +109,9 @@ export function ProfileCart() {
           .map((_, i) => (
             <Card
               key={i}
-              className="overflow-hidden cursor-pointer animate-pulse border hover:border-primary hover:shadow-lg transition-shadow"
+              className="overflow-hidden cursor-pointer animate-pulse border hover:border-primary hover:shadow-lg transition-shadow w-64"
             >
-              <div className="relative aspect-square bg-muted">
+              <div className="relative h-44 w-full bg-muted">
                 <Skeleton className="h-full w-full absolute inset-0" />
               </div>
 
@@ -121,6 +121,7 @@ export function ProfileCart() {
                   <Skeleton className="h-5 w-16" />
                 </div>
                 <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
               </CardHeader>
 
               <CardFooter className="pt-1 pb-3 flex justify-between items-center">
