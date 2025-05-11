@@ -168,6 +168,7 @@ export default function CollectionNFTsPage() {
   // State for buy NFT dialog
   const [showBuyDialog, setShowBuyDialog] = useState(false);
   const [buyNFT, setBuyNFT] = useState<CollectionNFT | null>(null);
+  console.log("Buy NFT:", buyNFT);
 
   // Add these state variables near your other state declarations
   const [showResellForm, setShowResellForm] = useState(false);

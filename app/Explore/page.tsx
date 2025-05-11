@@ -21,12 +21,14 @@ import {
 import CardEmptyUI from "@/components/CardEmptyUI";
 import { truncateAddress, formatImageUrl } from "@/utils/function";
 import { getMarketplaceFactoryContract } from "@/lib/erc721Config";
+import { BuyNFTDialog } from "@/components/page/BuyNFTDialog";
 
 export default function ViewListedNFTs() {
   const { isConnected } = useAccount();
   const [nfts, setNfts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [buyingTokenId, setBuyingTokenId] = useState<number | null>(null);
+  const [selectedNFT, setSelectedNFT] = useState<any | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const fetchListedNFTs = async () => {
     try {
@@ -56,39 +58,46 @@ export default function ViewListedNFTs() {
           }
 
           const metadataURL = tokenURI.startsWith("ipfs://")
-            ? tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
+            ? tokenURI.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/")
             : tokenURI;
 
-          let image = "/placeholder.svg";
-          let name = `NFT #${tokenId}`;
-          let description = "No description available";
+          let metadata: any = {
+            name: `NFT #${tokenId}`,
+            description: "No description available",
+            image: "/placeholder.svg",
+            attributes: [],
+            price: ethers.formatEther(price),
+            isListed: true,
+          };
 
-          if (
-            metadataURL.endsWith(".png") ||
-            metadataURL.endsWith(".jpg") ||
-            metadataURL.endsWith(".jpeg")
-          ) {
-            image = metadataURL;
-          } else {
-            try {
-              const metadata = await axios.get(metadataURL);
-              image = formatImageUrl(metadata.data.image);
-              name = metadata.data.name || name;
-              description = metadata.data.description || description;
-            } catch {}
+          try {
+            const res = await axios.get(metadataURL);
+            metadata = {
+              ...metadata,
+              ...res.data,
+              image: formatImageUrl(res.data.image),
+              price: ethers.formatEther(price),
+              isListed: true,
+            };
+          } catch (err) {
+            console.warn("Failed to fetch metadata:", err);
           }
 
           return {
-            itemId: Number(itemId),
-            collection,
             tokenId: Number(tokenId),
-            seller,
+            metadataUrl: metadataURL,
             owner,
-            price: ethers.formatEther(price),
-            sold,
-            image,
-            name,
-            description,
+            metadata,
+            marketItem: {
+              itemId: Number(itemId),
+              collection,
+              tokenId: Number(tokenId),
+              seller,
+              owner,
+              price: ethers.formatEther(price),
+              sold,
+            },
+            isListed: !sold,
           };
         })
       );
@@ -102,27 +111,9 @@ export default function ViewListedNFTs() {
     }
   };
 
-  const handleBuy = async (nft: any) => {
-    try {
-      setBuyingTokenId(nft.tokenId);
-
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = getMarketplaceFactoryContract(signer);
-
-      const tx = await contract.createMarketSale(nft.itemId, {
-        value: ethers.parseUnits(nft.price, "ether"),
-      });
-
-      await tx.wait();
-      toast.success("Purchase successful!");
-      fetchListedNFTs();
-    } catch (err: any) {
-      console.error("Buy failed:", err);
-      toast.error(err?.message || "Transaction failed");
-    } finally {
-      setBuyingTokenId(null);
-    }
+  const openBuyDialog = (nft: any) => {
+    setSelectedNFT(nft);
+    setIsDialogOpen(true);
   };
 
   useEffect(() => {
@@ -169,8 +160,8 @@ export default function ViewListedNFTs() {
             <Card key={index} className="overflow-hidden flex flex-col h-full">
               <div className="relative h-48 w-full bg-muted">
                 <Image
-                  src={nft.image}
-                  alt={nft.name}
+                  src={nft.metadata.image}
+                  alt={nft.metadata.name}
                   fill
                   className="object-cover"
                 />
@@ -178,13 +169,13 @@ export default function ViewListedNFTs() {
 
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{nft.name}</CardTitle>
+                  <CardTitle className="text-xl">{nft.metadata.name}</CardTitle>
                   <Badge variant="outline" className="text-xs">
                     Token ID #{nft.tokenId}
                   </Badge>
                 </div>
                 <CardDescription className="line-clamp-2">
-                  {nft.description}
+                  {nft.metadata.description}
                 </CardDescription>
               </CardHeader>
 
@@ -192,34 +183,38 @@ export default function ViewListedNFTs() {
                 <div className="text-xs text-muted-foreground mb-2">
                   Collection:{" "}
                   <span className="font-mono">
-                    {truncateAddress(nft.collection)}
+                    {truncateAddress(nft.marketItem.collection)}
                   </span>
                 </div>
                 <div className="font-semibold text-green-600">
-                  {nft.price} ETH
+                  {nft.metadata.price} ETH
                 </div>
               </CardContent>
 
               <CardFooter className="pt-0">
-                {nft.sold ? (
+                {nft.marketItem.sold ? (
                   <Button disabled className="w-full">
                     SOLD OUT
                   </Button>
                 ) : (
-                  <Button
-                    onClick={() => handleBuy(nft)}
-                    className="w-full"
-                    disabled={buyingTokenId === nft.tokenId}
-                  >
-                    {buyingTokenId === nft.tokenId
-                      ? "Processing..."
-                      : "Buy Now"}
+                  <Button onClick={() => openBuyDialog(nft)} className="w-full">
+                    Buy Now
                   </Button>
                 )}
               </CardFooter>
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Buy Dialog */}
+      {selectedNFT && (
+        <BuyNFTDialog
+          nft={selectedNFT}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          walletClient={window.ethereum}
+        />
       )}
     </div>
   );
