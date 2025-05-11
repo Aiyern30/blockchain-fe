@@ -1,6 +1,5 @@
 "use client";
 
-import { ChatBot } from "@/components/ChatBot";
 import { FloatingIcon } from "@/components/FloatingIcon";
 import Navbar from "@/components/Navbar";
 import { RoboAnimation } from "@/components/RoboAnimation";
@@ -48,8 +47,6 @@ const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       <div className="absolute inset-0 overflow-hidden z-0">
         <FloatingIcon count={4} />
       </div>
-
-      <ChatBot />
     </div>
   );
 };
