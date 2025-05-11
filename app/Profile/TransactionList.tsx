@@ -128,7 +128,7 @@ export function TransactionList({
                 </p>
               </div>
               <a
-                href={`https://etherscan.io/tx/${tx.hash}`}
+                href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 flex items-center gap-1 text-sm text-blue-600 hover:underline sm:mt-0"
