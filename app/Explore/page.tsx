@@ -114,6 +114,15 @@ export default function ExplorePage() {
       toast.error("Failed to load NFTs.");
     }
   };
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? collections.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === collections.length - 1 ? 0 : prev + 1));
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -134,41 +143,67 @@ export default function ExplorePage() {
 
       {collections.length > 0 && (
         <div
-          className="relative w-full h-[350px] sm:h-[450px] rounded-xl overflow-hidden mb-10 shadow-lg cursor-pointer group"
-          onClick={() => router.push(`/collection/${collections[0].address}`)}
+          className="relative w-full h-[350px] sm:h-[450px] rounded-xl overflow-hidden mb-10 shadow-lg group"
+          onClick={() =>
+            router.push(`/collection/${collections[currentIndex].address}`)
+          }
         >
           <Image
-            src={collections[0].image || "/placeholder.svg"}
-            alt={collections[0].name}
+            src={collections[currentIndex].image || "/placeholder.svg"}
+            alt={collections[currentIndex].name}
             fill
             className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
           />
+
+          {/* Overlay content */}
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col justify-end p-8">
             <h2 className="text-white text-3xl sm:text-5xl font-bold">
-              {collections[0].name}
+              {collections[currentIndex].name}
             </h2>
             <p className="text-white/80 mt-2 text-sm sm:text-base max-w-3xl">
-              {collections[0].description}
+              {collections[currentIndex].description}
             </p>
             <div className="mt-4 text-white text-sm">
               Address:{" "}
               <span className="font-mono">
-                {truncateAddress(collections[0].address)}
+                {truncateAddress(collections[currentIndex].address)}
               </span>
             </div>
-            {collections[0].externalLink && (
+            {collections[currentIndex].externalLink && (
               <Button
                 variant="outline"
                 className="mt-4 w-fit"
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent navigation
-                  window.open(collections[0].externalLink, "_blank");
+                  e.stopPropagation();
+                  window.open(collections[currentIndex].externalLink, "_blank");
                 }}
               >
                 Visit External Link
               </Button>
             )}
           </div>
+
+          {/* Left Arrow */}
+          <button
+            className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/40 text-white rounded-full p-2 hover:bg-black/70 transition"
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+
+          {/* Right Arrow */}
+          <button
+            className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/40 text-white rounded-full p-2 hover:bg-black/70 transition"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
         </div>
       )}
 
