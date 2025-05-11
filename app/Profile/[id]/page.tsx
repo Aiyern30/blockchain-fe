@@ -25,12 +25,14 @@ import { ProfileCollections } from "../ProfileCollection";
 import { ProfileWishlist } from "../ProfileWishlist";
 import { ProfileCart } from "../ProfileCart";
 import { useFilter } from "@/contexts/filter-context";
+import PurchasedNft from "../PurchasedNft";
 
 export default function ProfilePage() {
   const tabs = [
     { id: "collection", label: "Collection" },
     { id: "cart", label: "Cart" },
     { id: "wishlist", label: "Wishlist" },
+    { id: "purchasednft", label: "Purchased NFT" },
     { id: "transaction", label: "Transaction" },
   ];
 
@@ -131,26 +133,29 @@ export default function ProfilePage() {
   }, [walletAddress, activeTab, profileAddress]);
 
   const renderTabContent = () => {
-    if (activeTab === "transaction") {
-      if (!isConnected || profileAddress !== walletAddress) {
-        return null;
-      }
-
-      return (
-        <TransactionList
-          transactions={transactions}
-          isLoading={isLoadingTransactions}
-        />
-      );
-    }
+    const isOwner = isConnected && profileAddress === walletAddress;
 
     switch (activeTab) {
+      case "transaction":
+        return isOwner ? (
+          <TransactionList
+            transactions={transactions}
+            isLoading={isLoadingTransactions}
+          />
+        ) : null;
+
+      case "purchasednft":
+        return isOwner ? <PurchasedNft /> : null;
+
       case "collection":
         return <ProfileCollections />;
+
       case "cart":
         return <ProfileCart />;
+
       case "wishlist":
         return <ProfileWishlist />;
+
       default:
         return <EmptyState label={activeTab} />;
     }
@@ -267,7 +272,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="flex flex-col flex-grow items-center justify-center min-h-[300px]">
+        <div className="flex flex-col flex-grow items-center justify-center min-h-[50vh]">
           {renderTabContent()}
         </div>
       </div>
