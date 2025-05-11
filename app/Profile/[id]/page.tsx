@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
   Input,
 } from "@/components/ui/";
-import type { GridView } from "@/type/view";
 import { ViewSelector } from "@/components/ViewSelector";
 import { truncateAddress } from "@/utils/function";
 import { handleCopy, handleShare } from "@/utils/helper";
@@ -25,12 +24,15 @@ import { TransactionList } from "../TransactionList";
 import { ProfileCollections } from "../ProfileCollection";
 import { ProfileWishlist } from "../ProfileWishlist";
 import { ProfileCart } from "../ProfileCart";
+import { useFilter } from "@/contexts/filter-context";
+import PurchasedNft from "../PurchasedNft";
 
 export default function ProfilePage() {
   const tabs = [
     { id: "collection", label: "Collection" },
     { id: "cart", label: "Cart" },
     { id: "wishlist", label: "Wishlist" },
+    { id: "purchasednft", label: "Purchased NFT" },
     { id: "transaction", label: "Transaction" },
   ];
 
@@ -39,7 +41,6 @@ export default function ProfilePage() {
   console.log("Profile Address:", profileAddress);
   const { address: rainbowKitAddress, isConnected } = useAccount();
   const [activeTab, setActiveTab] = useState("collection");
-  const [gridView] = useState<GridView>("medium");
   const [joinedDate, setJoinedDate] = useState<string | null>(null);
   const [web3AuthAddress, setWeb3AuthAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +48,8 @@ export default function ProfilePage() {
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [transactionError, setTransactionError] = useState<string | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+
+  const { filter, setFilter } = useFilter();
 
   useEffect(() => {
     const storedAddress = localStorage.getItem("walletAddress");
@@ -130,26 +133,29 @@ export default function ProfilePage() {
   }, [walletAddress, activeTab, profileAddress]);
 
   const renderTabContent = () => {
-    if (activeTab === "transaction") {
-      if (!isConnected || profileAddress !== walletAddress) {
-        return null;
-      }
-
-      return (
-        <TransactionList
-          transactions={transactions}
-          isLoading={isLoadingTransactions}
-        />
-      );
-    }
+    const isOwner = isConnected && profileAddress === walletAddress;
 
     switch (activeTab) {
+      case "transaction":
+        return isOwner ? (
+          <TransactionList
+            transactions={transactions}
+            isLoading={isLoadingTransactions}
+          />
+        ) : null;
+
+      case "purchasednft":
+        return isOwner ? <PurchasedNft /> : null;
+
       case "collection":
-        return <ProfileCollections view={gridView} />;
+        return <ProfileCollections />;
+
       case "cart":
-        return <ProfileCart view={gridView} />;
+        return <ProfileCart />;
+
       case "wishlist":
-        return <ProfileWishlist view={gridView} />;
+        return <ProfileWishlist />;
+
       default:
         return <EmptyState label={activeTab} />;
     }
@@ -252,51 +258,21 @@ export default function ProfilePage() {
         ) : (
           <div className="mt-4 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col md:flex-row w-full gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full md:w-auto"
-                  >
-                    Status
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>All</DropdownMenuItem>
-                  <DropdownMenuItem>Active</DropdownMenuItem>
-                  <DropdownMenuItem>Inactive</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full md:w-auto"
-                  >
-                    Chains
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>Ethereum</DropdownMenuItem>
-                  <DropdownMenuItem>Polygon</DropdownMenuItem>
-                  <DropdownMenuItem>Optimism</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               <div className="relative w-full">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search by name" className="pl-8 w-full" />
+                <Input
+                  placeholder="Search by name"
+                  className="pl-8 w-full"
+                  value={filter.searchQuery}
+                  onChange={(e) => setFilter({ searchQuery: e.target.value })}
+                />
               </div>
             </div>
-
-            <ViewSelector className="w-full md:w-auto" />
+            <ViewSelector className="mb-4" />
           </div>
         )}
 
-        <div className="flex flex-col flex-grow items-center justify-center min-h-[300px]">
+        <div className="flex flex-col flex-grow items-center justify-center min-h-[50vh]">
           {renderTabContent()}
         </div>
       </div>

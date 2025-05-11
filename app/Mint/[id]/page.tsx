@@ -84,6 +84,7 @@ import { ResellNFTDialog } from "@/components/page/ResellNftDialog";
 import { useForm } from "react-hook-form";
 import { canResell, isNFTOwner } from "@/utils/nft-utils";
 import { BurnNFTDialog } from "@/components/page/BurnNftDialog";
+import { CancelNftDialog } from "@/components/page/CancelNftDialog";
 
 const SERVICE_FEE_ETH = "0.0015";
 
@@ -152,11 +153,13 @@ export default function CollectionNFTsPage() {
   // State for listing dialog
   const [showListingForm, setShowListingForm] = useState(false);
   const [listingNFT, setListingNFT] = useState<CollectionNFT | null>(null);
+  console.log("Listing NFT:", listingNFT);
   const [isListing, setIsListing] = useState(false);
   const [listingStatus, setListingStatus] = useState("");
 
   // State for burn confirmation
   const [showBurnConfirmation, setShowBurnConfirmation] = useState(false);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
 
   // State for attribute dialog
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -168,6 +171,7 @@ export default function CollectionNFTsPage() {
   // State for buy NFT dialog
   const [showBuyDialog, setShowBuyDialog] = useState(false);
   const [buyNFT, setBuyNFT] = useState<CollectionNFT | null>(null);
+  console.log("Buy NFT:", buyNFT);
 
   // Add these state variables near your other state declarations
   const [showResellForm, setShowResellForm] = useState(false);
@@ -623,6 +627,17 @@ export default function CollectionNFTsPage() {
     setListingNFT(nft);
     setShowBurnConfirmation(true);
   };
+  const openCancelConfirmation = (nft: CollectionNFT, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!isNFTOwner(nft, userAddress)) {
+      toast.error("Only the NFT owner can burn this NFT");
+      return;
+    }
+
+    setListingNFT(nft);
+    setShowCancelConfirmation(true);
+  };
 
   // Replace the handleBuyNowClick function with this updated version
   const handleBuyNowClick = (nft: CollectionNFT, e: React.MouseEvent) => {
@@ -934,8 +949,6 @@ export default function CollectionNFTsPage() {
       setIsListing(false);
     }
   };
-
-  // Add these functions after your other handler functions
 
   // Function to cancel a listing
   const handleCancelListing = async (
@@ -1712,6 +1725,7 @@ export default function CollectionNFTsPage() {
                               e.stopPropagation();
                               setShowNFTDetails(false);
                               handleCancelListing(selectedNFT, e as any);
+                              openCancelConfirmation(selectedNFT, e as any);
                             }}
                           >
                             <X className="h-4 w-4 mr-2" />
@@ -2075,6 +2089,14 @@ export default function CollectionNFTsPage() {
           onOpenChange={setShowBurnConfirmation}
           walletClient={walletClient}
           collectionAddress={collectionAddress}
+          onSuccess={refreshNFTData}
+        />
+        {/* Burn NFT Dialog */}
+        <CancelNftDialog
+          nft={listingNFT}
+          open={showCancelConfirmation}
+          onOpenChange={setShowCancelConfirmation}
+          walletClient={walletClient}
           onSuccess={refreshNFTData}
         />
 
