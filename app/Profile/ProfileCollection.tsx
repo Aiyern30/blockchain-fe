@@ -259,7 +259,7 @@ export function ProfileCollections() {
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 w-full">
       <div className={`grid ${gridColumns[view]} gap-4`}>
         {filteredCollections.map((collection) => (
           <Card
