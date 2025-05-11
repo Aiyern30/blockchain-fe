@@ -64,7 +64,7 @@ export function TransactionList({
   }
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-6 space-y-4 w-full">
       {currentTransactions.map((tx, index) => (
         <Card
           key={`${tx.hash}-${tx.type}-${index}`}
