@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import { getERC721Contract } from "@/lib/erc721Config";
@@ -20,8 +20,8 @@ import {
 } from "@/components/ui";
 import { useRouter } from "next/navigation";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
-import type { GridView } from "@/type/view";
 import CardEmptyUI from "@/components/CardEmptyUI";
+import { useFilter } from "@/contexts/filter-context";
 
 interface CollectionDetail {
   address: string;
@@ -31,14 +31,12 @@ interface CollectionDetail {
   externalLink: string;
 }
 
-interface ProfileCollectionsProps {
-  view: GridView;
-}
-
-export function ProfileCollections({ view }: ProfileCollectionsProps) {
+export function ProfileCollections() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const { filter } = useFilter();
+  const { view, searchQuery } = filter;
 
   const [collectionDetails, setCollectionDetails] = useState<
     CollectionDetail[]
@@ -92,6 +90,19 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
     fetchCollections();
   }, [address, isConnected, walletClient]);
 
+  // Filter collections based on search query
+  const filteredCollections = useMemo(() => {
+    if (!searchQuery) return collectionDetails;
+
+    const query = searchQuery.toLowerCase();
+    return collectionDetails.filter(
+      (collection) =>
+        collection.name.toLowerCase().includes(query) ||
+        collection.description.toLowerCase().includes(query) ||
+        collection.address.toLowerCase().includes(query)
+    );
+  }, [collectionDetails, searchQuery]);
+
   const navigateToCollections = (address: string) => {
     router.push(`/Mint/${address}`);
   };
@@ -128,9 +139,7 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
     }
 
     return (
-      <div
-        className={`mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4`}
-      >
+      <div className={`mt-6 grid ${gridColumns[view]} gap-4`}>
         {Array(4)
           .fill(0)
           .map((_, i) => (
@@ -161,15 +170,31 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
     );
   }
 
-  if (collectionDetails.length === 0) {
+  if (filteredCollections.length === 0) {
+    if (collectionDetails.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-center">
+          <CardEmptyUI
+            title="No collections found"
+            description="You haven't created any NFT collections yet!"
+            buttonText="Create Your First Collection"
+            type="collection"
+          />
+        </div>
+      );
+    }
+
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-center">
-        <CardEmptyUI
-          title="No collections found"
-          description="You haven't created any NFT collections yet!"
-          buttonText="Create Your First Collection"
-          type="collection"
-        />
+      <div className="flex flex-col items-center justify-center min-h-[40vh] w-full text-center">
+        <div className="p-8 rounded-lg border max-w-md">
+          <h3 className="text-xl font-semibold mb-2">
+            No matching collections
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            No collections match your search criteria. Try adjusting your
+            search.
+          </p>
+        </div>
       </div>
     );
   }
@@ -178,7 +203,7 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
     return (
       <div className="mt-6 w-full">
         <div className="space-y-2 w-full">
-          {collectionDetails.map((collection) => (
+          {filteredCollections.map((collection) => (
             <div
               key={collection.address}
               className="flex w-full items-center justify-between border rounded-lg px-6 py-4 hover:bg-muted/50 cursor-pointer transition-colors"
@@ -236,7 +261,7 @@ export function ProfileCollections({ view }: ProfileCollectionsProps) {
   return (
     <div className="mt-6">
       <div className={`grid ${gridColumns[view]} gap-4`}>
-        {collectionDetails.map((collection) => (
+        {filteredCollections.map((collection) => (
           <Card
             key={collection.address}
             className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border hover:border-primary"
