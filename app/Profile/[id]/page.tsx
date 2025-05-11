@@ -148,7 +148,7 @@ export default function ProfilePage() {
 
     switch (activeTab) {
       case "collection":
-        return <ProfileCollections view={gridView} />;
+        return <ProfileCollections />;
       case "cart":
         return <ProfileCart view={gridView} />;
       case "wishlist":
