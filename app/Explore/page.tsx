@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
-import { useAccount } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "sonner";
 import Image from "next/image";
 import {
@@ -20,24 +20,29 @@ import {
 } from "@/components/ui";
 import CardEmptyUI from "@/components/CardEmptyUI";
 import { truncateAddress, formatImageUrl } from "@/utils/function";
-import { getMarketplaceFactoryContract } from "@/lib/erc721Config";
+import { getERC721Contract } from "@/lib/erc721Config";
 import { BuyNFTDialog } from "@/components/page/BuyNFTDialog";
 
 export default function ViewListedNFTs() {
+  const { data: walletClient } = useWalletClient();
   const { isConnected } = useAccount();
+
   const [nfts, setNfts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNFT, setSelectedNFT] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const fetchListedNFTs = async () => {
+  const fetchListedNFTs = useCallback(async () => {
     try {
       setLoading(true);
       if (!window.ethereum) throw new Error("MetaMask not detected");
+      if (!walletClient) return;
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = getMarketplaceFactoryContract(provider);
-      const items = await contract.fetchMarketItems();
+      const provider = new ethers.BrowserProvider(walletClient);
+      const signer = await provider.getSigner();
+      const nftContract = getERC721Contract(signer);
+
+      const items = await nftContract.fetchMarketItems();
 
       const enrichedItems = await Promise.all(
         items.map(async (item: any) => {
@@ -109,7 +114,7 @@ export default function ViewListedNFTs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [walletClient]);
 
   const openBuyDialog = (nft: any) => {
     setSelectedNFT(nft);
@@ -118,7 +123,7 @@ export default function ViewListedNFTs() {
 
   useEffect(() => {
     if (isConnected) fetchListedNFTs();
-  }, [isConnected]);
+  }, [isConnected, fetchListedNFTs]);
 
   return (
     <div className="container mx-auto py-8 px-4 min-h-[calc(100vh-120px)] flex flex-col">
