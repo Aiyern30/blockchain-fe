@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -54,7 +55,7 @@ export default function ViewListedNFTs() {
             return null;
           }
 
-          let metadataURL = tokenURI.startsWith("ipfs://")
+          const metadataURL = tokenURI.startsWith("ipfs://")
             ? tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
             : tokenURI;
 
@@ -157,9 +158,11 @@ export default function ViewListedNFTs() {
         </div>
       ) : nfts.length === 0 ? (
         <CardEmptyUI
-            title="No NFTs found"
-            description="There are no NFTs currently listed in the marketplace."
-            type="collection" buttonText={""}        />
+          title="No NFTs found"
+          description="There are no NFTs currently listed in the marketplace."
+          type="collection"
+          buttonText={""}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {nfts.map((nft, index) => (
