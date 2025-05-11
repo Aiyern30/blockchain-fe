@@ -1,17 +1,20 @@
+// context/FilterContext.tsx
 "use client";
-import { GridView } from "@/type/view";
 import { createContext, useContext, useState } from "react";
+import type { GridView } from "@/type/view";
 
 export type FilterState = {
   category: string;
   sort: string;
   view: GridView;
+  searchQuery: string;
 };
 
 const defaultFilter: FilterState = {
   category: "All",
   sort: "Newest",
   view: "medium",
+  searchQuery: "",
 };
 
 const FilterContext = createContext<{

@@ -13,6 +13,13 @@ interface ViewSelectorProps {
   className?: string;
 }
 
+const viewOptions: { view: GridView; icon: JSX.Element }[] = [
+  { view: "list", icon: <FaListUl className="h-4 w-4" /> },
+  { view: "small", icon: <TfiLayoutGrid4 className="h-4 w-4" /> },
+  { view: "medium", icon: <BsGrid3X3 className="h-4 w-4" /> },
+  { view: "large", icon: <SlGrid className="h-4 w-4" /> },
+];
+
 export function ViewSelector({ className }: ViewSelectorProps) {
   const { filter, setFilter } = useFilter();
   const selectedView = filter.view;
@@ -31,50 +38,20 @@ export function ViewSelector({ className }: ViewSelectorProps) {
 
   return (
     <div className={`flex space-x-2 ${className || ""}`}>
-      <Button
-        onClick={() => handleViewChange("list")}
-        className={`rounded-md border px-4 py-2 ${
-          selectedView === "list"
-            ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
-            : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
-        }`}
-        size="icon"
-      >
-        <FaListUl className="h-4 w-4" />
-      </Button>
-      <Button
-        onClick={() => handleViewChange("small")}
-        className={`rounded-md border px-4 py-2 ${
-          selectedView === "small"
-            ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
-            : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
-        }`}
-        size="icon"
-      >
-        <TfiLayoutGrid4 className="h-4 w-4" />
-      </Button>
-      <Button
-        onClick={() => handleViewChange("medium")}
-        className={`rounded-md border px-4 py-2 ${
-          selectedView === "medium"
-            ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
-            : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
-        }`}
-        size="icon"
-      >
-        <BsGrid3X3 className="h-4 w-4" />
-      </Button>
-      <Button
-        onClick={() => handleViewChange("large")}
-        className={`rounded-md border px-4 py-2 ${
-          selectedView === "large"
-            ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
-            : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
-        }`}
-        size="icon"
-      >
-        <SlGrid className="h-4 w-4" />
-      </Button>
+      {viewOptions.map(({ view, icon }) => (
+        <Button
+          key={view}
+          onClick={() => handleViewChange(view)}
+          className={`rounded-md border px-4 py-2 ${
+            selectedView === view
+              ? "bg-[#7b3fe4] text-white hover:bg-purple-900 dark:bg-blue-900 dark:hover:bg-blue-700"
+              : "hover:bg-purple-800 dark:hover:bg-blue-800 hover:text-white"
+          }`}
+          size="icon"
+        >
+          {icon}
+        </Button>
+      ))}
     </div>
   );
 }

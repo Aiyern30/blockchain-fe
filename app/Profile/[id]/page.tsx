@@ -25,6 +25,7 @@ import { TransactionList } from "../TransactionList";
 import { ProfileCollections } from "../ProfileCollection";
 import { ProfileWishlist } from "../ProfileWishlist";
 import { ProfileCart } from "../ProfileCart";
+import { useFilter } from "@/contexts/filter-context";
 
 export default function ProfilePage() {
   const tabs = [
@@ -47,6 +48,8 @@ export default function ProfilePage() {
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [transactionError, setTransactionError] = useState<string | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+
+  const { filter, setFilter } = useFilter();
 
   useEffect(() => {
     const storedAddress = localStorage.getItem("walletAddress");
@@ -252,47 +255,17 @@ export default function ProfilePage() {
         ) : (
           <div className="mt-4 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col md:flex-row w-full gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full md:w-auto"
-                  >
-                    Status
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>All</DropdownMenuItem>
-                  <DropdownMenuItem>Active</DropdownMenuItem>
-                  <DropdownMenuItem>Inactive</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full md:w-auto"
-                  >
-                    Chains
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>Ethereum</DropdownMenuItem>
-                  <DropdownMenuItem>Polygon</DropdownMenuItem>
-                  <DropdownMenuItem>Optimism</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               <div className="relative w-full">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search by name" className="pl-8 w-full" />
+                <Input
+                  placeholder="Search by name"
+                  className="pl-8 w-full"
+                  value={filter.searchQuery}
+                  onChange={(e) => setFilter({ searchQuery: e.target.value })}
+                />
               </div>
             </div>
-
-            <ViewSelector className="w-full md:w-auto" />
+            <ViewSelector className="mb-4" />
           </div>
         )}
 
