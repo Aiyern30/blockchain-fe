@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
 import { toast } from "sonner";
@@ -21,12 +21,16 @@ import { truncateAddress, formatImageUrl } from "@/utils/function";
 import { getMarketplaceFactoryContract } from "@/lib/erc721Config";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 
 export default function ExplorePage() {
   const router = useRouter();
+  const { isConnected } = useAccount();
+
   const [collections, setCollections] = useState<any[]>([]);
   const [nfts, setNfts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buyingTokenId, setBuyingTokenId] = useState<number | null>(null);
 
   const fetchCollections = async (provider: any, contract: any) => {
     try {
@@ -111,6 +115,47 @@ export default function ExplorePage() {
   const handleNext = () => {
     setCurrentIndex((prev) => (prev === collections.length - 1 ? 0 : prev + 1));
   };
+  const reloadListedNFTs = useCallback(async () => {
+    if (!window.ethereum) {
+      console.warn("MetaMask not found");
+      return;
+    }
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const contract = getMarketplaceFactoryContract(provider);
+    await fetchListedNFTs(provider, contract);
+  }, []);
+  const handleBuy = async (nft: any) => {
+    try {
+      setBuyingTokenId(nft.tokenId); // Start loading
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = getMarketplaceFactoryContract(signer);
+
+      const tx = await contract.createMarketSale(nft.itemId, {
+        value: ethers.parseUnits(nft.price, "ether"),
+      });
+
+      await tx.wait();
+      toast.success("🎉 Purchase successful!");
+
+      reloadListedNFTs();
+    } catch (error: any) {
+      console.error("Error purchasing NFT:", error);
+
+      if (error.code === "ACTION_REJECTED" || error.code === 4001) {
+        toast.error("Transaction cancelled by user");
+      } else {
+        toast.error(`Failed to purchase NFT: ${error.message}`);
+      }
+    } finally {
+      setBuyingTokenId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (isConnected) reloadListedNFTs();
+  }, [isConnected, reloadListedNFTs]);
 
   useEffect(() => {
     const init = async () => {
@@ -247,8 +292,40 @@ export default function ExplorePage() {
                 <p className="text-green-600 font-bold">{nft.price} ETH</p>
               </CardContent>
               <CardFooter className="pt-0">
-                <Button disabled={nft.sold} className="w-full">
-                  {nft.sold ? "SOLD OUT" : "Buy Now"}
+                <Button
+                  disabled={nft.sold || buyingTokenId === nft.tokenId}
+                  className="w-full"
+                  onClick={() => handleBuy(nft)}
+                >
+                  {buyingTokenId === nft.tokenId ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8H4z"
+                        ></path>
+                      </svg>
+                      Processing...
+                    </div>
+                  ) : nft.sold ? (
+                    "SOLD OUT"
+                  ) : (
+                    "Buy Now"
+                  )}
                 </Button>
               </CardFooter>
             </Card>
