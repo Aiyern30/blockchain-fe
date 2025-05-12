@@ -148,7 +148,7 @@ export default function ProfilePage() {
         return isOwner ? <PurchasedNft /> : null;
 
       case "collection":
-        return <ProfileCollections profileAddress={profileAddress} />;
+        return <ProfileCollections />;
 
       case "cart":
         return <ProfileCart />;
