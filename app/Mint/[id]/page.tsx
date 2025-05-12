@@ -85,6 +85,7 @@ import { useForm } from "react-hook-form";
 import { canResell, isNFTOwner } from "@/utils/nft-utils";
 import { BurnNFTDialog } from "@/components/page/BurnNftDialog";
 import { CancelNftDialog } from "@/components/page/CancelNftDialog";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const SERVICE_FEE_ETH = "0.0015";
 
@@ -1035,11 +1036,16 @@ export default function CollectionNFTsPage() {
 
   if (showMintingUI) {
     return (
-      <NFTMintingUI
-        status={mintingStatus}
-        txHash={txHash}
-        onRetry={handleRetry}
-      />
+      <ConnectButton.Custom>
+        {({ openConnectModal }) => (
+          <NFTMintingUI
+            status={mintingStatus}
+            txHash={txHash}
+            onRetry={handleRetry}
+            openConnectModal={openConnectModal}
+          />
+        )}
+      </ConnectButton.Custom>
     );
   }
 

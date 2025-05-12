@@ -14,20 +14,29 @@ import {
 import { StagingStatus } from "@/type/stagingStatus";
 import { STATUS_STAGES } from "@/type/StatusStages";
 import { useRouter } from "next/navigation";
+import { useWalletClient } from "wagmi";
+import { useEffect } from "react";
 
 interface NFTMintingUIProps {
   status: StagingStatus;
   txHash?: string[] | null;
   onRetry: () => void;
+  openConnectModal: () => void;
 }
 
 export default function NFTMintingUI({
   status,
   txHash,
   onRetry,
+  openConnectModal,
 }: NFTMintingUIProps) {
   const router = useRouter();
-
+  const { data: walletClient } = useWalletClient();
+  useEffect(() => {
+    if (!walletClient?.account.address) {
+      openConnectModal();
+    }
+  }, [walletClient, openConnectModal]);
   const handleViewCollection = () => {
     router.push("/Mint");
   };
