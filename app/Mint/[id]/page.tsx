@@ -67,7 +67,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useWalletClient } from "wagmi";
 import { z } from "zod";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import type { CollectionNFT } from "@/type/CollectionNFT";
 import type { MarketItem } from "@/lib/erc721Config";
 import { STATUS_STAGES } from "@/type/StatusStages";
@@ -86,7 +86,6 @@ import { canResell, isNFTOwner } from "@/utils/nft-utils";
 import { BurnNFTDialog } from "@/components/page/BurnNftDialog";
 import { CancelNftDialog } from "@/components/page/CancelNftDialog";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-
 const SERVICE_FEE_ETH = "0.0015";
 
 const attributeSchema = z.object({
@@ -126,6 +125,7 @@ type AttributeFormValues = z.infer<typeof attributeSchema>;
 type ListingFormValues = z.infer<typeof ListingFormSchema>;
 
 export default function CollectionNFTsPage() {
+  const router = useRouter();
   const params = useParams();
   const collectionAddress = params.id as string;
   const MAX_FILE_SIZE = 50 * 1024 * 1024;
@@ -1880,12 +1880,47 @@ export default function CollectionNFTsPage() {
                         <p>
                           <span className="font-medium">Owner:</span>{" "}
                           <span
-                            onClick={() => handleCopy(selectedNFT.owner)}
+                            onClick={() => {
+                              router.push(`/Profile/${selectedNFT.owner}`);
+                              setShowNFTDetails(false);
+                            }}
                             className="cursor-pointer text-blue-600 underline"
-                            title="Click to copy"
+                            title="Click to view profile"
                           >
                             {selectedNFT.owner}
                           </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 ml-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopy(selectedNFT.owner);
+                            }}
+                            title="Copy address"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <rect
+                                width="14"
+                                height="14"
+                                x="8"
+                                y="8"
+                                rx="2"
+                                ry="2"
+                              />
+                              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                            </svg>
+                          </Button>
                         </p>
                         <p className="break-all">
                           <span className="font-medium">Metadata URL:</span>{" "}
