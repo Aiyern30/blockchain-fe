@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "sonner";
 import { ExternalLink, Info } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import {
   Card,
@@ -33,6 +34,7 @@ import { useFilter } from "@/contexts/filter-context";
 import { useCurrency } from "@/contexts/currency-context";
 
 export function PurchasedNft() {
+  const router = useRouter();
   const { data: walletClient } = useWalletClient();
   const { isConnected } = useAccount();
   const { filter } = useFilter();
@@ -681,12 +683,47 @@ export function PurchasedNft() {
                       <p>
                         <span className="font-medium">Owner:</span>{" "}
                         <span
-                          onClick={() => handleCopy(selectedNFT.owner)}
+                          onClick={() => {
+                            router.push(`/Profile/${selectedNFT.owner}`);
+                            setShowNFTDetails(false);
+                          }}
                           className="cursor-pointer text-blue-600 underline"
-                          title="Click to copy"
+                          title="Click to view profile"
                         >
                           {selectedNFT.owner}
                         </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 ml-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(selectedNFT.owner);
+                          }}
+                          title="Copy address"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <rect
+                              width="14"
+                              height="14"
+                              x="8"
+                              y="8"
+                              rx="2"
+                              ry="2"
+                            />
+                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                          </svg>
+                        </Button>
                       </p>
                       <p className="break-all">
                         <span className="font-medium">Metadata URL:</span>{" "}
