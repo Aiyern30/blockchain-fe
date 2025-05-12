@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useAccount, useWalletClient } from "wagmi";
+import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import { getERC721Contract } from "@/lib/erc721Config";
 import { toast } from "sonner";
@@ -30,10 +30,13 @@ interface CollectionDetail {
   image: string;
   externalLink: string;
 }
-
-export function ProfileCollections() {
+interface ProfileCollectionsProps {
+  profileAddress: string;
+}
+export function ProfileCollections({
+  profileAddress,
+}: ProfileCollectionsProps) {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { filter } = useFilter();
   const { view, searchQuery } = filter;
@@ -47,7 +50,7 @@ export function ProfileCollections() {
     const fetchCollections = async () => {
       setIsLoading(true);
 
-      if (!isConnected || !address || !walletClient) {
+      if (!profileAddress || !walletClient) {
         setIsLoading(false);
         return;
       }
@@ -57,7 +60,9 @@ export function ProfileCollections() {
         const signer = await provider.getSigner();
         const nftContract = getERC721Contract(signer);
 
-        const addresses: string[] = await nftContract.getMyCollections();
+        const addresses: string[] = await nftContract.getUserCollections(
+          profileAddress
+        );
 
         if (addresses.length === 0) {
           setCollectionDetails([]);
@@ -80,15 +85,15 @@ export function ProfileCollections() {
 
         setCollectionDetails(details);
       } catch (error) {
-        console.error("Failed to fetch collections or details:", error);
-        toast.error("Failed to load your collections. Please try again.");
+        console.error("Error fetching collections:", error);
+        toast.error("Failed to fetch collections.");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchCollections();
-  }, [address, isConnected, walletClient]);
+  }, [profileAddress, walletClient]);
 
   // Filter collections based on search query
   const filteredCollections = useMemo(() => {
