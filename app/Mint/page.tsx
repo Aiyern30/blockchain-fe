@@ -119,9 +119,9 @@ export default function CollectionsPage() {
               }
             );
             openConnectModal();
-            setShouldOpenModal(false); // Prevent multiple triggers
+            setShouldOpenModal(false);
           }
-          return null; // No UI needed here
+          return null;
         }}
       </ConnectButton.Custom>
 
