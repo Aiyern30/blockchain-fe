@@ -23,10 +23,10 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
     type === "cart"
       ? "/Cart.svg"
       : type === "wishlist"
-      ? "/collection.svg"
+      ? "/shopping-cart.svg"
       : type === "profile"
       ? "/connect-wallet.svg"
-      : "/shopping-cart.svg";
+      : "/collection.svg";
 
   const router = useRouter();
 
@@ -48,7 +48,7 @@ const CardEmptyUI: React.FC<CardEmptyUIProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center">
+    <div className="flex flex-col items-center justify-center flex-1 text-center">
       <div className="relative w-[200px] h-[200px]">
         <Image
           src={imageSrc}
