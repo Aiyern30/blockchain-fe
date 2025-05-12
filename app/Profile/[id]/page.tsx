@@ -164,15 +164,16 @@ export default function ProfilePage() {
   return (
     <div className="h-[calc(100vh-128px)] bg-background text-foreground overflow-auto">
       <div className="px-4 py-6">
-        <div className="flex items-center justify-between w-full gap-4 py-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
             <code
-              className="cursor-pointer flex items-center gap-2 text-sm font-mono bg-muted px-2 py-1 rounded"
+              className="cursor-pointer flex items-center gap-2 text-sm font-mono bg-muted px-2 py-1 rounded w-fit"
               onClick={() => handleCopy(walletAddress ?? "")}
             >
               {truncateAddress(walletAddress ?? "")}
               <Copy className="w-4 h-4 text-muted-foreground" />
             </code>
+
             {isLoading ? (
               <span className="text-sm text-muted-foreground"></span>
             ) : (
@@ -184,7 +185,7 @@ export default function ProfilePage() {
             )}
 
             {walletAddress && profileAddress && (
-              <span className="text-xl text-muted-foreground italic">
+              <span className="text-sm sm:text-base text-muted-foreground italic break-words sm:whitespace-nowrap">
                 {walletAddress.toLowerCase() === profileAddress.toLowerCase()
                   ? "You are viewing your profile."
                   : "You are viewing another user's profile."}
@@ -192,7 +193,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-end sm:justify-start">
             <Button
               variant="outline"
               size="icon"
