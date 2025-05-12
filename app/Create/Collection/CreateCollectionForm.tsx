@@ -39,6 +39,7 @@ import type { StagingStatus } from "@/type/stagingStatus";
 import NFTMintingUI from "@/components/page/Drop/NFTMintingUI";
 import { uploadToIPFS } from "@/utils/uploadIPFS";
 import { STATUS_STAGES } from "@/type/StatusStages";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const collectionFormSchema = z.object({
   name: z
@@ -206,11 +207,16 @@ export function CreateCollectionForm() {
 
   if (showMintingUI) {
     return (
-      <NFTMintingUI
-        status={mintingStatus}
-        txHash={txHash}
-        onRetry={handleRetry}
-      />
+      <ConnectButton.Custom>
+        {({ openConnectModal }) => (
+          <NFTMintingUI
+            status={mintingStatus}
+            txHash={txHash}
+            onRetry={handleRetry}
+            openConnectModal={openConnectModal}
+          />
+        )}
+      </ConnectButton.Custom>
     );
   }
 
