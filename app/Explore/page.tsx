@@ -145,7 +145,7 @@ export default function ExplorePage() {
         <div
           className="relative w-full h-[350px] sm:h-[450px] rounded-xl overflow-hidden mb-10 shadow-lg group"
           onClick={() =>
-            router.push(`/collection/${collections[currentIndex].address}`)
+            router.push(`/Mint/${collections[currentIndex].address}`)
           }
         >
           <Image
