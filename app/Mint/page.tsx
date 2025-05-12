@@ -21,6 +21,7 @@ import {
 import CardEmptyUI from "@/components/CardEmptyUI";
 import { useRouter } from "next/navigation";
 import { formatImageUrl, truncateAddress } from "@/utils/function";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 interface CollectionDetail {
   address: string;
@@ -39,18 +40,20 @@ export default function CollectionsPage() {
     CollectionDetail[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [shouldOpenModal, setShouldOpenModal] = useState(false);
+
+  // Check connection status and set modal state accordingly
+  useEffect(() => {
+    if (!isConnected) {
+      setShouldOpenModal(true);
+    }
+  }, [isConnected]);
 
   useEffect(() => {
     const fetchCollections = async () => {
       setIsLoading(true);
 
       if (!isConnected || !address || !walletClient) {
-        toast.warning("Please connect your wallet to view your collections", {
-          style: {
-            backgroundColor: "#f59e0b",
-            color: "white",
-          },
-        });
         setIsLoading(false);
         return;
       }
@@ -103,6 +106,25 @@ export default function CollectionsPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 min-h-[calc(100vh-120px)] flex flex-col">
+      <ConnectButton.Custom>
+        {({ openConnectModal }) => {
+          if (shouldOpenModal) {
+            toast.warning(
+              "Please connect your wallet to view your collections",
+              {
+                style: {
+                  backgroundColor: "#f59e0b",
+                  color: "white",
+                },
+              }
+            );
+            openConnectModal();
+            setShouldOpenModal(false); // Prevent multiple triggers
+          }
+          return null; // No UI needed here
+        }}
+      </ConnectButton.Custom>
+
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">My NFT Collections</h1>
@@ -137,8 +159,7 @@ export default function CollectionsPage() {
       ) : collectionDetails.length === 0 ? (
         <CardEmptyUI
           title="No collections found"
-          description="You haven't created any NFT collections yet! Start by creating
-            your first collection."
+          description="You haven't created any NFT collections yet! Start by creating your first collection."
           buttonText="Create Your First Collection"
           type="collection"
         />
