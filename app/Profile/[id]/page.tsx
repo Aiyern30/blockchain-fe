@@ -272,7 +272,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="flex flex-col flex-grow items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col flex-grow items-center min-h-[50vh]">
           {renderTabContent()}
         </div>
       </div>
