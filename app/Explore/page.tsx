@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
-import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import Image from "next/image";
 import {
@@ -25,7 +24,6 @@ import { useRouter } from "next/navigation";
 
 export default function ExplorePage() {
   const router = useRouter();
-  const { isConnected } = useAccount();
   const [collections, setCollections] = useState<any[]>([]);
   const [nfts, setNfts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,15 +115,20 @@ export default function ExplorePage() {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      if (!window.ethereum) return;
+      if (!window.ethereum) {
+        console.warn("MetaMask not found");
+        setLoading(false);
+        return;
+      }
       const provider = new ethers.BrowserProvider(window.ethereum);
       const contract = getMarketplaceFactoryContract(provider);
       await fetchCollections(provider, contract);
       await fetchListedNFTs(provider, contract);
       setLoading(false);
     };
-    if (isConnected) init();
-  }, [isConnected]);
+
+    init();
+  }, []);
 
   return (
     <div className="container mx-auto py-8 px-4">
