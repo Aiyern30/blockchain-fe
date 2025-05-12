@@ -289,16 +289,19 @@ export function PurchasedNft() {
                     <p className="text-sm text-muted-foreground line-clamp-1">
                       {nft.metadata.description || "No description provided"}
                     </p>
-                    <div className="flex justify-between items-center mt-1">
-                      <p className="text-xs text-muted-foreground truncate">
-                        Collection:{" "}
-                        <span className="font-mono">
-                          {truncateAddress(nft.marketItem.collection)}
-                        </span>
-                      </p>
-                      <p className="text-sm font-semibold text-green-600">
-                        {nft.metadata.price} ETH
-                      </p>
+                    <div className="text-xs text-muted-foreground mb-2">
+                      Collection:{" "}
+                      <span
+                        className="font-mono text-blue-600 underline "
+                        onClick={() => {
+                          router.push(`/Mint/${nft.marketItem.collection}`);
+                        }}
+                      >
+                        {truncateAddress(nft.marketItem.collection)}
+                      </span>
+                    </div>
+                    <div className="font-semibold text-green-600">
+                      {nft.metadata.price} ETH
                     </div>
                   </div>
                 </div>
@@ -520,10 +523,16 @@ export function PurchasedNft() {
                   {nft.metadata.description || "No description provided"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="py-2 flex-grow">
+              <CardContent
+                className="py-2 flex-grow cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/Mint/${nft.marketItem.collection}`);
+                }}
+              >
                 <div className="text-xs text-muted-foreground mb-2">
                   Collection:{" "}
-                  <span className="font-mono">
+                  <span className="font-mono text-blue-600 underline">
                     {truncateAddress(nft.marketItem.collection)}
                   </span>
                 </div>
