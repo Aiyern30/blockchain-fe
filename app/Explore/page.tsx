@@ -177,7 +177,7 @@ export default function ExplorePage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">Explore</h1>
+      <h1 className="text-3xl font-bold mb-6 text-white">Explore</h1>
 
       {collections.length > 0 && (
         <div
@@ -245,7 +245,7 @@ export default function ExplorePage() {
         </div>
       )}
 
-      <h2 className="text-2xl font-bold mb-4">Listed NFTs</h2>
+      <h2 className="text-2xl font-bold mb-4 text-white">Listed NFTs</h2>
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (

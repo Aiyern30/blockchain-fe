@@ -127,7 +127,7 @@ export default function CollectionsPage() {
 
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">My NFT Collections</h1>
+          <h1 className="text-3xl font-bold text-white">My NFT Collections</h1>
           <p className="text-muted-foreground mt-1">
             View and manage your created NFT collections
           </p>

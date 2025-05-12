@@ -32,7 +32,7 @@ export default function CreatePage() {
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="flex items-center gap-3 text-white">
           <Package className="w-8 h-8" />
-          <h1 className="text-4xl font-bold">Create</h1>
+          <h1 className="text-4xl font-bold text-white">Create</h1>
         </div>
 
         <div className="space-y-6">
