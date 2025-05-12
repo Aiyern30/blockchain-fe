@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
 import { useAccount } from "wagmi";
@@ -8,7 +9,6 @@ import { toast } from "sonner";
 import Image from "next/image";
 import {
   Button,
-  Badge,
   Card,
   CardContent,
   CardDescription,
@@ -29,16 +29,6 @@ export default function ExplorePage() {
   const [collections, setCollections] = useState<any[]>([]);
   const [nfts, setNfts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  const scrollCarousel = (direction: "left" | "right") => {
-    if (!carouselRef.current) return;
-    const scrollAmount = 340; // each card width + margin
-    carouselRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
 
   const fetchCollections = async (provider: any, contract: any) => {
     try {
@@ -79,7 +69,7 @@ export default function ExplorePage() {
           } catch {
             return null;
           }
-          let metadataURL = tokenURI.startsWith("ipfs://")
+          const metadataURL = tokenURI.startsWith("ipfs://")
             ? tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
             : tokenURI;
 
