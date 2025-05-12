@@ -29,8 +29,9 @@ export default function ExplorePage() {
 
   const [collections, setCollections] = useState<any[]>([]);
   const [nfts, setNfts] = useState<any[]>([]);
+  console.log("NFTs:", nfts);
   const [loading, setLoading] = useState(true);
-  const [buyingTokenId, setBuyingTokenId] = useState<number | null>(null);
+  const [buyingItemID, setBuyingItemID] = useState<number | null>(null);
 
   const fetchCollections = async (provider: any, contract: any) => {
     try {
@@ -126,7 +127,7 @@ export default function ExplorePage() {
   }, []);
   const handleBuy = async (nft: any) => {
     try {
-      setBuyingTokenId(nft.tokenId); // Start loading
+      setBuyingItemID(nft.itemId); // Start loading
 
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
@@ -149,7 +150,7 @@ export default function ExplorePage() {
         toast.error(`Failed to purchase NFT: ${error.message}`);
       }
     } finally {
-      setBuyingTokenId(null);
+      setBuyingItemID(null);
     }
   };
 
@@ -293,11 +294,11 @@ export default function ExplorePage() {
               </CardContent>
               <CardFooter className="pt-0">
                 <Button
-                  disabled={nft.sold || buyingTokenId === nft.tokenId}
+                  disabled={nft.sold || buyingItemID === nft.itemId}
                   className="w-full"
                   onClick={() => handleBuy(nft)}
                 >
-                  {buyingTokenId === nft.tokenId ? (
+                  {buyingItemID === nft.itemId ? (
                     <div className="flex items-center justify-center gap-2">
                       <svg
                         className="animate-spin h-5 w-5 text-white"
