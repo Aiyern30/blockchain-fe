@@ -554,7 +554,7 @@ export function PurchasedNft() {
 
       {/* NFT Details Dialog */}
       <Dialog open={showNFTDetails} onOpenChange={setShowNFTDetails}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           {selectedNFT && selectedNFT.metadata && (
             <>
               <DialogHeader>
@@ -617,31 +617,33 @@ export function PurchasedNft() {
                     </p>
                   </div>
 
-                  {selectedNFT.metadata.price && (
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Price</h3>
-                      <div className="flex items-center gap-2">
-                        <p className="text-xl font-bold">
-                          {selectedNFT.metadata.price} ETH
-                        </p>
-                        <span className="text-sm text-muted-foreground">
-                          (≈ $
+                  {selectedNFT.metadata.price &&
+                    Number(selectedNFT.metadata.price) > 0 && (
+                      <div>
+                        <h3 className="text-lg font-medium mb-2">Price</h3>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xl font-bold">
+                            {selectedNFT.metadata.price} ETH
+                          </p>
+                          <span className="text-sm text-muted-foreground">
+                            (≈ $
+                            {(
+                              Number(selectedNFT.metadata.price) *
+                              currencyRates.USD
+                            ).toFixed(2)}{" "}
+                            USD)
+                          </span>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          ≈ RM{" "}
                           {(
                             Number(selectedNFT.metadata.price) *
-                            currencyRates.USD
+                            currencyRates.MYR
                           ).toFixed(2)}{" "}
-                          USD)
-                        </span>
+                          MYR
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        ≈ RM{" "}
-                        {(
-                          Number(selectedNFT.metadata.price) * currencyRates.MYR
-                        ).toFixed(2)}{" "}
-                        MYR
-                      </div>
-                    </div>
-                  )}
+                    )}
 
                   <div>
                     <h3 className="text-lg font-medium mb-2 flex items-center">
