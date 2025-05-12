@@ -146,6 +146,7 @@ export default function CollectionNFTsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showNFTForm, setShowNFTForm] = useState(false);
   const [userAddress, setUserAddress] = useState<string>("");
+  const [shouldOpenModal, setShouldOpenModal] = useState(false);
 
   // State for NFT details dialog
   const [selectedNFT, setSelectedNFT] = useState<CollectionNFT | null>(null);
@@ -210,8 +211,12 @@ export default function CollectionNFTsPage() {
   // Fetch collection details and NFTs
   useEffect(() => {
     const fetchCollectionData = async () => {
-      if (!walletClient || !collectionAddress) return;
-
+      if (!walletClient || !collectionAddress) {
+        if (!walletClient) {
+          setShouldOpenModal(true);
+        }
+        return;
+      }
       setIsLoading(true);
       try {
         const provider = new ethers.BrowserProvider(walletClient);
@@ -1071,6 +1076,24 @@ export default function CollectionNFTsPage() {
             </p>
           )}
         </div>
+        <ConnectButton.Custom>
+          {({ openConnectModal }) => {
+            if (shouldOpenModal) {
+              toast.warning(
+                "Please connect your wallet to view your collections",
+                {
+                  style: {
+                    backgroundColor: "#f59e0b",
+                    color: "white",
+                  },
+                }
+              );
+              openConnectModal();
+              setShouldOpenModal(false);
+            }
+            return null;
+          }}
+        </ConnectButton.Custom>
 
         {!isLoading && (
           <div className="flex flex-col lg:flex-row lg:items-center gap-2 mt-4 sm:mt-0 lg:ml-auto w-full lg:w-auto">
