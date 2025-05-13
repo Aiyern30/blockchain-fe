@@ -1,96 +1,99 @@
-# 🖼️ NFT Marketplace DApp (Full Blockchain System)
+# GamerTokenHub - NFT Marketplace Frontend
 
-This is a fully functional **NFT Marketplace DApp** that allows users to create, list, buy, sell, relist, burn, and manage NFTs. The platform supports user profiles, collections, wishlists, cart systems, and transaction histories — providing a complete decentralized marketplace experience.
+A modern, responsive frontend for the GamerTokenHub NFT marketplace built with Next.js, Tailwind CSS, and ethers.js.
 
----
+## Features
 
-## ✨ Key Features
+- Create and manage NFT collections
+- Mint NFTs with custom metadata
+- List NFTs for sale with custom pricing
+- Browse and purchase NFTs
+- User profiles with owned NFTs and collections
+- Wishlist and shopping cart functionality
+- Responsive design for all devices
 
-### 🏠 General Pages
+## Tech Stack
 
-- ✅ Connect Wallet (RainbowKit, Web3Auth)
-- ✅ Homepage & Explore Page
-- ✅ Contact Us Page
+- **Next.js 14**: React framework with App Router
+- **Tailwind CSS**: Utility-first CSS framework
+- **ethers.js**: Ethereum library for blockchain interactions
+- **RainbowKit**: Wallet connection UI
+- **Framer Motion**: Animation library
+- **React Hook Form**: Form handling with Zod validation
+- **IPFS/Pinata**: Decentralized storage for NFT metadata and images
 
-### 🧑 User Profile
+## Getting Started
 
-- ✅ View own profile & other user profiles
-- ✅ Show wallet address, joined date (from first transaction)
-- ✅ Tabs: Collections, Cart, Wishlist, Transaction History
-- ✅ Filter & switch grid/list view for NFTs
+### Prerequisites
 
-### 🎨 NFT Collections
+- Node.js (v16+)
+- npm or yarn
+- MetaMask or another Ethereum wallet
 
-- ✅ Create Collection (with inputs & validations)
-- ✅ View created Collections (own & others)
-- ✅ List NFTs into Collections
-- ✅ View listed NFTs from collections
-- ✅ Empty state handling (no NFTs scenario)
+### Installation
 
-### 🖼️ NFT Actions
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd blockchain-assignment/blockchain-fe
+   ```
 
-- ✅ Create NFT (upload to IPFS, set metadata)
-- ✅ Buy NFT (with confirmation & validations)
-- ✅ Burn own NFT
-- ✅ Relist NFT (with gas fee confirmation)
-- ✅ Prevent buying own created NFTs (validation)
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-### 🛒 Wishlist & Cart
+3. Set up environment variables:
+   Create a `.env.local` file with the following variables:
+   ```
+   NEXT_PUBLIC_WEB3AUTH_CLIENT_ID=
+   NEXT_PUBLIC_ETHERSCAN_API_KEY=
+   NEXT_PUBLIC_PINATA_API_KEY=
+   PINATA_SECRET_API_KEY=
+   NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=
+   NEXT_PUBLIC_PINATA_JWT=
+   ```
 
-- ✅ Add/Remove NFTs to/from Wishlist
-- ✅ Add/Remove NFTs to/from Cart
-- ✅ View Wishlist & Cart pages (own user)
-- ✅ Cart empty state handling
-- ✅ Buy NFTs from Cart
+4. Run the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-### 🔄 Transactions
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- ✅ Fetch transaction history (via Etherscan API)
-- ✅ View personal transactions in Profile page
-- ✅ Transaction confirmation dialogs
-- ✅ Cancel transaction flows
+## Deployment
 
-### 📄 NFT Details
+1. Build the application:
+   ```bash
+   npm run build
+   # or
+   yarn build
+   ```
 
-- ✅ View NFT card details (listed NFTs)
-- ✅ Click card to open NFT details page
+2. Deploy to Vercel:
+   ```bash
+   vercel --prod
+   ```
+   
+   Alternatively, connect your GitHub repository to Vercel for automatic deployments.
 
----
+## Project Structure
 
-## 🛠️ Tech Stack
+- `app/`: Next.js app directory with pages and routes
+- `components/`: Reusable UI components
+- `contexts/`: React context providers
+- `hooks/`: Custom React hooks
+- `lib/`: Utility libraries and configurations
+- `public/`: Static assets
+- `type/`: TypeScript type definitions
+- `utils/`: Helper functions
 
-| Tech                   | Usage                                 |
-| ---------------------- | ------------------------------------- |
-| **Next.js**            | Frontend (App Router)                 |
-| **TypeScript**         | Type Safety                           |
-| **Tailwind CSS**       | UI Styling                            |
-| **shadcn/ui**          | Modern UI Components                  |
-| **Wagmi + RainbowKit** | Wallet Connection (Web3Auth fallback) |
-| **Etherscan API**      | Transaction History Fetching          |
-| **IPFS (via Pinata)**  | NFT Media & Metadata Storage          |
-| **Lucide React**       | Icon Library                          |
+## Live Demo
 
----
+The application is currently deployed at: [http://gamertokenhub.vercel.app/](http://gamertokenhub.vercel.app/)
 
-## 📝 User Flow
-
-1. Connect wallet → View Homepage & Explore NFTs
-2. Create Collections → Create & List NFTs
-3. Browse NFTs → Add to Wishlist or Cart
-4. Purchase NFTs → Confirm & handle transactions
-5. Manage Profile → View own collections, cart, wishlist, transaction history
-6. Relist, Burn, or View NFT details
-7. Other users can view collections but cannot edit others' NFTs
-
-## 🚀 Getting Started (Local)
-
-```bash
-# Clone the repository
-git clone https://github.com/Aiyern30/blockchain-fe.git
-
-# Install dependencies
-npm install
-
-# Run the development server
-npm run dev
-```
+**Note:** The marketplace currently operates only on the Sepolia testnet, not on mainnet.
