@@ -53,15 +53,3 @@ export const canResell = (nft: CollectionNFT, userAddress: string): boolean => {
   // We're removing the requirement for a market item with sold=true
   return isNFTOwner(nft, userAddress) && !isNFTListed(nft);
 };
-
-// Check if user can burn an NFT (only owner or creator can burn)
-export const canBurnNFT = (
-  nft: CollectionNFT,
-  userAddress: string,
-  collectionOwner: string
-): boolean => {
-  return (
-    isNFTOwner(nft, userAddress) ||
-    isCollectionCreator(collectionOwner, userAddress)
-  );
-};
